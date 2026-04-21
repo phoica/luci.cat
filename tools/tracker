@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<title>HRT Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root,body[data-theme="dark"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#a48bcf;--accent-dim:rgba(164,139,207,.13);--accent-glow:rgba(164,139,207,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5);--chart-bg:#181b20}
+body[data-theme="light"]{--bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#7c5cad;--accent-dim:rgba(124,92,173,.1);--accent-glow:rgba(124,92,173,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08);--chart-bg:#ffffff}
+body[data-theme="cottage"]{--bg:#faf5ee;--surface:#fdf8f0;--surface2:#f3ece0;--surface3:#e8dfd0;--border:#d4c4aa;--border-hover:#bfac8e;--text:#4a3f2f;--text-muted:#7a6f5e;--text-dim:#a69882;--accent:#c27a98;--accent-dim:rgba(194,122,152,.12);--accent-glow:rgba(194,122,152,.22);--danger:#c46b5e;--radius:16px;--radius-sm:12px;--shadow:0 3px 16px rgba(80,60,30,.06);--chart-bg:#fdf8f0}
+body[data-theme="evil"]{--bg:#08040a;--surface:#0e060c;--surface2:#180a14;--surface3:#22101c;--border:#3c1428;--border-hover:#5c1e3a;--text:#e8c0cc;--text-muted:#a87088;--text-dim:#6c3850;--accent:#dc2040;--accent-dim:rgba(220,32,64,.15);--accent-glow:rgba(220,32,64,.35);--danger:#ff2848;--radius:10px;--radius-sm:7px;--shadow:0 4px 30px rgba(220,0,40,.2);--chart-bg:#0e060c}
+body[data-theme="nonchalant"]{--bg:#1e2420;--surface:#262d28;--surface2:#2e3630;--surface3:#3a4238;--border:#3d4a3e;--border-hover:#556253;--text:#d4d9ce;--text-muted:#9aa696;--text-dim:#6b7668;--accent:#8fb380;--accent-dim:rgba(143,179,128,.14);--accent-glow:rgba(143,179,128,.25);--danger:#c78a6b;--radius:12px;--radius-sm:9px;--shadow:0 4px 20px rgba(20,30,20,.3);--chart-bg:#262d28}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:28px;line-height:1.6;font-size:17px}
+.header{display:flex;align-items:center;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.header h1{font-size:32px;font-weight:600;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),#7eaad4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
+body[data-theme="light"] .header h1{background:linear-gradient(135deg,#6a4c93,#4a8cc4);-webkit-background-clip:text}
+body[data-theme="cottage"] .header h1{background:linear-gradient(135deg,#c27a98,#8aab7a,#d4a574);-webkit-background-clip:text}
+body[data-theme="evil"] .header h1{background:linear-gradient(135deg,#dc2040,#880020);-webkit-background-clip:text}
+body[data-theme="nonchalant"] .header h1{background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text}
+.header .by{font-size:16px;color:var(--text-dim);white-space:nowrap}
+.header .by a{color:var(--accent);text-decoration:none;opacity:.7}
+.header-btn{font-size:13px;padding:6px 12px;color:var(--text-muted)}
+.header .by a:hover{opacity:1}
+.header-spacer{flex:1}
+.lang-select,.undo-btn{padding:7px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;outline:none}
+.undo-btn{display:none;gap:5px;align-items:center}
+.undo-btn.visible{display:inline-flex}
+.undo-btn:hover,.lang-select:hover{border-color:var(--accent);color:var(--accent)}
+.lang-select option{background:var(--surface2);color:var(--text)}
+
+/* Profile bar */
+.profile-bar{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:22px;flex-wrap:wrap}
+.profile-bar-label{font-size:14px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);font-weight:500}
+.profile-tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.profile-tab{display:flex;align-items:center;gap:12px;padding:5px 10px 5px 5px;border-radius:32px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:15px;cursor:pointer;transition:all .2s;white-space:nowrap;position:relative}
+.profile-tab:hover{background:var(--surface3);color:var(--text);border-color:var(--border-hover)}
+.profile-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--text);font-weight:500}
+.profile-tab .tab-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border);flex-shrink:0}
+.profile-tab.active .tab-pic{border-color:var(--accent)}
+.profile-tab .tab-dot{width:10px;height:10px;border-radius:50%;background:var(--text-dim);margin-left:4px}
+.profile-tab.active .tab-dot{background:var(--accent);box-shadow:0 0 6px var(--accent-glow)}
+.profile-tab > span:not(.tab-dot){padding:0 2px 0 0}
+.profile-tab .tab-menu-btn{width:26px;height:26px;border-radius:50%;border:1px solid transparent;background:var(--surface3);color:var(--text-muted);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:2px;transition:all .15s;line-height:1;letter-spacing:1px;font-weight:700;padding:0 0 3px 0;flex-shrink:0}
+.profile-tab .tab-menu-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.08)}
+.profile-tab.active .tab-menu-btn{background:rgba(255,255,255,.08);color:var(--text)}
+.ctx-menu{position:absolute;top:100%;left:0;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:4px 0;min-width:160px;display:none}
+.ctx-menu.open{display:block}
+.ctx-menu-item{display:block;width:100%;padding:9px 18px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:15px;text-align:left;cursor:pointer}
+.ctx-menu-item:hover{background:var(--surface2);color:var(--text)}
+.profile-actions{display:flex;gap:8px;align-items:center}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:hover{border-color:var(--border-hover);color:var(--text);background:var(--surface3)}
+.btn-accent{background:var(--accent-dim);border-color:rgba(164,139,207,.3);color:var(--accent)}
+.btn-accent:hover{background:rgba(164,139,207,.22);border-color:var(--accent)}
+.btn-sm{padding:5px 12px;font-size:13px}
+.btn svg{width:16px;height:16px}
+
+/* Chart tabs */
+.chart-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.chart-tab{padding:7px 18px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s}
+.chart-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.chart-tab:hover{background:var(--surface2);color:var(--text)}
+
+/* Chart */
+.chart-container canvas{width:100%;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);display:block;margin-bottom:8px}
+
+/* Stats */
+.stats-bar{display:flex;gap:20px;padding:12px 18px;margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;font-size:15px;color:var(--text-muted)}
+.stat-item{display:flex;align-items:center;gap:6px}
+.stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Panels */
+.panels-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
+@media(max-width:900px){.panels-grid{grid-template-columns:1fr}}
+.panel{padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-title{font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:8px}
+.panel-title::before{content:'';width:3px;height:16px;border-radius:2px;background:var(--accent)}
+.field-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:13px;color:var(--text-dim);font-weight:500;letter-spacing:.4px;text-transform:uppercase}
+.field input,.field select{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:15px;outline:none;transition:border-color .2s;width:160px}
+.field select{font-family:'DM Sans',sans-serif;cursor:pointer}
+.field select option{background:var(--surface2);color:var(--text)}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
+.field input[type="color"]{width:42px;height:38px;padding:2px;cursor:pointer}
+
+/* Tags */
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:16px;font-size:14px;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:default;transition:all .15s}
+.tag .tag-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.tag .tag-x{width:18px;height:18px;border-radius:50%;border:none;background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.tag .tag-x:hover{background:var(--danger);color:#fff}
+.med-pill{cursor:pointer;user-select:none}
+.med-pill.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
+.axis-toggle{cursor:pointer;user-select:none}
+.axis-toggle.show-axis{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
+
+/* Med/hormone settings */
+.item-settings{margin-top:10px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2)}
+.item-settings-title{font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;font-weight:500}
+
+/* Recurring */
+.recur-section{margin-top:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);overflow:hidden}
+.recur-header{padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;user-select:none}
+.recur-header:hover{color:var(--text)}
+.recur-header .arrow{font-size:11px;transition:transform .2s}
+.recur-header .arrow.open{transform:rotate(180deg)}
+.recur-body{padding:0 14px 14px;display:none}
+.recur-body.open{display:block}
+
+/* Date selects */
+.date-selects{display:flex;gap:4px}
+.date-selects select{padding:10px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer}
+.date-selects select:focus{border-color:var(--accent)}
+.date-selects .ds-day{width:60px}
+.date-selects .ds-month{width:130px}
+.date-selects .ds-year{width:85px}
+
+/* Range bar */
+.range-bar{display:flex;align-items:center;gap:12px;margin-top:16px;padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap}
+.toggle-bar{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 18px;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);flex-wrap:wrap;margin-top:-1px}
+.range-bar+.toggle-bar{border-top:1px dashed var(--border)}
+.range-bar:has(+.toggle-bar){border-radius:var(--radius) var(--radius) 0 0}
+.toggle-bar-title{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-right:4px}
+.range-bar label{font-size:15px;color:var(--text-dim);font-weight:500}
+.range-bar input[type="number"]{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:15px;width:80px;outline:none}
+.toggle-switch{position:relative;width:38px;height:22px;cursor:pointer;display:inline-block;vertical-align:middle}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:11px;transition:.2s;border:1px solid var(--border)}
+.toggle-slider::before{content:'';position:absolute;width:16px;height:16px;left:2px;bottom:2px;background:var(--text-dim);border-radius:50%;transition:.2s}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent-dim);border-color:var(--accent)}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(16px);background:var(--accent)}
+.toggle-label{font-size:14px;color:var(--text-muted)}
+
+/* Custom add modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:480px;max-width:92vw;box-shadow:var(--shadow)}
+.modal h3{font-size:20px;font-weight:600;margin-bottom:18px}
+.modal input[type="text"],.modal input[type="number"]{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:var(--accent)}
+.modal-buttons{display:flex;gap:12px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.modal-label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:500}
+.baseline-options{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.baseline-options.vertical{flex-direction:column}
+.baseline-opt{flex:1;min-width:120px;padding:14px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;text-align:center;cursor:pointer;transition:all .2s;line-height:1.5}
+.baseline-opt:hover{border-color:var(--border-hover);color:var(--text)}
+.baseline-opt.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500}
+.baseline-opt .opt-title{font-weight:600;font-size:15px;margin-bottom:4px}
+.baseline-opt .opt-desc{font-size:12px;color:var(--text-dim);font-weight:400}
+
+/* History */
+.history-panel{margin-top:22px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.history-tabs{display:flex;gap:6px;margin-bottom:14px}
+.history-tab{padding:7px 20px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-family:inherit;font-size:15px;cursor:pointer;transition:all .2s}
+.history-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.history-table{width:100%;border-collapse:collapse;font-size:15px}
+.history-table th{text-align:left;padding:9px 10px;color:var(--text-dim);font-weight:500;text-transform:uppercase;font-size:13px;letter-spacing:.5px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.history-table th:hover{color:var(--text)}
+.history-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:14px}
+.history-table tr:hover td{color:var(--text);background:var(--surface2)}
+.hist-actions{display:flex;gap:5px}
+.hist-btn{padding:4px 12px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:inherit}
+.hist-btn:hover{color:var(--text);border-color:var(--border-hover)}
+.hist-btn.hist-del:hover{color:var(--danger);border-color:var(--danger)}
+.history-empty{color:var(--text-dim);font-size:15px;padding:14px 0}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:22px;font-size:16px;box-shadow:var(--shadow);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:200;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#importInput,#pfpInput{display:none}
+/* Chart resizer - 4-way pull tabs */
+.chart-wrapper{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto 1fr auto;gap:0;margin-bottom:8px;position:relative}
+.chart-wrapper .chart-container{grid-column:2;grid-row:2;min-width:200px;min-height:200px;overflow:hidden}
+.chart-wrapper .grip-corner{width:10px;height:10px;background:transparent}
+.chart-grip{display:flex;align-items:center;justify-content:center;cursor:col-resize;user-select:none;position:relative;opacity:.4;transition:all .25s;color:var(--text-dim);font-size:11px;font-weight:700;flex-shrink:0}
+.chart-grip.grip-h{width:14px;grid-row:2}
+.chart-grip.grip-v{height:14px;grid-column:2;cursor:row-resize}
+.chart-grip-l{grid-column:1}
+.chart-grip-r{grid-column:3}
+.chart-grip-t{grid-row:1}
+.chart-grip-b{grid-row:3}
+.chart-grip::before{content:'';position:absolute;border-radius:2px;background:var(--text-dim);transition:all .25s}
+.chart-grip.grip-h::before{top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:40px}
+.chart-grip.grip-v::before{top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:2px}
+.chart-grip::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;background:var(--text-dim);border-radius:3px;transition:all .25s;z-index:2;box-shadow:inset 0 0 0 2px var(--bg)}
+.chart-grip:hover,.chart-grip.active{opacity:1}
+.chart-grip:hover::before,.chart-grip.active::before{background:var(--accent);box-shadow:0 0 8px var(--accent-glow)}
+.chart-grip:hover::after,.chart-grip.active::after{background:var(--accent);box-shadow:inset 0 0 0 2px var(--bg),0 0 6px var(--accent-glow)}
+#gripL::before,#gripR::before{height:70%}
+#gripT::before,#gripB::before{width:70%}
+#gripL:hover::before,#gripR:hover::before,#gripL.active::before,#gripR.active::before{height:75%}
+#gripT:hover::before,#gripB:hover::before,#gripT.active::before,#gripB.active::before{width:75%}
+#gripL::before,#gripR::before{height:70%}
+#gripL:hover::before,#gripR:hover::before,#gripL.active::before,#gripR.active::before{height:75%}
+
+@keyframes sparkle{0%,100%{box-shadow:0 0 4px var(--accent-glow)}50%{box-shadow:0 0 16px var(--accent),0 0 30px var(--accent-glow)}}
+.add-profile-btn.sparkle{animation:sparkle 1.5s ease-in-out infinite}
+.catalog-gear{position:absolute;bottom:10px;right:10px;width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .2s}
+.catalog-gear:hover{color:var(--accent);border-color:var(--accent);transform:rotate(30deg)}
+.catalog-list{max-height:60vh;overflow-y:auto;margin:-8px -4px 12px -4px;padding:4px}
+.catalog-row{display:grid;grid-template-columns:22px minmax(120px,1.4fr) 58px 78px 18px 82px 14px 82px;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);font-size:14px;border:1px solid transparent;border-bottom:1px solid var(--border)}
+.catalog-row.med-row{grid-template-columns:22px 1fr 58px 78px}
+.catalog-row.tracked{background:var(--accent-dim)}
+.catalog-swatch{width:22px;height:22px;border-radius:4px;flex-shrink:0;cursor:pointer;padding:0;border:1px solid var(--border)}
+.catalog-name{color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.catalog-tag{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;text-align:center;padding:0;background:none;border:none}
+.catalog-unit-select{padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;width:100%}
+.catalog-range-input{padding:4px 5px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:11px;font-family:'JetBrains Mono',monospace;width:100%;box-sizing:border-box;min-width:0;-moz-appearance:textfield}
+.catalog-range-input::-webkit-outer-spin-button,.catalog-range-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.catalog-del-btn{background:none;border:none;cursor:pointer;padding:3px 4px;margin-left:6px;color:var(--text-dim);display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;border-radius:4px;transition:color .15s,background .15s}
+.catalog-del-btn:hover{color:var(--danger);background:rgba(207,107,107,.12)}
+.catalog-range-dash{color:var(--text-dim);font-size:11px;text-align:center}
+/* Cottage theme — cute details */
+body[data-theme="cottage"] .panel,body[data-theme="cottage"] .history-panel{border:1px solid var(--border);box-shadow:0 2px 12px rgba(180,140,80,.06)}
+body[data-theme="cottage"] .btn{border-radius:14px}
+body[data-theme="cottage"] .btn-accent{background:linear-gradient(135deg,var(--accent),#d4a095);border:none;color:white}
+body[data-theme="cottage"] .profile-tab{border-radius:18px}
+body[data-theme="cottage"] .tag{border-radius:14px}
+body[data-theme="cottage"] .header h1::after{content:" 🌸";font-size:24px;-webkit-text-fill-color:initial}
+/* Evil theme — sharp, menacing */
+body[data-theme="evil"] .panel,body[data-theme="evil"] .history-panel{border:1px solid var(--border);box-shadow:0 2px 20px rgba(220,32,64,.08),inset 0 0 40px rgba(220,32,64,.03)}
+body[data-theme="evil"] .btn-accent{background:linear-gradient(180deg,#e83858,#a00020);color:#fff!important;border:1px solid #5a0018;box-shadow:0 0 12px rgba(220,32,64,.4),inset 0 1px 0 rgba(255,255,255,.1);text-shadow:0 1px 2px rgba(0,0,0,.6);font-weight:600}
+body[data-theme="evil"] .btn-accent:hover{background:linear-gradient(180deg,#ff486a,#c00028);box-shadow:0 0 20px rgba(220,32,64,.6),inset 0 1px 0 rgba(255,255,255,.15)}
+body[data-theme="evil"] .header h1{text-shadow:0 0 20px rgba(220,32,64,.4);filter:drop-shadow(0 0 6px rgba(220,32,64,.3))}
+body[data-theme="evil"] .profile-tab.active{box-shadow:0 0 10px rgba(220,32,64,.4)}
+/* Nonchalant theme — laid-back natural greens */
+body[data-theme="nonchalant"] .panel,body[data-theme="nonchalant"] .history-panel{border:1px solid var(--border);box-shadow:0 2px 14px rgba(30,40,30,.18)}
+body[data-theme="nonchalant"] .btn-accent{background:linear-gradient(180deg,#9cbf8c,#7a9e6e);color:#1e2420!important;border:1px solid #6a8a60;font-weight:500}
+body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180deg,#abd099,#87a87a)}
+body[data-theme="nonchalant"] .header h1::after{content:" 🍃";font-size:24px;-webkit-text-fill-color:initial;opacity:.7}
+@media print{body{background:#fff!important;color:#333!important;padding:10mm}canvas{page-break-inside:avoid}.header,.profile-bar,.range-bar,.panels-grid,.history-panel,.chart-tabs,.stats-bar,.toast,.modal-overlay{display:none!important}.chart-container canvas{border:1px solid #ccc}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>HRT Tracker</h1>
+  <span class="by">by Lúcia <a id="kofiLink" href="#" title="Ko-fi">☕ ko-fi</a></span>
+  <div class="header-spacer"></div>
+  <button class="undo-btn" id="undoBtn" onclick="undo()">↩ Undo</button>
+  <button class="btn btn-sm header-btn" onclick="document.getElementById('infoModal').classList.add('open')" title="About / License / Disclaimer" style="font-weight:600;width:28px;height:28px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;line-height:1">?</button>
+  <select id="themeSelect" class="lang-select" onchange="setTheme(this.value)" style="margin-right:4px">
+    <option value="dark">Dark</option>
+    <option value="light">Light</option>
+    <option value="cottage">Cottage</option>
+    <option value="nonchalant">Nonchalant</option>
+    <option value="evil">Evil</option>
+  </select>
+  <select id="langSelect" class="lang-select" onchange="setLang(this.value)">
+    <option value="en">English</option>
+    <option value="pt">Português (BR)</option>
+  </select>
+  <a href="mailto:bugport.helpline266@passmail.net?subject=HRT%20Tracker%20Feedback" class="btn btn-sm header-btn" style="text-decoration:none;line-height:1.2;padding:6px 14px;text-align:center;display:inline-flex;flex-direction:column;align-items:center;gap:0;white-space:nowrap;margin-left:auto">Report Bug<span style="font-size:10px;opacity:.75;margin-top:1px">Give Feedback</span></a>
+</div>
+
+<div class="profile-bar">
+  <span class="profile-bar-label" data-i18n="profiles">Profiles</span>
+  <div class="profile-tabs" id="profileTabs"></div>
+  <div class="profile-actions">
+    <button class="btn btn-accent add-profile-btn" onclick="openNewProfileModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="addProfileBtn">Add Profile</span></button>
+    <button class="btn" onclick="exportProfiles()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="exportBtn">Export</span></button>
+    <button class="btn" onclick="document.getElementById('importInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span data-i18n="importBtn">Import</span></button>
+    <button class="btn" onclick="openDataSettings()" title="Data management" style="padding:6px 9px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+    <input type="file" id="importInput" accept=".json" onchange="importProfiles(event)">
+    <input type="file" id="pfpInput" accept="image/*" onchange="setProfilePic(event)">
+  </div>
+</div>
+
+<!-- Chart view tabs -->
+<div class="chart-tabs" id="chartTabs"></div>
+
+<!-- Chart container with 4-way resize handles -->
+<div class="chart-wrapper" id="chartResizer">
+  <div class="grip-corner"></div>
+  <div class="chart-grip grip-v chart-grip-t" id="gripT"></div>
+  <div class="grip-corner"></div>
+  <div class="chart-grip grip-h chart-grip-l" id="gripL"></div>
+  <div class="chart-container" id="chartContainer">
+    <canvas id="chart"></canvas>
+  </div>
+  <div class="chart-grip grip-h chart-grip-r" id="gripR"></div>
+  <div class="grip-corner"></div>
+  <div class="chart-grip grip-v chart-grip-b" id="gripB"></div>
+  <div class="grip-corner"></div>
+</div>
+
+<div id="statsBar" class="stats-bar"></div>
+
+<div class="range-bar">
+  <label data-i18n="showFromDay">From day:</label>
+  <input id='xMinInput' type='number' value='-20'>
+  <label data-i18n="showUpToDay">to day:</label>
+  <input id='xMaxInput' type='number' value='350'>
+  <button class="btn btn-sm" onclick='updateRange()'>Apply</button>
+  <div style="flex:1"></div>
+  <button class="btn" onclick="openStartDateModal()" style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-i18n="hrtStartDate">Set Start Date</span></button>
+  <button class="btn" onclick='exportPNG()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> <span data-i18n="exportPng">Export PNG</span></button>
+  <button class="btn" onclick='printChart()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print</button>
+</div>
+<div class="toggle-bar">
+  <label class="toggle-switch"><input type="checkbox" id="showLabelsToggle" checked onchange="toggleLabels()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showLabels">Labels</span>
+  <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showValuesToggle" checked onchange="toggleValues()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showValues">Values</span>
+  <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showGuidesToggle" checked onchange="toggleGuides()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showGuides">Guides</span>
+  <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showLegendToggle" checked onchange="toggleLegend()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showLegend">Legend</span>
+  <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showPreHrtToggle" checked onchange="togglePreHrt()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showPreHrt">Pre-HRT</span>
+  <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showRangesToggle" checked onchange="toggleRanges()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showRanges">Ranges</span>
+  <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showAxesToggle" onchange="toggleShowAxes()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showAxesLabel">Axes</span>
+</div>
+
+<div class="range-bar" id="axesForRow" style="margin-top:10px;display:none">
+  <label data-i18n="showAxesFor">Show axes for:</label>
+  <div class="tag-row" id="axisToggles" style="margin-bottom:0;flex:1"></div>
+</div>
+
+<!-- Panels -->
+<div class="panels-grid">
+  <!-- Dosage Panel -->
+  <div class="panel" style="position:relative">
+    <div class="panel-header">
+      <div class="panel-title" data-i18n="addDosage">Add Dosage</div>
+      <button class="btn btn-accent btn-sm" onclick="openAddMedModal()">+ <span data-i18n="addMedication">Add Medication</span></button>
+    </div>
+    <div id="dosePanel"></div>
+    <button class="catalog-gear" onclick="openCatalog('meds')" title="Medication catalog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+  </div>
+  <!-- Lab Panel -->
+  <div class="panel" style="position:relative">
+    <div class="panel-header">
+      <div class="panel-title" data-i18n="addLabTest">Add Lab Test</div>
+      <button class="btn btn-accent btn-sm" onclick="openAddHormoneModal()">+ <span data-i18n="trackHormone">Track Hormone</span></button>
+    </div>
+    <div id="labPanel"></div>
+    <button class="catalog-gear" onclick="openCatalog('hormones')" title="Hormone catalog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+  </div>
+</div>
+
+<!-- History -->
+<div class="history-panel">
+  <div class="panel-header">
+    <div class="panel-title" data-i18n="history">History</div>
+  </div>
+  <div class="history-tabs">
+    <button class="history-tab active" onclick="switchHistoryTab('doses',this)" data-i18n="doses">Doses</button>
+    <button class="history-tab" onclick="switchHistoryTab('labs',this)" data-i18n="labTests">Lab Tests</button>
+  </div>
+  <div id="historyContent"></div>
+</div>
+
+<!-- Modals -->
+<!-- Data Settings Modal -->
+<div class="modal-overlay" id="dataModal">
+  <div class="modal" style="max-width:520px">
+    <h3 id="dataModalTitle">Data Management</h3>
+    <div style="font-size:13px;color:var(--text-dim);margin-bottom:16px;line-height:1.6" id="dataModalDesc">Manage how your profiles are stored and synced.</div>
+    <div id="dataModalBody" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div class="modal-buttons"><button class="btn" onclick="closeModal('dataModal')">Close</button></div>
+  </div>
+</div>
+
+<!-- About / License / Disclaimer Modal -->
+<div class="modal-overlay" id="infoModal">
+  <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto">
+    <h3>HRT Tracker</h3>
+    <div style="font-size:14px;line-height:1.7;color:var(--text-muted)">
+      <div style="padding:14px;background:var(--danger);background:rgba(207,107,107,.12);border:1px solid var(--danger);border-radius:var(--radius-sm);margin-bottom:16px;color:var(--text)">
+        <strong style="color:var(--danger);display:block;margin-bottom:6px;font-size:15px">⚠ Medical Disclaimer</strong>
+        This tool is provided <strong>for informational and personal tracking purposes only</strong>. It is <strong>NOT</strong> a medical device and is <strong>NOT</strong> intended to diagnose, treat, cure, or prevent any medical condition. The creator of this tool is not a medical professional and assumes no responsibility for any decisions, health outcomes, or damages — physical, emotional, financial, or otherwise — arising from its use.<br><br>
+        Always consult a qualified healthcare provider about hormone therapy or medication. Do not use this tool as a substitute for professional medical advice, diagnosis, or treatment. Lab reference ranges, preset baselines, and target values shown here are generalizations and may not apply to your specific situation.<br><br>
+        Calculations, visualizations, and data interpretations may contain errors or inaccuracies. Verify all medical information with your physician.
+      </div>
+      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">🔒 Privacy</h4>
+      <p>All your data is stored <strong>locally on your device</strong>, in your browser's localStorage. Nothing is sent to any server. You can export your data as a JSON file at any time for backup. Clearing your browser data will erase all profiles.</p>
+      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">📜 License</h4>
+      <p>This tool is released under the <strong>MIT License</strong>. You are free to use, modify, and distribute it. No warranty is provided; use at your own risk.</p>
+      <pre style="background:var(--surface2);padding:10px;border-radius:var(--radius-sm);font-size:11px;overflow-x:auto;color:var(--text-dim);font-family:'JetBrains Mono',monospace;line-height:1.4;margin:8px 0">MIT License — Copyright (c) 2025 Lúcia
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</pre>
+      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">🙏 Credits</h4>
+      <p>Made with care by Lúcia. Fonts: DM Sans &amp; JetBrains Mono (Google Fonts, OFL).</p>
+      <p style="font-size:13px;color:var(--text-dim);margin-top:12px">If this tool helped you, consider <a href="#" id="kofiLink2" style="color:var(--accent)">supporting on Ko-fi ☕</a>.</p>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-accent" onclick="closeModal('infoModal')">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- HRT Start Date Modal -->
+<div class="modal-overlay" id="startDateModal">
+  <div class="modal" style="max-width:400px">
+    <h3 data-i18n="hrtStartDate">HRT Start Date</h3>
+    <div style="margin:16px 0">
+      <div class="date-selects" id="hrtStartDateSelects" style="display:flex;gap:8px"></div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn" onclick="closeModal('startDateModal')" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-accent" onclick="updateStartDate();closeModal('startDateModal')" data-i18n="applyBtn">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Catalog Modal -->
+<div class="modal-overlay" id="catalogModal">
+  <div class="modal" style="max-width:780px;width:90vw">
+    <h3 id="catalogTitle">Catalog</h3>
+    <div id="catalogHint" style="display:none;font-size:12px;color:var(--text-dim);line-height:1.5;padding:10px 12px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"></div>
+    <div id="catalogHeader" style="display:none"></div>
+    <div class="catalog-list" id="catalogList"></div>
+    <button class="btn btn-sm" id="catalogAddCustomBtn" style="margin-top:8px">+ <span data-i18n="custom">Custom</span></button>
+    <div class="modal-buttons">
+      <button class="btn" onclick="catalogCancel()" data-i18n="cancel">Cancel</button>
+      <button class="btn btn-accent" onclick="catalogApply()" data-i18n="applyBtn">Apply</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="newProfileModal">
+  <div class="modal" style="max-width:480px">
+    <h3 id="wizardTitle" data-i18n="createProfile">Create Profile</h3>
+    <div id="wizardContent"></div>
+    <div class="modal-buttons" id="wizardButtons"></div>
+  </div>
+</div>
+
+<!-- Add Medication Modal -->
+<div class="modal-overlay" id="addMedModal">
+  <div class="modal" style="max-width:620px;max-height:85vh;display:flex;flex-direction:column">
+    <h3 data-i18n="addMedication">Add Medication</h3>
+    <div id="addMedBody" style="overflow-y:auto;flex:1;padding-right:4px"></div>
+    <div id="customMedForm" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius-sm)">
+      <div style="display:grid;grid-template-columns:1fr 80px 42px;gap:8px;align-items:center;margin-bottom:8px">
+        <input id="customMedName" type="text" placeholder="Medication name" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
+        <select id="customMedUnit" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px"><option value="mg">mg</option><option value="mL">mL</option><option value="IU">IU</option><option value="mcg">mcg</option><option value="g">g</option></select>
+        <input id="customMedColor" type="color" value="#b07cd8" style="width:42px;height:32px;padding:1px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+      </div>
+      <div style="display:flex;gap:6px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="document.getElementById('customMedForm').style.display='none'">Cancel</button>
+        <button class="btn btn-sm btn-accent" onclick="confirmAddCustomMedFromModal()">Add</button>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn" onclick="closeModal('addMedModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Hormone Modal -->
+<div class="modal-overlay" id="addHormoneModal">
+  <div class="modal" style="max-width:620px;max-height:85vh;display:flex;flex-direction:column">
+    <h3 data-i18n="trackHormone">Track Hormone</h3>
+    <div id="addHormoneBody" style="overflow-y:auto;flex:1;padding-right:4px"></div>
+    <div id="customHormoneForm" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius-sm)">
+      <div style="display:grid;grid-template-columns:1fr 90px 42px;gap:8px;align-items:center;margin-bottom:8px">
+        <input id="customHormoneName" type="text" placeholder="Hormone/marker name" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
+        <input id="customHormoneUnit" type="text" value="ng/mL" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
+        <input id="customHormoneColor" type="color" value="#dd88aa" style="width:42px;height:32px;padding:1px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+      </div>
+      <div style="display:flex;gap:6px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="document.getElementById('customHormoneForm').style.display='none'">Cancel</button>
+        <button class="btn btn-sm btn-accent" onclick="confirmAddCustomHormoneFromModal()">Add</button>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn" onclick="closeModal('addHormoneModal')" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══ DEFINITIONS ═══
+const BUILTIN_HORMONES={E2:{name:'Estradiol',unit:'pg/mL',color:'#7eb8da',maxScale:1000,step:100,tprehrtm:{typ:30,tLo:100,tHi:350},tprehrtf:{typ:100,tLo:100,tHi:350}},PRL:{name:'Prolactin',unit:'ng/mL',color:'#daa06d',maxScale:40,step:5,tprehrtm:{typ:8,tLo:2,tHi:25},tprehrtf:{typ:12,tLo:2,tHi:25}},T:{name:'Testosterone',unit:'ng/mL',color:'#7eda9c',maxScale:7,step:1,tprehrtm:{typ:5.5,tLo:0.1,tHi:0.55},tprehrtf:{typ:0.3,tLo:0.15,tHi:0.7}},SHBG:{name:'SHBG',unit:'nmol/L',color:'#c49cde',maxScale:160,step:20,tprehrtm:{typ:35,tLo:20,tHi:130},tprehrtf:{typ:60,tLo:20,tHi:130}},DHT:{name:'DHT',unit:'pg/mL',color:'#de9c9c',maxScale:500,step:50,tprehrtm:{typ:400,tLo:0,tHi:100},tprehrtf:{typ:20,tLo:0,tHi:100}},LH:{name:'LH',unit:'mIU/mL',color:'#9cccde',maxScale:20,step:2,tprehrtm:{typ:5,tLo:0.5,tHi:9},tprehrtf:{typ:6,tLo:0.5,tHi:9}},FSH:{name:'FSH',unit:'mIU/mL',color:'#a8de9c',maxScale:20,step:2,tprehrtm:{typ:5,tLo:0.5,tHi:8},tprehrtf:{typ:6,tLo:0.5,tHi:8}},PROG:{name:'Progesterone',unit:'ng/mL',color:'#deb89c',maxScale:25,step:5,tprehrtm:{typ:0.4,tLo:0.1,tHi:1.5},tprehrtf:{typ:1,tLo:0.1,tHi:1.5}},IGF1:{name:'IGF-1',unit:'ng/mL',color:'#9cb8de',maxScale:400,step:50,tprehrtm:{typ:200,tLo:100,tHi:300},tprehrtf:{typ:180,tLo:100,tHi:300}},CORT:{name:'Cortisol',unit:'µg/dL',color:'#b8de9c',maxScale:30,step:5,tprehrtm:{typ:12,tLo:5,tHi:23},tprehrtf:{typ:12,tLo:5,tHi:23}},ALT:{name:'ALT',unit:'U/L',color:'#de9cba',maxScale:80,step:10,tprehrtm:{typ:28,tLo:0,tHi:44},tprehrtf:{typ:18,tLo:0,tHi:44}},AST:{name:'AST',unit:'U/L',color:'#9cdec4',maxScale:80,step:10,tprehrtm:{typ:26,tLo:0,tHi:40},tprehrtf:{typ:20,tLo:0,tHi:40}},VITD:{name:'Vitamin D',unit:'ng/mL',color:'#ded49c',maxScale:100,step:10,tprehrtm:{typ:30,tLo:30,tHi:80},tprehrtf:{typ:30,tLo:30,tHi:80}},FE:{name:'Ferritin',unit:'ng/mL',color:'#c4a882',maxScale:300,step:50,tprehrtm:{typ:120,tLo:20,tHi:200},tprehrtf:{typ:50,tLo:20,tHi:200}},B12:{name:'Vitamin B12',unit:'pg/mL',color:'#a8c4de',maxScale:1200,step:200,tprehrtm:{typ:400,tLo:200,tHi:900},tprehrtf:{typ:400,tLo:200,tHi:900}},HCT:{name:'Hematocrit',unit:'%',color:'#de8e8e',maxScale:60,step:5,tprehrtm:{typ:45,tLo:36,tHi:46},tprehrtf:{typ:40,tLo:36,tHi:46}},CREAT:{name:'Creatinine',unit:'mg/dL',color:'#8edeb2',maxScale:2,step:0.5,tprehrtm:{typ:1.0,tLo:0.5,tHi:1.2},tprehrtf:{typ:0.8,tLo:0.5,tHi:1.2}},K:{name:'Potassium',unit:'mEq/L',color:'#dece8e',maxScale:7,step:1,tprehrtm:{typ:4.2,tLo:3.5,tHi:5.0},tprehrtf:{typ:4.0,tLo:3.5,tHi:5.0}}};
+const BUILTIN_MEDS=[{id:'een',name:'Estradiol Enanthate (EEn)',color:'#b07cd8',unit:'mg'},{id:'ev',name:'Estradiol Valerate (EV)',color:'#c87cba',unit:'mg'},{id:'ec',name:'Estradiol Cypionate (EC)',color:'#a87cc8',unit:'mg'},{id:'patch',name:'Estradiol Patch',color:'#7caac8',unit:'mg'},{id:'gel',name:'Estradiol Gel',color:'#7cc8a8',unit:'mg'},{id:'pill_e',name:'Estradiol Oral/SL',color:'#c8a87c',unit:'mg'},{id:'spiro',name:'Spironolactone',color:'#7cc8c8',unit:'mg'},{id:'bica',name:'Bicalutamide',color:'#8898c8',unit:'mg'},{id:'cyp',name:'Cyproterone Acetate (CPA)',color:'#c87c8a',unit:'mg'},{id:'gnrha',name:'GnRH Agonist',color:'#98c87c',unit:'mg'},{id:'fina',name:'Finasteride',color:'#c8b87c',unit:'mg'},{id:'duta',name:'Dutasteride',color:'#c8987c',unit:'mg'},{id:'prog',name:'Progesterone',color:'#deb89c',unit:'mg'},{id:'pred',name:'Prednisone',color:'#9cb8a8',unit:'mg'},{id:'testo_c',name:'Testosterone Cypionate',color:'#7cdab0',unit:'mg'},{id:'testo_e',name:'Testosterone Enanthate',color:'#7cb0da',unit:'mg'},{id:'testo_gel',name:'Testosterone Gel',color:'#a0da7c',unit:'mg'},{id:'eun',name:'Estradiol Undecylate (EUn)',color:'#da7cb0',unit:'mg'}];
+const DEFAULT_PROFILE={startDate:'2024-11-11',baseline:'tprehrtm',profilePic:'',medications:['een'],medCustom:{een:{showDots:true}},customMeds:[],customHormones:[],doses:{een:[[0,10],[6,10],[13,10],[20,10],[27,10],[34,10],[41,10],[48,10],[55,10],[62,10],[70,7.5],[76,7.5],[83,7.5],[90,7.5],[97,7.5],[104,7.5],[111,10],[118,10],[125,10],[132,10],[139,10],[146,10],[153,10],[160,10],[167,10],[179,12.5],[188,10],[195,10],[202,10],[216,4],[223,4],[230,5],[237,5],[246,5],[253,5],[261,5],[268,5],[276,5],[285,5],[293,5],[300,5],[308,4],[316,4]]},trackedHormones:['E2','PRL','T'],shownAxes:['E2','PRL','T'],labs:[{day:76,date:'2025-01-26',values:{E2:343,PRL:31.6,T:0.14}},{day:257,date:'2025-07-26',values:{E2:446,PRL:19.7,T:0.30}}]};
+
+// ═══ STATE ═══
+let profiles={},activeProfileName='',startDate,baseline,doses,labs,trackedHormones,medications,shownAxes,medCustom,profilePic,customMeds,customHormones;
+let selectedMedId='',tMin=-20,xMax=350;
+let historyTab='doses',histSortKey='day',histSortAsc=false,editingDose=null,editingLab=null;
+let undoStack=[],recurOpen=false,showLabels=true,showLegend=true,showValues=true,showGuides=true;
+let chartView='multi'; // 'multi' = combined, 'all' or 'individual' = split selected
+let dpr=1;
+const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// ═══ HELPERS ═══
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+function getAllMeds(){return[...BUILTIN_MEDS,...(customMeds||[])];}
+function getMed(id){return getAllMeds().find(m=>m.id===id);}
+function getMedColor(id){return medCustom?.[id]?.color||getMed(id)?.color||'#888';}
+function getMedUnit(id){return medCustom?.[id]?.unit||getMed(id)?.unit||'mg';}
+function getMedShortName(id){const m=getMed(id);if(!m)return id;const match=m.name.match(/\(([^)]+)\)/);if(match){const inner=match[1];if(inner.length<=6&&/^[A-Z]/.test(inner))return inner;}return m.name.replace(/\s*\([^)]*\)\s*/,'');}
+function getMedDots(id){return medCustom?.[id]?.showDots!==false;}
+function getHormone(hk){const base=BUILTIN_HORMONES[hk]||(customHormones||[]).find(h=>h.id===hk)||null;if(!base)return null;const p=getActive();const ov=p?.hormoneRanges?.[hk];if(!ov)return base;return{...base,color:ov.color||base.color,unit:ov.unit||base.unit};}
+function setHormoneColor(hk,color){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};p.hormoneRanges[hk].color=color;saveToStorage();renderLabPanel();renderAxisToggles();renderChartTabs();redraw();}
+function setHormoneUnit(hk,unit){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};p.hormoneRanges[hk].unit=unit;saveToStorage();renderLabPanel();redraw();}
+function dateToDays(ds){const d=new Date(ds+'T12:00:00');return Math.round((d-startDate)/864e5);}
+function daysToDateObj(day){return new Date(startDate.getTime()+day*864e5);}
+function daysToDate(day){const d=daysToDateObj(day);const ms=lang==='pt'?MONTHS_PT:MONTHS_EN;return`${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`;}
+function daysToISO(day){return daysToDateObj(day).toISOString().slice(0,10);}
+function getHormoneVals(hk){const h=getHormone(hk);if(!h)return{typ:0,tLo:0,tHi:0};
+  const p=getActive();const cr=p?.hormoneRanges?.[hk];
+  const defaults=(h.tprehrtm?(baseline==='tprehrtf'?h.tprehrtf:h.tprehrtm):null)||{typ:0,tLo:0,tHi:0};
+  if(cr)return{typ:defaults.typ,tLo:cr.tLo!=null?cr.tLo:defaults.tLo,tHi:cr.tHi!=null?cr.tHi:defaults.tHi};
+  return defaults;
+}
+function setHormoneRange(hk,lo,hi){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};if(Number.isFinite(lo))p.hormoneRanges[hk].tLo=lo;if(Number.isFinite(hi))p.hormoneRanges[hk].tHi=hi;saveToStorage();redraw();}
+
+// ═══ i18n ═══
+let lang='en';
+const I18N={en:{profiles:'Profiles',newBtn:'New',exportBtn:'Export',importBtn:'Import',showFromDay:'From day:',showUpToDay:'to day:',showLabels:'Labels',showLegend:'Legend',showValues:'Values',showGuides:'Guides',showPreHrt:'Pre-HRT',showRanges:'Ranges',exportPng:'Export PNG',addDosage:'Add Dosage',addLabTest:'Add Lab Test',date:'Date',amount:'Amount',addBtn:'Add',addDoseBtn:'Add Dose',addLabBtn:'Add Lab Result',addAllDosesBtn:'Add All Doses',addMedication:'Add Medication',trackHormone:'Track Hormone',history:'History',doses:'Doses',labTests:'Lab Tests',day:'Day',medication:'Medication',values:'Values',edit:'edit',deleteBtn:'delete',noDoses:'No doses recorded yet.',noLabs:'No lab tests recorded yet.',settingsFor:'Settings for',color:'Color',unit:'Unit',createProfile:'Create Profile',profileName:'Profile name...',baseline:'Baseline',noBaseline:'No baseline',preHrtMale:'Pre-HRT "male"',preHrtFemale:'Pre-HRT "female"',typMaleLevels:'Typical pre-HRT "male" levels',typFemaleLevels:'Typical pre-HRT "female" levels',cancel:'Cancel',create:'Create',doseUpdated:'Updated',confirmDeleteDose:'Delete this dose?',confirmDeleteLab:'Delete this lab?',daysLabel:'days since start',doseMg:'dose',hrtStart:'HRT Start',selectMedFirst:'Select a medication first.',fillDateAmount:'Fill in date and amount.',enterValidAmount:'Enter a valid amount.',enterDate:'Enter a date.',enterOneValue:'Enter at least one value.',alreadyExists:'Already exists',cantDeleteOnly:"Can't delete only profile",profilePicSet:'Photo set',exported:'Exported',removed:'Removed',rename:'Rename',setPicture:'Set picture',deletePfp:'Remove picture',recurring:'Recurring dose',every:'Every',days2:'days',forDuration:'for',weeks:'weeks',months:'months',years:'year(s)',addAll:'Add all',dosesAdded:'doses added',dosesTaken:'doses taken',daysSinceLab:'days since last lab',daySinceStart:'days since start',undone:'Undone',hormonesLabel:'hormones',hrtStartDate:'HRT Start Date',chooseOrCustom:'Choose from list or create custom',custom:'Custom...',showDoseDots:'Dose dots',viewAll:'All',viewSplit:'Multi-view',addProfileBtn:'Add Profile',showAxesFor:'Show axes for:',showAxesLabel:'Axes',targetRanges:'Target Ranges',nextBtn:'Next →',backBtn:'← Back',applyBtn:'Apply',parseError:'Parse error',invalidFile:'Invalid file'},
+pt:{profiles:'Perfis',newBtn:'Novo',exportBtn:'Exportar',importBtn:'Importar',showFromDay:'Do dia:',showUpToDay:'até o dia:',showLabels:'Rótulos',showLegend:'Legenda',showValues:'Valores',showGuides:'Guias',showPreHrt:'Pré-TRH',showRanges:'Faixas',exportPng:'Exportar PNG',addDosage:'Adicionar Dosagem',addLabTest:'Adicionar Exame',date:'Data',amount:'Quantidade',addBtn:'Adicionar',addDoseBtn:'Adicionar Dose',addLabBtn:'Adicionar Exame',addAllDosesBtn:'Adicionar Todas as Doses',addMedication:'Adicionar Medicação',trackHormone:'Rastrear Hormônio',history:'Histórico',doses:'Doses',labTests:'Exames',day:'Dia',medication:'Medicação',values:'Valores',edit:'editar',deleteBtn:'excluir',noDoses:'Nenhuma dose registrada.',noLabs:'Nenhum exame registrado.',settingsFor:'Configurações de',color:'Cor',unit:'Unidade',createProfile:'Criar Perfil',profileName:'Nome do perfil...',baseline:'Linha de base',noBaseline:'Sem linha de base',preHrtMale:'Pré-TRH "masculino"',preHrtFemale:'Pré-TRH "feminino"',typMaleLevels:'Níveis pré-TRH "masculinos" típicos',typFemaleLevels:'Níveis pré-TRH "femininos" típicos',cancel:'Cancelar',create:'Criar',doseUpdated:'Atualizado',confirmDeleteDose:'Excluir esta dose?',confirmDeleteLab:'Excluir este exame?',daysLabel:'dias desde o início',doseMg:'dose',hrtStart:'Início TRH',selectMedFirst:'Selecione uma medicação.',fillDateAmount:'Preencha data e quantidade.',enterValidAmount:'Valor inválido.',enterDate:'Insira uma data.',enterOneValue:'Insira pelo menos um valor.',alreadyExists:'Já existe',cantDeleteOnly:'Impossível excluir o único perfil',profilePicSet:'Foto definida',exported:'Exportado',removed:'Removido',rename:'Renomear',setPicture:'Definir foto',deletePfp:'Remover foto',recurring:'Dose recorrente',every:'A cada',days2:'dias',forDuration:'por',weeks:'semanas',months:'meses',years:'ano(s)',addAll:'Adicionar tudo',dosesAdded:'doses adicionadas',dosesTaken:'doses tomadas',daysSinceLab:'dias desde último exame',daySinceStart:'dias desde o início',undone:'Desfeito',hormonesLabel:'hormônios',hrtStartDate:'Data de Início TRH',chooseOrCustom:'Escolha da lista ou crie personalizado',custom:'Personalizado...',showDoseDots:'Pontos de dose',viewAll:'Todos',viewSplit:'Multi-visão',addProfileBtn:'Adicionar Perfil',showAxesFor:'Mostrar eixos para:',showAxesLabel:'Eixos',targetRanges:'Faixas Alvo',nextBtn:'Próximo →',backBtn:'← Voltar',applyBtn:'Aplicar',parseError:'Erro',invalidFile:'Arquivo inválido'}};
+function t(key){return I18N[lang]?.[key]||I18N.en[key]||key;}
+function setLang(l){lang=l;try{localStorage.setItem('hrt_lang',l);}catch(e){}updateStaticLabels();renderProfileTabs();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();renderHistory();renderStats();redraw();}
+function loadLang(){try{const l=localStorage.getItem('hrt_lang');if(l&&I18N[l])lang=l;}catch(e){}}
+function setTheme(t2){document.body.dataset.theme=t2;try{localStorage.setItem('hrt_theme',t2);}catch(e){}const s=document.getElementById('themeSelect');if(s)s.value=t2;redraw();}
+function loadTheme(){try{const t2=localStorage.getItem('hrt_theme');if(t2)document.body.dataset.theme=t2;const s=document.getElementById('themeSelect');if(s)s.value=t2||'dark';}catch(e){}}
+function getChartBg(){const s=getComputedStyle(document.body);return s.getPropertyValue('--chart-bg').trim()||'#181b20';}
+function updateStaticLabels(){document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t(el.dataset.i18nPlaceholder);});const sel=document.getElementById('langSelect');if(sel)sel.value=lang;}
+
+// ═══ UNDO ═══
+function pushUndo(){undoStack.push(JSON.stringify({profiles,active:activeProfileName}));if(undoStack.length>30)undoStack.shift();document.getElementById('undoBtn').classList.add('visible');}
+function undo(){if(!undoStack.length)return;const prev=JSON.parse(undoStack.pop());profiles=prev.profiles;activeProfileName=prev.active;saveToStorage();fullRefresh();toast(t('undone'));if(!undoStack.length)document.getElementById('undoBtn').classList.remove('visible');}
+
+// ═══ STORAGE ═══
+function loadFromStorage(){
+  try{const s=localStorage.getItem('hrt_profiles_v5');if(s){const d=JSON.parse(s);profiles=d.profiles||{};activeProfileName=d.active||'';if(!profiles[activeProfileName])activeProfileName=Object.keys(profiles)[0]||'';}}catch(e){}
+  // Migrate from v4 if v5 is empty
+  if(!Object.keys(profiles).length){try{const s=localStorage.getItem('hrt_profiles_v4');if(s){const d=JSON.parse(s);if(d.profiles){for(const[n,p]of Object.entries(d.profiles)){p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];p.medCustom=p.medCustom||{};profiles[n]=p;}activeProfileName=d.active||Object.keys(profiles)[0]||'';}}}catch(e){}}
+  saveToStorage();
+}
+function saveToStorage(){try{localStorage.setItem('hrt_profiles_v5',JSON.stringify({profiles,active:activeProfileName}));}catch(e){}}
+function getActive(){if(!activeProfileName||!profiles[activeProfileName])return null;return profiles[activeProfileName];}
+function syncFromProfile(){const p=getActive();
+  if(!p){startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);medications=[];medCustom={};customMeds=[];customHormones=[];doses={};trackedHormones=[];shownAxes=[];labs=[];profilePic='';baseline='none';tMin=-20;xMax=200;selectedMedId='';document.getElementById('xMaxInput').value='200';document.getElementById('xMinInput').value='-20';return;}
+  if(p.startDate){startDate=new Date(p.startDate.includes('.')?p.startDate.split('.').reverse().join('-'):p.startDate);startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}else{startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}baseline=p.baseline||'tprehrtm';medications=[...(p.medications||[])];medCustom=JSON.parse(JSON.stringify(p.medCustom||{}));customMeds=[...(p.customMeds||[])];customHormones=[...(p.customHormones||[])];doses=JSON.parse(JSON.stringify(p.doses||{}));trackedHormones=[...(p.trackedHormones||[])];shownAxes=[...(p.shownAxes||[])];labs=JSON.parse(JSON.stringify(p.labs||[]));profilePic=p.profilePic||'';tMin=(baseline==='none'&&!p.startDate&&!Object.keys(doses).length)?0:-20;let maxDay=0;let hasAnyData=false;for(const mid in doses)for(const[d]of doses[mid]){if(d>maxDay)maxDay=d;hasAnyData=true;}for(const lab of labs)if(!lab.isBaseline&&lab.day>maxDay){maxDay=lab.day;hasAnyData=true;}xMax=hasAnyData?maxDay+30:200;document.getElementById('xMaxInput').value=Math.round(xMax);document.getElementById('xMinInput').value=Math.round(tMin);selectedMedId=medications.length?medications[0]:'';}
+function syncToProfile(){const p=getActive();if(!p)return;p.baseline=baseline;p.medications=[...medications];p.medCustom=JSON.parse(JSON.stringify(medCustom));p.customMeds=[...customMeds];p.customHormones=[...customHormones];p.doses=JSON.parse(JSON.stringify(doses));p.trackedHormones=[...trackedHormones];p.shownAxes=[...shownAxes];p.labs=JSON.parse(JSON.stringify(labs));p.profilePic=profilePic;saveToStorage();}
+
+// ═══ PROFILE PIC & MANAGEMENT ═══
+function setProfilePic(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();reader.onload=function(e){
+    // Show crop modal
+    let cropImg=new Image();cropImg.onload=function(){
+      const modal=document.createElement('div');modal.className='modal-overlay open';
+      modal.innerHTML=`<div class="modal" style="max-width:400px;text-align:center"><h3>${t('setPicture')}</h3><div style="position:relative;width:200px;height:200px;margin:16px auto;overflow:hidden;border-radius:50%;border:3px solid var(--accent)"><canvas id="cropCanvas" width="200" height="200" style="width:200px;height:200px;cursor:grab"></canvas></div><div style="display:flex;align-items:center;gap:10px;justify-content:center;margin:12px 0"><label style="font-size:13px;color:var(--text-dim)">Zoom</label><input type="range" id="cropZoom" min="100" max="400" value="100" style="flex:1;max-width:200px"></div><div class="modal-buttons"><button class="btn" onclick="this.closest('.modal-overlay').remove();">${t('cancel')}</button><button class="btn btn-accent" id="cropConfirm">${t('create')}</button></div></div>`;
+      document.body.appendChild(modal);
+      const cv=document.getElementById('cropCanvas'),cx=cv.getContext('2d');
+      let zoom=1,offX=0,offY=0,dragging=false,sx=0,sy=0;
+      function draw(){cx.clearRect(0,0,200,200);const s=Math.max(200/cropImg.width,200/cropImg.height)*zoom;const w=cropImg.width*s,h=cropImg.height*s;cx.drawImage(cropImg,(200-w)/2+offX,(200-h)/2+offY,w,h);}
+      draw();
+      document.getElementById('cropZoom').oninput=function(){zoom=this.value/100;draw();};
+      cv.onmousedown=cv.ontouchstart=function(e2){dragging=true;const p=e2.touches?e2.touches[0]:e2;sx=p.clientX-offX;sy=p.clientY-offY;e2.preventDefault();};
+      document.onmousemove=document.ontouchmove=function(e2){if(!dragging)return;const p=e2.touches?e2.touches[0]:e2;offX=p.clientX-sx;offY=p.clientY-sy;draw();};
+      document.onmouseup=document.ontouchend=function(){dragging=false;};
+      document.getElementById('cropConfirm').onclick=function(){profilePic=cv.toDataURL('image/jpeg',0.8);syncToProfile();renderProfileTabs();modal.remove();toast(t('profilePicSet'));};
+    };cropImg.src=e.target.result;
+  };reader.readAsDataURL(file);event.target.value='';
+}
+function fullRefresh(){renderProfileTabs();syncFromProfile();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();renderHistory();renderStats();redraw();updateStaticLabels();}
+function switchProfile(name){if(!profiles[name])return;activeProfileName=name;saveToStorage();fullRefresh();}
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='newProfileModal'){wizardMode='create';wizardEditingName='';}}
+function openNewProfileModal(){wizardStep=1;wizardMode='create';wizardEditingName='';wizardData={name:'',baseline:'',hrtType:'',thoroughness:'basic',profilePic:'',emoji:'',baselineOverrides:{}};renderWizardStep();document.getElementById('newProfileModal').classList.add('open');setTimeout(()=>{const inp=document.getElementById('wizName');if(inp)inp.focus();},50);}
+function syncWizName(){const inp=document.getElementById('wizName');if(inp)wizardData.name=inp.value;}
+function openBaselineEditModal(){
+  const p=getActive();if(!p)return;
+  const bkey=p.baseline==='tprehrtf'?'tprehrtf':'tprehrtm';
+  let lab=labs.find(l=>l.isBaseline);
+  if(!lab){lab={day:-30,date:'',values:{},isBaseline:true};labs.unshift(lab);}
+  const existing=document.getElementById('baselineEditOverlay');if(existing)existing.remove();
+  const ov=document.createElement('div');ov.id='baselineEditOverlay';ov.className='modal-overlay open';
+  function buildBody(){
+    const allH=Object.keys(BUILTIN_HORMONES);
+    const tracked=new Set(trackedHormones);
+    const isDefault30=lab.day===-30&&!lab.date;
+    const dateISO=lab.date?lab.date:(lab.day!=null?daysToISO(lab.day):'');
+    let body=`<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">${lang==='pt'?'Esses valores aparecem como um exame base. Se você tiver exames pré-TRH reais, pode usar a data deles.':'These values appear as a baseline lab entry. If you have actual pre-HRT labs, you can use their date.'}</div>`;
+    // Date selector — two radio choices
+    body+=`<div style="margin-bottom:14px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:600">${lang==='pt'?'Quando?':'When?'}</div>`;
+    body+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="baselineDateMode" value="default" ${isDefault30?'checked':''} onchange="setBaselineDateMode('default')" style="accent-color:var(--accent)"><span>${lang==='pt'?'30 dias antes do início da TRH (padrão)':'30 days before HRT start (default)'}</span></label>`;
+    body+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="baselineDateMode" value="specific" ${!isDefault30?'checked':''} onchange="setBaselineDateMode('specific')" style="accent-color:var(--accent)"><span>${lang==='pt'?'Data específica':'Specific date'}</span></label>`;
+    body+=`<div id="baselineSpecificRow" style="display:${isDefault30?'none':'flex'};gap:10px;align-items:center;margin-top:6px;padding-left:24px"><input type="date" id="baselineEditDate" value="${dateISO}" ${startDate?'':'disabled'} style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit"><span style="font-size:12px;color:var(--text-dim)" id="baselineEditDayLbl">${lang==='pt'?'Dia':'Day'} ${lab.day}</span></div></div>`;
+    body+=`<div style="max-height:260px;overflow-y:auto;padding:4px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2)">`;
+    const orderedTracked=trackedHormones.filter(k=>BUILTIN_HORMONES[k]);
+    if(orderedTracked.length===0){body+=`<div style="padding:10px;color:var(--text-dim);font-size:13px;text-align:center">${lang==='pt'?'Nenhum hormônio rastreado':'No hormones tracked'}</div>`;}
+    for(const hk of orderedTracked){
+      const h=BUILTIN_HORMONES[hk];
+      const def=h[bkey]||{typ:0};
+      const val=lab.values[hk]!=null?lab.values[hk]:def.typ;
+      body+=`<div style="display:grid;grid-template-columns:18px 110px 1fr 50px 24px;gap:8px;align-items:center;padding:6px 10px;font-size:13px;border-bottom:1px solid var(--border)"><span class="tag-dot" style="background:${h.color}"></span><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><input type="number" step="0.01" value="${val}" placeholder="${def.typ}" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace" data-hk="${hk}"><span style="color:var(--text-dim);font-size:11px">${esc(h.unit)}</span><button class="hist-btn hist-del" style="padding:2px 6px;font-size:10px" onclick="removeBaselineHormone('${hk}')" title="${lang==='pt'?'Remover':'Remove'}">×</button></div>`;
+    }
+    body+=`</div>`;
+    const untracked=allH.filter(k=>!tracked.has(k));
+    if(untracked.length){
+      body+=`<div style="margin-top:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">${lang==='pt'?'Adicionar outros hormônios':'Add other hormones'}</div><div style="display:flex;flex-wrap:wrap;gap:6px">`;
+      for(const hk of untracked){
+        const h=BUILTIN_HORMONES[hk];
+        body+=`<button class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--surface2)" onclick="addBaselineHormone('${hk}')"><span class="tag-dot" style="background:${h.color}"></span>+ ${esc(h.name)}</button>`;
+      }
+      body+=`</div></div>`;
+    }
+    return body;
+  }
+  ov.innerHTML=`<div class="modal" style="max-width:560px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">⚙ ${lang==='pt'?'Editar níveis pré-TRH':'Edit pre-HRT levels'}</h3><div id="baselineEditBody" style="overflow-y:auto;flex:1;padding-right:4px"></div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('baselineEditOverlay').remove()">${t('cancel')}</button><button class="btn btn-accent" onclick="saveBaselineEdit()">${t('applyBtn')}</button></div></div>`;
+  document.body.appendChild(ov);
+  function attachDateHandler(){
+    const di=document.getElementById('baselineEditDate');
+    if(di){di.addEventListener('input',()=>{const lbl=document.getElementById('baselineEditDayLbl');if(lbl&&di.value)lbl.textContent=(lang==='pt'?'Dia ':'Day ')+dateToDays(di.value);});}
+  }
+  document.getElementById('baselineEditBody').innerHTML=buildBody();
+  attachDateHandler();
+  window._baselineEditLab=lab;
+  window._baselineEditRebuild=()=>{document.getElementById('baselineEditBody').innerHTML=buildBody();attachDateHandler();};
+}
+function setBaselineDateMode(mode){
+  if(!window._baselineEditLab)return;
+  if(mode==='default'){
+    window._baselineEditLab.day=-30;
+    window._baselineEditLab.date='';
+    document.getElementById('baselineSpecificRow').style.display='none';
+  }else{
+    // Keep whatever's there; if still -30/empty, seed with today as a starting point
+    if(window._baselineEditLab.day===-30&&!window._baselineEditLab.date){
+      const today=new Date();const iso=today.toISOString().slice(0,10);
+      window._baselineEditLab.date=iso;
+      window._baselineEditLab.day=dateToDays(iso);
+    }
+    document.getElementById('baselineSpecificRow').style.display='flex';
+    const di=document.getElementById('baselineEditDate');
+    if(di){di.value=window._baselineEditLab.date||daysToISO(window._baselineEditLab.day);}
+    const lbl=document.getElementById('baselineEditDayLbl');
+    if(lbl)lbl.textContent=(lang==='pt'?'Dia ':'Day ')+window._baselineEditLab.day;
+  }
+}
+function addBaselineHormone(hk){
+  if(!trackedHormones.includes(hk))trackedHormones.push(hk);
+  const h=BUILTIN_HORMONES[hk];const p=getActive();const bkey=p.baseline==='tprehrtf'?'tprehrtf':'tprehrtm';
+  const def=h[bkey]||{typ:0};
+  if(window._baselineEditLab&&window._baselineEditLab.values[hk]==null)window._baselineEditLab.values[hk]=def.typ;
+  if(window._baselineEditRebuild)window._baselineEditRebuild();
+}
+function removeBaselineHormone(hk){
+  if(window._baselineEditLab)delete window._baselineEditLab.values[hk];
+  trackedHormones=trackedHormones.filter(h=>h!==hk);
+  if(window._baselineEditRebuild)window._baselineEditRebuild();
+}
+function saveBaselineEdit(){
+  pushUndo();
+  const inputs=document.querySelectorAll('#baselineEditBody input[data-hk]');
+  for(const inp of inputs){
+    const hk=inp.dataset.hk;
+    const v=parseFloat(inp.value);
+    if(window._baselineEditLab&&Number.isFinite(v))window._baselineEditLab.values[hk]=v;
+  }
+  const mode=document.querySelector('input[name="baselineDateMode"]:checked')?.value||'default';
+  if(window._baselineEditLab){
+    if(mode==='default'){
+      window._baselineEditLab.day=-30;
+      window._baselineEditLab.date='';
+    }else{
+      const di=document.getElementById('baselineEditDate');
+      if(di&&di.value){
+        window._baselineEditLab.day=dateToDays(di.value);
+        window._baselineEditLab.date=di.value;
+      }
+    }
+  }
+  syncToProfile();
+  document.getElementById('baselineEditOverlay').remove();
+  fullRefresh();
+  toast(lang==='pt'?'Atualizado':'Updated');
+}
+
+function openSetupWizardForActive(startStep){
+  openCtxMenu=null;document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));
+  const p=getActive();if(!p)return;
+  wizardStep=startStep||1;wizardMode='edit';wizardEditingName=activeProfileName;
+  // Try to infer hrtType from current trackedHormones (best match)
+  let hrtType='custom',thoroughness='basic';
+  const tset=new Set(p.trackedHormones||[]);
+  for(const typeName of ['feminizing','masculinizing']){
+    for(const tier of ['thorough','standard','basic']){
+      const preset=HRT_PRESETS[typeName]?.[tier];if(!preset)continue;
+      if(preset.hormones.every(h=>tset.has(h))&&preset.hormones.length===tset.size){hrtType=typeName;thoroughness=tier;break;}
+    }
+    if(hrtType!=='custom')break;
+  }
+  // Pull existing baseline lab values as overrides
+  const baselineLab=(p.labs||[]).find(l=>l.isBaseline);
+  const baselineOverrides={};
+  if(baselineLab){for(const[k,v]of Object.entries(baselineLab.values))baselineOverrides[k]=v;}
+  wizardData={
+    name:activeProfileName,
+    baseline:p.baseline||'',
+    hrtType,thoroughness,
+    profilePic:p.profilePic||'',emoji:'',
+    baselineOverrides,
+    customHormones:hrtType==='custom'?[...(p.trackedHormones||[])]:[],
+    medications:[...(p.medications||[])],
+    customMeds:JSON.parse(JSON.stringify(p.customMeds||[])),
+    _medsPrefilled:true,
+    simulatePreHrt:(p.labs||[]).some(l=>l.isBaseline)
+  };
+  renderWizardStep();
+  document.getElementById('newProfileModal').classList.add('open');
+  setTimeout(()=>{const inp=document.getElementById('wizName');if(inp)inp.focus();},50);
+}
+let wizardStep=1,wizardMode='create',wizardEditingName='';
+let wizardData={name:'',baseline:'',hrtType:'',thoroughness:'basic',profilePic:'',emoji:'',baselineOverrides:{}};
+function getDefaultName(){let base='Default',n=0;while(profiles[n===0?base:`${base} (${n})`])n++;return n===0?base:`${base} (${n})`;}
+function selectBaseline(el){el.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');wizardData.baseline=el.dataset.val;}
+const HRT_PRESETS={
+  feminizing:{basic:{hormones:['E2','T']},standard:{hormones:['E2','T','PRL','PROG']},thorough:{hormones:['E2','T','PRL','SHBG','PROG','LH','FSH','DHT']},desc_en:'Feminizing HRT',desc_pt:'TRH Feminizante'},
+  masculinizing:{basic:{hormones:['T','E2']},standard:{hormones:['T','E2','SHBG','HCT']},thorough:{hormones:['T','E2','SHBG','LH','FSH','HCT','CREAT','ALT']},desc_en:'Masculinizing HRT',desc_pt:'TRH Masculinizante'},
+  custom:{desc_en:'Custom / Start blank',desc_pt:'Personalizado / Em branco'}
+};
+function renderWizardStep(){
+  const cc=document.getElementById('wizardContent');const bb=document.getElementById('wizardButtons');const tt=document.getElementById('wizardTitle');
+  if(wizardStep===1){
+    tt.textContent=wizardMode==='edit'?(lang==='pt'?'Configuração do Perfil':'Profile Setup'):t('createProfile');
+    const defaultName=getDefaultName();
+    const nextDisabled=!wizardData.baseline;
+    const avatar=wizardData.profilePic?`<img src="${wizardData.profilePic}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">`:(wizardData.emoji?`<span style="font-size:32px">${wizardData.emoji}</span>`:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--text-dim)"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>`);
+    cc.innerHTML=`<div class="modal-label">${t('profileName')}</div><div style="display:flex;gap:10px;margin-bottom:10px"><div style="width:52px;height:52px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;line-height:0">${avatar}</div><input type="text" id="wizName" value="${esc(wizardData.name)}" placeholder="${esc(defaultName)}" style="flex:1;height:52px;padding:0 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;outline:none;box-sizing:border-box;margin:0" oninput="wizardData.name=this.value" onkeydown="if(event.key==='Enter'&&wizardData.baseline){wizardData.name=this.value;wizardStep=2;renderWizardStep();}"></div><div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn btn-sm" onclick="syncWizName();document.getElementById('wizPfpInput').click()" style="font-size:12px">${lang==='pt'?'Adicionar Foto':'Add Photo'}</button><button class="btn btn-sm" onclick="syncWizName();openEmojiPicker()" style="font-size:12px">${lang==='pt'?'Escolher Emoji':'Pick Emoji'}</button>${wizardData.profilePic||wizardData.emoji?`<button class="btn btn-sm" onclick="syncWizName();wizardData.profilePic='';wizardData.emoji='';renderWizardStep()" style="font-size:12px;color:var(--danger)">${lang==='pt'?'Remover':'Remove'}</button>`:''}</div><input type="file" id="wizPfpInput" accept="image/*" style="display:none" onchange="wizSetPfp(event)"><div class="modal-label">${t('baseline')}</div><div class="baseline-options"><div class="baseline-opt${wizardData.baseline==='none'?' selected':''}" data-val="none" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('noBaseline')}</div><div class="baseline-opt${wizardData.baseline==='tprehrtm'?' selected':''}" data-val="tprehrtm" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('typMaleLevels')}</div><div class="baseline-opt${wizardData.baseline==='tprehrtf'?' selected':''}" data-val="tprehrtf" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('typFemaleLevels')}</div></div>`;
+    bb.innerHTML=`<button class="btn" onclick="closeModal('newProfileModal')">${t('cancel')}</button><button class="btn btn-accent" onclick="wizardData.name=document.getElementById('wizName').value;wizardStep=2;renderWizardStep()" ${nextDisabled?'disabled style="opacity:.45;cursor:not-allowed"':''}>${t('nextBtn')}</button>`;
+  }else if(wizardStep===2){
+    tt.textContent=lang==='pt'?'Tipo de TRH':'HRT Type';
+    const desc=k=>lang==='pt'?HRT_PRESETS[k].desc_pt:HRT_PRESETS[k].desc_en;
+    cc.innerHTML=`<div class="modal-label">${lang==='pt'?'Qual o seu tipo de terapia hormonal?':'What type of hormone therapy?'}</div><div class="baseline-options vertical"><div class="baseline-opt${wizardData.hrtType==='feminizing'?' selected':''}" data-val="feminizing" onclick="wizardData.hrtType='feminizing';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">🌸 ${desc('feminizing')}</div><div class="baseline-opt${wizardData.hrtType==='masculinizing'?' selected':''}" data-val="masculinizing" onclick="wizardData.hrtType='masculinizing';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">💪 ${desc('masculinizing')}</div><div class="baseline-opt${wizardData.hrtType==='custom'?' selected':''}" data-val="custom" onclick="wizardData.hrtType='custom';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">⚙️ ${desc('custom')}</div></div>`;
+    bb.innerHTML=`<button class="btn" onclick="wizardStep=1;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="if(!wizardData.hrtType)return;wizardStep=3;renderWizardStep()">${t('nextBtn')}</button>`;
+  }else if(wizardStep===3){
+    // Build the pre-HRT levels section (collapsible, embedded)
+    const hasBaseline=wizardData.baseline==='tprehrtm'||wizardData.baseline==='tprehrtf';
+    let baselineSection='';
+    if(hasBaseline){
+      // Toggle to enable/disable simulated pre-HRT in wizard
+      if(wizardData.simulatePreHrt===undefined)wizardData.simulatePreHrt=true;
+      const simOn=wizardData.simulatePreHrt;
+      baselineSection=`<div style="margin-top:14px;display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"><label class="toggle-switch" style="flex-shrink:0;margin-top:2px"><input type="checkbox" ${simOn?'checked':''} onchange="wizardData.simulatePreHrt=this.checked;renderWizardStep()"><span class="toggle-slider"></span></label><div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);font-weight:500;margin-bottom:3px">${lang==='pt'?'Simular níveis pré-TRH':'Simulate pre-HRT levels'}</div><div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lang==='pt'?'Esses valores aparecerão como um exame base no dia -30, editável depois.':'These values will appear as a baseline lab entry at day -30, editable later.'}</div></div></div>`;
+    }
+    if(wizardData.hrtType==='custom'){
+      tt.textContent=lang==='pt'?'Personalizar rastreamento':'Customize tracking';
+      if(!wizardData.customHormones)wizardData.customHormones=[];
+      const allH=Object.entries(BUILTIN_HORMONES);
+      let chips='';for(const[k,h] of allH){const on=wizardData.customHormones.includes(k);chips+=`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?h.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleWizHormone('${k}')"><span class="tag-dot" style="background:${h.color}"></span>${esc(h.name)}</div>`;}
+      cc.innerHTML=`<div class="modal-label">${lang==='pt'?'Escolha os hormônios que quer rastrear (ou comece em branco)':'Pick hormones to track (or start blank)'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${chips}</div><div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><button class="btn btn-sm" onclick="wizardData.customHormones=[];renderWizardStep()">${lang==='pt'?'Limpar':'Clear all'}</button><button class="btn btn-sm" onclick="wizardData.customHormones=Object.keys(BUILTIN_HORMONES);renderWizardStep()">${lang==='pt'?'Selecionar todos':'Select all'}</button><span style="color:var(--text-dim);font-size:13px;margin-left:auto">${wizardData.customHormones.length} ${lang==='pt'?'selecionado(s)':'selected'}</span></div><div style="padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--text-dim)">${lang==='pt'?'Você pode adicionar hormônios customizados depois pelo catálogo (⚙).':'You can add custom hormones later via the catalog (⚙).'}</div>${baselineSection}`;
+      bb.innerHTML=`<button class="btn" onclick="wizardStep=2;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="wizardStep=4;renderWizardStep()">${t('nextBtn')}</button>`;
+    }else{
+      tt.textContent=lang==='pt'?'Nível de acompanhamento':'Tracking level';
+      const mkOpt=(val,titleEn,titlePt,descEn,descPt)=>{
+        const title=lang==='pt'?titlePt:titleEn;const desc=lang==='pt'?descPt:descEn;
+        return`<div class="baseline-opt${wizardData.thoroughness===val?' selected':''}" data-val="${val}" onclick="wizardData.thoroughness='${val}';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected');updateWizPreview();renderWizardStep()" style="text-align:left"><div class="opt-title">${title}</div><div class="opt-desc">${desc}</div></div>`;};
+      cc.innerHTML=`<div class="modal-label">${lang==='pt'?'Quais hormônios você quer acompanhar?':'Which hormones do you want to track?'}</div><div class="baseline-options vertical">${mkOpt('basic','Basic','Básico','Essential hormones only','Apenas hormônios essenciais')}${mkOpt('standard','Standard','Padrão','Core hormones + key markers','Hormônios principais + marcadores-chave')}${mkOpt('thorough','Thorough','Detalhado','Comprehensive panel with advanced markers','Painel completo com marcadores avançados')}</div><div id="wizPreview"></div>${baselineSection}`;
+      updateWizPreview();
+      bb.innerHTML=`<button class="btn" onclick="wizardStep=2;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="wizardStep=4;renderWizardStep()">${t('nextBtn')}</button>`;
+    }
+  }else if(wizardStep===4){
+    // Medication selection step
+    tt.textContent=lang==='pt'?'Medicações':'Medications';
+    if(!wizardData.medications)wizardData.medications=[];
+    if(!wizardData.customMeds)wizardData.customMeds=[];
+    // Suggest defaults based on HRT type if user hasn't picked any
+    if(!wizardData._medsPrefilled&&wizardData.medications.length===0){
+      wizardData._medsPrefilled=true;
+      if(wizardData.hrtType==='feminizing')wizardData.medications=['een'];
+      else if(wizardData.hrtType==='masculinizing')wizardData.medications=['testo_c'];
+    }
+    // Group meds logically
+    const estrogens=['een','ev','ec','eun','patch','gel','pill_e'];
+    const antiandrogens=['spiro','bica','cyp','gnrha','fina','duta'];
+    const testosterone=['testo_c','testo_e','testo_gel'];
+    const other=['prog','pred'];
+    function medChip(mid){
+      const m=BUILTIN_MEDS.find(x=>x.id===mid)||wizardData.customMeds.find(x=>x.id===mid);
+      if(!m)return'';
+      const on=wizardData.medications.includes(mid);
+      const isCustom=mid.startsWith('cm_');
+      const removeBtn=isCustom?`<span style="margin-left:6px;padding:0 4px;border-radius:8px;background:rgba(255,255,255,.1);font-size:10px;cursor:pointer" onclick="event.stopPropagation();removeWizCustomMed('${mid}')" title="${lang==='pt'?'Remover':'Remove'}">×</span>`:'';
+      return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?m.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleWizMed('${mid}')"><span class="tag-dot" style="background:${m.color}"></span>${esc(m.name)}${removeBtn}</div>`;
+    }
+    function groupSection(titleEn,titlePt,ids,extraHTML){
+      const title=lang==='pt'?titlePt:titleEn;
+      return`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${ids.map(medChip).join('')}${extraHTML||''}</div></div>`;
+    }
+    const customIds=wizardData.customMeds.map(m=>m.id);
+    const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="openWizCustomMedForm()"><span style="font-size:14px">+</span> ${lang==='pt'?'Adicionar Personalizado':'Add Custom'}</button>`;
+    const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${lang==='pt'?'Personalizadas':'Custom'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(medChip).join('')}${addCustomBtn}</div><div id="wizCustomMedForm" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius-sm)"><div style="display:grid;grid-template-columns:1fr 80px 42px;gap:8px;align-items:center;margin-bottom:8px"><input id="wizCustomMedName" type="text" placeholder="${lang==='pt'?'Nome da medicação':'Medication name'}" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit"><select id="wizCustomMedUnit" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px"><option value="mg">mg</option><option value="mL">mL</option><option value="IU">IU</option><option value="mcg">mcg</option><option value="g">g</option></select><input id="wizCustomMedColor" type="color" value="#b07cd8" style="width:42px;height:32px;padding:1px;border:1px solid var(--border);border-radius:6px;cursor:pointer"></div><div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn btn-sm" onclick="document.getElementById('wizCustomMedForm').style.display='none'">${t('cancel')}</button><button class="btn btn-sm btn-accent" onclick="addWizCustomMed()">${t('addBtn')}</button></div></div></div>`;
+    const preamble=`<div class="modal-label">${lang==='pt'?'Quais medicações você está tomando? (opcional)':'Which medications are you taking? (optional)'}</div><div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">${lang==='pt'?'Você pode adicionar ou remover medicações depois no painel principal.':'You can add or remove medications later from the main panel.'}</div>`;
+    const sections=groupSection('Estrogens','Estrogênios',estrogens)+groupSection('Anti-androgens','Antiandrógenos',antiandrogens)+groupSection('Testosterone','Testosterona',testosterone)+groupSection('Other','Outros',other)+customSection;
+    const countLbl=`<div style="margin-top:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:8px"><span>${wizardData.medications.length} ${lang==='pt'?'medicação(ões) selecionada(s)':'medication(s) selected'}</span>${wizardData.medications.length?`<button class="btn btn-sm" style="margin-left:auto;font-size:11px" onclick="wizardData.medications=[];renderWizardStep()">${lang==='pt'?'Limpar':'Clear'}</button>`:''}</div>`;
+    cc.innerHTML=preamble+sections+countLbl;
+    bb.innerHTML=`<button class="btn" onclick="wizardStep=3;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="finishWizard()">${wizardMode==='edit'?(lang==='pt'?'Salvar':'Save'):t('create')}</button>`;
+  }
+}
+function openWizCustomMedForm(){
+  const form=document.getElementById('wizCustomMedForm');if(!form)return;
+  form.style.display='block';
+  const n=document.getElementById('wizCustomMedName');if(n){n.value='';n.focus();}
+}
+function addWizCustomMed(){
+  const name=document.getElementById('wizCustomMedName')?.value.trim();
+  if(!name)return;
+  const unit=document.getElementById('wizCustomMedUnit')?.value||'mg';
+  const color=document.getElementById('wizCustomMedColor')?.value||'#b07cd8';
+  const id='cm_'+Date.now().toString(36);
+  if(!wizardData.customMeds)wizardData.customMeds=[];
+  wizardData.customMeds.push({id,name,unit,color});
+  if(!wizardData.medications)wizardData.medications=[];
+  wizardData.medications.push(id);
+  renderWizardStep();
+}
+function removeWizCustomMed(id){
+  if(wizardData.customMeds)wizardData.customMeds=wizardData.customMeds.filter(m=>m.id!==id);
+  if(wizardData.medications)wizardData.medications=wizardData.medications.filter(m=>m!==id);
+  renderWizardStep();
+}
+function toggleWizMed(mid){
+  if(!wizardData.medications)wizardData.medications=[];
+  const i=wizardData.medications.indexOf(mid);
+  if(i>=0)wizardData.medications.splice(i,1);
+  else wizardData.medications.push(mid);
+  renderWizardStep();
+}
+function toggleWizHormone(k){
+  if(!wizardData.customHormones)wizardData.customHormones=[];
+  const i=wizardData.customHormones.indexOf(k);
+  if(i>=0)wizardData.customHormones.splice(i,1);
+  else wizardData.customHormones.push(k);
+  renderWizardStep();
+}
+function openDataSettings(){
+  const modal=document.getElementById('dataModal');
+  const body=document.getElementById('dataModalBody');
+  const title=document.getElementById('dataModalTitle');
+  const desc=document.getElementById('dataModalDesc');
+  title.textContent=lang==='pt'?'Gerenciar Dados':'Data Management';
+  desc.innerHTML=lang==='pt'?'Seus perfis são armazenados localmente no seu navegador. Use estas opções para fazer backup, restaurar ou limpar seus dados.':'Your profiles are stored locally in your browser. Use these options to back up, restore, or clear your data.';
+  const totalProfiles=Object.keys(profiles).length;
+  const storageKB=(new Blob([JSON.stringify({profiles,active:activeProfileName})]).size/1024).toFixed(1);
+  body.innerHTML=`
+    <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:13px;font-weight:500;color:var(--text)">${lang==='pt'?'Armazenamento local':'Local storage'}</div><div style="font-size:12px;color:var(--text-dim)">${totalProfiles} ${lang==='pt'?'perfil(s)':'profile(s)'} · ${storageKB} KB</div></div></div>
+    <button class="btn" onclick="exportProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span style="flex:1">${lang==='pt'?'Exportar perfil ativo':'Export active profile'}</span></button>
+    <button class="btn" onclick="exportAllProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg> <span style="flex:1">${lang==='pt'?'Exportar todos os perfis':'Export all profiles'}</span></button>
+    <button class="btn" onclick="document.getElementById('importInput').click();closeModal('dataModal')" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> <span style="flex:1">${lang==='pt'?'Importar do arquivo JSON':'Import from JSON file'}</span></button>
+    <button class="btn" onclick="clearAllProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px;color:var(--danger);border-color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> <span style="flex:1">${lang==='pt'?'Limpar todos os perfis':'Clear all profiles'}</span></button>
+  `;
+  modal.classList.add('open');
+}
+function exportAllProfiles(){syncToProfile();const blob=new Blob([JSON.stringify({version:5,profiles,active:activeProfileName},null,2)],{type:'application/json'});const a=document.createElement('a');a.download='HRT_all_profiles.json';a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);toast(t('exported'));}
+function confirmAction(msg,onConfirm){const ov=document.createElement('div');ov.className='modal-overlay open';ov.innerHTML=`<div class="modal" style="max-width:400px"><h3 style="color:var(--danger)">⚠ ${lang==='pt'?'Confirmar':'Confirm'}</h3><p style="color:var(--text);margin:12px 0">${esc(msg)}</p><div class="modal-buttons"><button class="btn" id="cA_no">${t('cancel')}</button><button class="btn btn-accent" id="cA_yes" style="background:var(--danger);border-color:var(--danger)">${lang==='pt'?'Confirmar':'Confirm'}</button></div></div>`;document.body.appendChild(ov);ov.querySelector('#cA_no').onclick=()=>ov.remove();ov.querySelector('#cA_yes').onclick=()=>{ov.remove();onConfirm();};}
+function clearAllProfiles(){
+  confirmAction(
+    lang==='pt'?'Limpar TODOS os perfis? (você pode desfazer com ↩)':'Clear ALL profiles? (you can undo with ↩)',
+    ()=>{pushUndo();profiles={};activeProfileName='';saveToStorage();fullRefresh();closeModal('dataModal');toast(lang==='pt'?'Todos os perfis apagados':'All profiles cleared');}
+  );
+}
+function openEmojiPicker(){
+  const EMOJIS={
+    'Faces':['😊','😎','🥰','😇','🤗','🤭','🫣','😌','🥲','🥺','😴','🤓','🧐','🤫','😈','👹','👻','💀','🤖','👽','🦄'],
+    'Nature':['🌸','🌼','🌻','🌷','🌹','🌺','💐','🌾','🌿','🍀','🍁','🍂','🍃','🌱','🌳','🌲','🌵','🌴','🎋','🎍','🌙','⭐','✨','☀️','🌈','⚡','🔥','💧','🌊','❄️','☁️','🌤️','⛅','🌞'],
+    'Animals':['🐰','🐱','🐶','🦊','🐼','🐨','🐯','🦁','🐸','🐵','🦉','🦋','🐝','🐞','🐙','🐬','🐳','🦈','🦄','🦒','🐉','🦖','🦕','🐢','🦎','🦔','🦦','🦥','🦫','🦨'],
+    'Food':['☕','🍵','🧋','🍰','🧁','🍪','🍩','🍫','🍬','🍭','🍎','🍓','🍒','🍑','🥭','🍋','🍊','🥝','🍇','🫐','🍉','🥥','🥑','🥨','🍕','🍔','🌮','🍜','🍣','🍙'],
+    'Objects':['🎀','💎','💍','👑','🧸','🪷','📚','✏️','🎨','🎭','🎪','🎠','🎡','🎢','🎮','🎲','🧩','🎵','🎶','🎤','🎧','💌','💝','🔮','🧿','🪄','🧚','🧜','🧝','🧞'],
+    'Pride & Symbols':['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','🩷','🩵','🩶','💖','💕','💗','💓','💞','💘','💟','💜','🏳️‍⚧️','🏳️‍🌈','🏳️','⚧️','♀️','♂️','⚥','☯️','♾️','✝️','✡️','☪️','☸️','🕉️','🔯'],
+    'Activities':['🧘','🧘‍♀️','🧘‍♂️','💃','🕺','🧚','🏃','🚴','🏊','🧗','🤸','⛹️','🤾','🏋️','⛷️','🏂','🏌️','🏄','🚣','🧜‍♀️']
+  };
+  const existing=document.getElementById('emojiPickerOverlay');if(existing)existing.remove();
+  const overlay=document.createElement('div');overlay.id='emojiPickerOverlay';overlay.className='modal-overlay open';
+  let body='';for(const[cat,list] of Object.entries(EMOJIS)){
+    body+=`<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px;font-weight:600">${cat}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px">${list.map(e=>`<button style="background:${wizardData.emoji===e?'var(--accent-dim)':'transparent'};border:1px solid ${wizardData.emoji===e?'var(--accent)':'transparent'};border-radius:8px;padding:6px;cursor:pointer;font-size:22px;line-height:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center" onclick="pickEmoji('${e}')" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='${wizardData.emoji===e?'var(--accent-dim)':'transparent'}'">${e}</button>`).join('')}</div>`;
+  }
+  overlay.innerHTML=`<div class="modal" style="max-width:440px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">${lang==='pt'?'Escolher Emoji':'Pick an Emoji'}</h3><div style="overflow-y:auto;flex:1;padding-right:4px">${body}</div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('emojiPickerOverlay').remove()">${t('cancel')}</button></div></div>`;
+  document.body.appendChild(overlay);
+}
+function pickEmoji(e){wizardData.emoji=e;wizardData.profilePic='';document.getElementById('emojiPickerOverlay').remove();renderWizardStep();}
+function openQuickEmoji(){
+  openCtxMenu=null;document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));
+  // Temporarily hijack pickEmoji by wrapping — reuse picker UI with a small flag
+  const EMOJIS={
+    'Faces':['😊','😎','🥰','😇','🤗','🤭','🫣','😌','🥲','🥺','😴','🤓','🧐','🤫','😈','👹','👻','💀','🤖','👽','🦄'],
+    'Nature':['🌸','🌼','🌻','🌷','🌹','🌺','💐','🌾','🌿','🍀','🍁','🍂','🍃','🌱','🌳','🌲','🌵','🌴','🎋','🎍','🌙','⭐','✨','☀️','🌈','⚡','🔥','💧','🌊','❄️','☁️','🌤️','⛅','🌞'],
+    'Animals':['🐰','🐱','🐶','🦊','🐼','🐨','🐯','🦁','🐸','🐵','🦉','🦋','🐝','🐞','🐙','🐬','🐳','🦈','🦄','🦒','🐉','🦖','🦕','🐢','🦎','🦔','🦦','🦥','🦫','🦨'],
+    'Food':['☕','🍵','🧋','🍰','🧁','🍪','🍩','🍫','🍬','🍭','🍎','🍓','🍒','🍑','🥭','🍋','🍊','🥝','🍇','🫐','🍉','🥥','🥑','🥨','🍕','🍔','🌮','🍜','🍣','🍙'],
+    'Objects':['🎀','💎','💍','👑','🧸','🪷','📚','✏️','🎨','🎭','🎪','🎠','🎡','🎢','🎮','🎲','🧩','🎵','🎶','🎤','🎧','💌','💝','🔮','🧿','🪄','🧚','🧜','🧝','🧞'],
+    'Pride & Symbols':['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','🩷','🩵','🩶','💖','💕','💗','💓','💞','💘','💟','🏳️‍⚧️','🏳️‍🌈','⚧️','♀️','♂️','⚥','☯️','♾️'],
+    'Activities':['🧘','🧘‍♀️','🧘‍♂️','💃','🕺','🏃','🚴','🏊','🧗','🤸','⛹️','🤾','🏋️','⛷️','🏂','🏌️','🏄','🚣']
+  };
+  const existing=document.getElementById('emojiPickerOverlay');if(existing)existing.remove();
+  const overlay=document.createElement('div');overlay.id='emojiPickerOverlay';overlay.className='modal-overlay open';
+  let body='';for(const[cat,list] of Object.entries(EMOJIS)){
+    body+=`<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px;font-weight:600">${cat}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px">${list.map(e=>`<button style="background:transparent;border:1px solid transparent;border-radius:8px;padding:6px;cursor:pointer;font-size:22px;line-height:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center" onclick="applyQuickEmoji('${e}')" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='transparent'">${e}</button>`).join('')}</div>`;
+  }
+  overlay.innerHTML=`<div class="modal" style="max-width:440px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">${lang==='pt'?'Definir Emoji':'Set Emoji'}</h3><div style="overflow-y:auto;flex:1;padding-right:4px">${body}</div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('emojiPickerOverlay').remove()">${t('cancel')}</button></div></div>`;
+  document.body.appendChild(overlay);
+}
+function applyQuickEmoji(e){
+  // Render emoji to canvas as the profile pic
+  const c=document.createElement('canvas');c.width=120;c.height=120;const cx=c.getContext('2d');
+  cx.fillStyle='#f0e6f5';cx.fillRect(0,0,120,120);
+  cx.font='80px "Apple Color Emoji","Segoe UI Emoji",sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(e,60,66);
+  pushUndo();profilePic=c.toDataURL('image/png');syncToProfile();renderProfileTabs();
+  document.getElementById('emojiPickerOverlay').remove();
+  toast(t('profilePicSet'));
+}
+function wizSetPfp(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const r=new FileReader();r.onload=e=>{
+    const cropImg=new Image();cropImg.onload=function(){
+      // Reuse crop modal approach
+      const modal=document.createElement('div');modal.className='modal-overlay open';
+      modal.innerHTML=`<div class="modal" style="max-width:400px;text-align:center"><h3>${lang==='pt'?'Ajustar foto':'Adjust photo'}</h3><div style="position:relative;width:200px;height:200px;margin:16px auto;overflow:hidden;border-radius:50%;border:3px solid var(--accent)"><canvas id="wizCropCanvas" width="200" height="200" style="width:200px;height:200px;cursor:grab"></canvas></div><div style="display:flex;align-items:center;gap:10px;justify-content:center;margin:12px 0"><label style="font-size:13px;color:var(--text-dim)">Zoom</label><input type="range" id="wizCropZoom" min="100" max="400" value="100" style="flex:1;max-width:200px"></div><div class="modal-buttons"><button class="btn" onclick="this.closest('.modal-overlay').remove();">${t('cancel')}</button><button class="btn btn-accent" id="wizCropConfirm">${lang==='pt'?'Usar':'Use'}</button></div></div>`;
+      document.body.appendChild(modal);
+      const cv=document.getElementById('wizCropCanvas'),cx=cv.getContext('2d');
+      let zoom=1,offX=0,offY=0,dragging=false,sx=0,sy=0;
+      function draw(){cx.clearRect(0,0,200,200);const s=Math.max(200/cropImg.width,200/cropImg.height)*zoom;const w=cropImg.width*s,h=cropImg.height*s;cx.drawImage(cropImg,(200-w)/2+offX,(200-h)/2+offY,w,h);}
+      draw();
+      document.getElementById('wizCropZoom').oninput=function(){zoom=this.value/100;draw();};
+      cv.onmousedown=cv.ontouchstart=function(e2){dragging=true;const p=e2.touches?e2.touches[0]:e2;sx=p.clientX-offX;sy=p.clientY-offY;e2.preventDefault();};
+      const mv=function(e2){if(!dragging)return;const p=e2.touches?e2.touches[0]:e2;offX=p.clientX-sx;offY=p.clientY-sy;draw();};
+      const up=function(){dragging=false;};
+      document.addEventListener('mousemove',mv);document.addEventListener('touchmove',mv);
+      document.addEventListener('mouseup',up);document.addEventListener('touchend',up);
+      document.getElementById('wizCropConfirm').onclick=function(){wizardData.profilePic=cv.toDataURL('image/jpeg',0.8);wizardData.emoji='';document.removeEventListener('mousemove',mv);document.removeEventListener('touchmove',mv);document.removeEventListener('mouseup',up);document.removeEventListener('touchend',up);modal.remove();renderWizardStep();};
+    };cropImg.src=e.target.result;
+  };r.readAsDataURL(file);ev.target.value='';
+}
+function setWizBaseline(hk,v){
+  if(!wizardData.baselineOverrides)wizardData.baselineOverrides={};
+  const n=parseFloat(v);
+  if(Number.isFinite(n))wizardData.baselineOverrides[hk]=n;
+}
+function updateWizPreview(){
+  const el=document.getElementById('wizPreview');if(!el)return;
+  if(wizardData.hrtType==='custom'){el.innerHTML='';return;}
+  const preset=HRT_PRESETS[wizardData.hrtType]?.[wizardData.thoroughness||'basic'];
+  if(!preset){el.innerHTML='';return;}
+  const hormNames=preset.hormones.map(k=>{const h=BUILTIN_HORMONES[k];return h?`<span style="color:${h.color};font-weight:500">${h.name}</span>`:k;}).join(', ');
+  el.innerHTML=`<div style="padding:14px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:14px;line-height:1.7"><span style="color:var(--text-dim)">${lang==='pt'?'Vai rastrear:':'Will track:'}</span> ${hormNames}</div>`;
+}
+function finishWizard(){
+  pushUndo();
+  let hormones;
+  if(wizardData.hrtType==='custom'){
+    hormones=wizardData.customHormones||[];
+  }else{
+    const preset=HRT_PRESETS[wizardData.hrtType]?.[wizardData.thoroughness||'basic'];
+    hormones=preset?[...preset.hormones]:['E2','PRL','T'];
+  }
+  // Build baseline values for the new/updated baseline lab entry
+  const baselineValues={};
+  const simulatePre=wizardData.simulatePreHrt!==false; // default true when undefined
+  if(simulatePre&&(wizardData.baseline==='tprehrtm'||wizardData.baseline==='tprehrtf')){
+    const bkey=wizardData.baseline;
+    for(const hk of hormones){
+      const h=BUILTIN_HORMONES[hk];if(!h)continue;
+      const override=wizardData.baselineOverrides?.[hk];
+      const def=h[bkey]?.typ;
+      const val=override!=null?override:def;
+      if(val!=null)baselineValues[hk]=val;
+    }
+  }
+  let pic=wizardData.profilePic||'';
+  if(!pic&&wizardData.emoji){const c=document.createElement('canvas');c.width=120;c.height=120;const cx=c.getContext('2d');cx.fillStyle='#f0e6f5';cx.fillRect(0,0,120,120);cx.font='80px "Apple Color Emoji","Segoe UI Emoji",sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(wizardData.emoji,60,66);pic=c.toDataURL('image/png');}
+
+  if(wizardMode==='edit'&&wizardEditingName&&profiles[wizardEditingName]){
+    // Update existing profile
+    const p=profiles[wizardEditingName];
+    const newName=wizardData.name?.trim()||wizardEditingName;
+    // Rename if changed
+    if(newName!==wizardEditingName){
+      if(profiles[newName]){let n=1;while(profiles[`${newName} (${n})`])n++;profiles[`${newName} (${n})`]=p;delete profiles[wizardEditingName];activeProfileName=`${newName} (${n})`;}
+      else{profiles[newName]=p;delete profiles[wizardEditingName];activeProfileName=newName;}
+    }
+    p.baseline=wizardData.baseline||'tprehrtm';
+    if(pic||!p.profilePic)p.profilePic=pic;
+    p.trackedHormones=hormones;
+    // Apply medications — add new ones, keep existing doses if med already tracked
+    const newMeds=wizardData.medications||[];
+    const oldMeds=p.medications||[];
+    p.medications=[...newMeds];
+    // Merge customMeds (keep only those referenced)
+    const wizCustom=wizardData.customMeds||[];
+    p.customMeds=wizCustom.filter(m=>newMeds.includes(m.id));
+    if(!p.medCustom)p.medCustom={};
+    for(const mid of newMeds){
+      if(!p.medCustom[mid])p.medCustom[mid]={showDots:true};
+      if(!p.doses)p.doses={};
+      if(!p.doses[mid])p.doses[mid]=[];
+    }
+    // Remove doses for meds that were removed
+    for(const mid of oldMeds){
+      if(!newMeds.includes(mid)){
+        if(p.doses)delete p.doses[mid];
+        if(p.medCustom)delete p.medCustom[mid];
+      }
+    }
+    // Remove existing baseline lab, add fresh one if applicable
+    p.labs=(p.labs||[]).filter(l=>!l.isBaseline);
+    if(Object.keys(baselineValues).length){
+      p.labs.unshift({day:-30,date:'',values:baselineValues,isBaseline:true});
+    }
+    saveToStorage();closeModal('newProfileModal');fullRefresh();toast(lang==='pt'?'Perfil atualizado':'Profile updated');
+    wizardMode='create';wizardEditingName='';
+    return;
+  }
+
+  // Create new profile
+  let name=wizardData.name?.trim()||getDefaultName();
+  if(profiles[name]){let n=1;while(profiles[`${name} (${n})`])n++;name=`${name} (${n})`;}
+  const initialLabs=[];
+  if(Object.keys(baselineValues).length){
+    initialLabs.push({day:-30,date:'',values:baselineValues,isBaseline:true});
+  }
+  const initMeds=wizardData.medications||[];
+  const initMedCustom={};const initDoses={};
+  for(const mid of initMeds){initMedCustom[mid]={showDots:true};initDoses[mid]=[];}
+  const initCustomMeds=(wizardData.customMeds||[]).filter(m=>initMeds.includes(m.id));
+  profiles[name]={startDate:'',baseline:wizardData.baseline||'tprehrtm',profilePic:pic,medications:initMeds,medCustom:initMedCustom,customMeds:initCustomMeds,customHormones:[],doses:initDoses,trackedHormones:hormones,shownAxes:[],labs:initialLabs};
+  activeProfileName=name;saveToStorage();closeModal('newProfileModal');fullRefresh();
+}
+function deleteProfile(name,ev){ev.stopPropagation();pushUndo();delete profiles[name];if(activeProfileName===name)activeProfileName=Object.keys(profiles)[0]||'';saveToStorage();fullRefresh();toast(t('removed'));}
+let openCtxMenu=null;
+function toggleCtxMenu(name,ev){ev.stopPropagation();document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));const id='ctx_'+name.replace(/[^a-zA-Z0-9]/g,'_');const menu=document.getElementById(id);if(menu&&openCtxMenu!==name){menu.classList.add('open');openCtxMenu=name;}else openCtxMenu=null;}
+document.addEventListener('click',()=>{document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));openCtxMenu=null;});
+function startRename(name){
+  openCtxMenu=null;document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));
+  // Replace the tab's name span with an input
+  const tabs=document.querySelectorAll('.profile-tab');
+  for(const tab of tabs){
+    const nameSpan=tab.querySelector('span:not(.tab-dot)');
+    if(!nameSpan||nameSpan.textContent!==name)continue;
+    const inp=document.createElement('input');inp.type='text';inp.value=name;
+    inp.style.cssText='background:var(--surface3);border:1px solid var(--accent);color:var(--accent);font:inherit;font-size:15px;padding:2px 6px;border-radius:6px;width:120px;outline:none';
+    nameSpan.replaceWith(inp);inp.focus();inp.select();
+    function finish(){const nn=inp.value.trim();if(nn&&nn!==name&&!profiles[nn]){pushUndo();profiles[nn]=profiles[name];delete profiles[name];if(activeProfileName===name)activeProfileName=nn;saveToStorage();}fullRefresh();}
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')finish();if(e.key==='Escape')fullRefresh();});
+    inp.addEventListener('blur',finish);
+    break;
+  }
+}
+function triggerPfp(){openCtxMenu=null;document.getElementById('pfpInput').click();}
+function removePfp(){pushUndo();profilePic='';syncToProfile();renderProfileTabs();openCtxMenu=null;}
+function renderProfileTabs(){const c=document.getElementById('profileTabs');c.innerHTML='';for(const name of Object.keys(profiles)){const isA=name===activeProfileName;const p=profiles[name];const safeId=name.replace(/[^a-zA-Z0-9]/g,'_');const tab=document.createElement('button');tab.className='profile-tab'+(isA?' active':'');const picHtml=p.profilePic?`<img class="tab-pic" src="${p.profilePic}">`:'<span class="tab-dot"></span>';const delLabel=t('deleteBtn');const capDel=delLabel.charAt(0).toUpperCase()+delLabel.slice(1);tab.innerHTML=`${picHtml}<span>${esc(name)}</span><button class="tab-menu-btn" onclick="toggleCtxMenu('${esc(name)}',event)">⋯</button><div class="ctx-menu" id="ctx_${safeId}"><button class="ctx-menu-item" onclick="startRename('${esc(name)}')">${t('rename')}</button><button class="ctx-menu-item" onclick="triggerPfp()">${t('setPicture')}</button><button class="ctx-menu-item" onclick="openQuickEmoji()">${lang==='pt'?'Definir emoji':'Set emoji'}</button>${p.profilePic?`<button class="ctx-menu-item" onclick="removePfp()">${t('deletePfp')}</button>`:''}<button class="ctx-menu-item" onclick="openSetupWizardForActive()">${lang==='pt'?'Configuração inicial':'Setup wizard'}</button><button class="ctx-menu-item" style="color:var(--danger)" onclick="deleteProfile('${esc(name)}',event)">${capDel}</button></div>`;tab.addEventListener('click',(e)=>{if(!e.target.closest('.tab-menu-btn')&&!e.target.closest('.ctx-menu'))switchProfile(name);});c.appendChild(tab);}}
+function exportProfiles(){syncToProfile();const blob=new Blob([JSON.stringify({version:5,profiles,active:activeProfileName},null,2)],{type:'application/json'});const a=document.createElement('a');a.download=`HRT_${activeProfileName.replace(/[^a-zA-Z0-9]/g,'_')}.json`;a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);toast(t('exported'));}
+function importProfiles(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.profiles){toast(t('invalidFile'));return;}pushUndo();for(const[n,p]of Object.entries(data.profiles)){p.medCustom=p.medCustom||{};p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];profiles[n]=p;}if(data.active&&profiles[data.active])activeProfileName=data.active;saveToStorage();fullRefresh();}catch(err){toast(t('parseError'));}};reader.readAsText(file);event.target.value='';}
+
+// ═══ ADD MEDICATION MODAL ═══
+let catalogSnapshot=null,catalogKind=null;
+function openCatalog(kind){
+  catalogKind=kind;
+  const p=getActive();if(!p)return;
+  // Deep snapshot for cancel/revert
+  catalogSnapshot={medCustom:JSON.parse(JSON.stringify(medCustom)),customMeds:JSON.parse(JSON.stringify(customMeds)),customHormones:JSON.parse(JSON.stringify(customHormones)),hormoneRanges:JSON.parse(JSON.stringify(p.hormoneRanges||{}))};
+  renderCatalog();
+  document.getElementById('catalogModal').classList.add('open');
+}
+function renderCatalog(){
+  const title=document.getElementById('catalogTitle');
+  const list=document.getElementById('catalogList');
+  const addBtn=document.getElementById('catalogAddCustomBtn');
+  const UNITS=['pg/mL','ng/mL','ng/dL','ng/L','mIU/mL','nmol/L','µg/dL','U/L','mg/dL','mEq/L','%','pmol/L','IU/L','mg','ml','IU','g','µg'];
+  if(catalogKind==='meds'){
+    title.textContent=lang==='pt'?'Catálogo de Medicações':'Medication Catalog';
+    const tracked=new Set(medications);
+    const allMeds=[...BUILTIN_MEDS,...customMeds];
+    // Clear hint & header for meds
+    const hint=document.getElementById('catalogHint');if(hint){hint.style.display='none';hint.innerHTML='';}
+    const hdr=document.getElementById('catalogHeader');if(hdr){hdr.style.display='none';hdr.innerHTML='';}
+    list.innerHTML=allMeds.map(m=>{
+      const isTracked=tracked.has(m.id);
+      const color=getMedColor(m.id);
+      const unit=getMedUnit(m.id);
+      const isCustom=m.id.startsWith('custom_');
+      const unitOpts=UNITS.map(u=>`<option value="${u}"${u===unit?' selected':''}>${u}</option>`).join('');
+      const tags=[];
+      if(isCustom)tags.push(`<span class="catalog-tag" style="color:var(--accent)">custom</span>`);
+      if(isTracked)tags.push(`<span class="catalog-tag">${lang==='pt'?'ativo':'active'}</span>`);
+      const tagHtml=`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:9px">${tags.join('')||'<span></span>'}</div>`;
+      const delBtn=isCustom?`<button class="catalog-del-btn" title="${lang==='pt'?'Excluir':'Delete'}" onclick="catalogDeleteCustomMed('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`:'';
+      return`<div class="catalog-row med-row${isTracked?' tracked':''}"><input type="color" class="catalog-swatch" value="${color}" onchange="catalogSetMedColor('${m.id}',this.value)"><div class="catalog-name" title="${esc(m.name)}">${esc(m.name)}${delBtn}</div>${tagHtml}<select class="catalog-unit-select" onchange="catalogSetMedUnit('${m.id}',this.value)">${unitOpts}</select></div>`;
+    }).join('');
+    addBtn.onclick=()=>catalogAddCustom('med');
+  }else{
+    title.textContent=lang==='pt'?'Catálogo de Hormônios':'Hormone Catalog';
+    // Helper hint about target ranges
+    const hint=document.getElementById('catalogHint');
+    if(hint){
+      hint.style.display='block';
+      hint.innerHTML=lang==='pt'
+        ? `<strong style="color:var(--text)">Faixas alvo</strong> são pré-preenchidas de acordo com o tipo de TRH selecionado. Para redefinir ao padrão, abra o menu do seu perfil (<span style="font-family:monospace;color:var(--accent)">⋯</span>) e clique em <strong>Configuração inicial</strong>.`
+        : `<strong style="color:var(--text)">Target ranges</strong> are pre-filled based on your selected HRT type. To reset to defaults, open your profile's menu (<span style="font-family:monospace;color:var(--accent)">⋯</span>) and click <strong>Setup wizard</strong>.`;
+    }
+    // Column header row
+    const hdr=document.getElementById('catalogHeader');
+    if(hdr){
+      hdr.style.display='block';
+      const rangeLbl=lang==='pt'?'Faixa Alvo':'Target Range';
+      const nameLbl=lang==='pt'?'Hormônio':'Hormone';
+      const unitLbl=lang==='pt'?'Unidade':'Unit';
+      hdr.innerHTML=`<div class="catalog-row" style="padding:4px 10px;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:600;border-bottom:1px solid var(--border);margin-bottom:2px"><span></span><span>${nameLbl}</span><span></span><span>${unitLbl}</span><span></span><span style="grid-column:6 / span 3;text-align:center">${rangeLbl}</span></div>`;
+    }
+    const tracked=new Set(trackedHormones);
+    const allH=[...Object.entries(BUILTIN_HORMONES).map(([k,h])=>({...h,id:k})),...customHormones];
+    list.innerHTML=allH.map(h=>{
+      const isTracked=tracked.has(h.id);
+      const actual=getHormone(h.id)||h;
+      const vals=getHormoneVals(h.id);
+      const isCustom=h.id.startsWith('ch_');
+      const unitOpts=UNITS.map(u=>`<option value="${u}"${u===actual.unit?' selected':''}>${u}</option>`).join('');
+      const tags=[];
+      if(isCustom)tags.push(`<span class="catalog-tag" style="color:var(--accent)">custom</span>`);
+      if(isTracked)tags.push(`<span class="catalog-tag">${lang==='pt'?'ativo':'active'}</span>`);
+      const tagHtml=`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:9px">${tags.join('')||'<span></span>'}</div>`;
+      const delBtn=isCustom?`<button class="catalog-del-btn" title="${lang==='pt'?'Excluir':'Delete'}" onclick="catalogDeleteCustomHormone('${h.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`:'';
+      return`<div class="catalog-row${isTracked?' tracked':''}"><input type="color" class="catalog-swatch" value="${actual.color}" onchange="catalogSetHormoneColor('${h.id}',this.value)"><div class="catalog-name" title="${esc(actual.name)}">${esc(actual.name)}${delBtn}</div>${tagHtml}<select class="catalog-unit-select" onchange="catalogSetHormoneUnit('${h.id}',this.value)">${unitOpts}</select><span></span><input type="number" step="0.01" value="${vals.tLo||0}" class="catalog-range-input" placeholder="min" title="${lang==='pt'?'Faixa alvo mínima':'Target min'}" onchange="catalogSetHormoneRange('${h.id}','tLo',this.value)"><span class="catalog-range-dash">–</span><input type="number" step="0.01" value="${vals.tHi||0}" class="catalog-range-input" placeholder="max" title="${lang==='pt'?'Faixa alvo máxima':'Target max'}" onchange="catalogSetHormoneRange('${h.id}','tHi',this.value)"></div>`;
+    }).join('');
+    addBtn.onclick=()=>catalogAddCustom('hormone');
+  }
+}
+function catalogDeleteCustomHormone(hk){
+  customHormones=customHormones.filter(h=>h.id!==hk);
+  trackedHormones=trackedHormones.filter(h=>h!==hk);
+  shownAxes=shownAxes.filter(h=>h!==hk);
+  for(const lab of labs)if(lab.values[hk]!=null)delete lab.values[hk];
+  renderCatalog();
+}
+function catalogDeleteCustomMed(mid){
+  customMeds=customMeds.filter(m=>m.id!==mid);
+  medications=medications.filter(m=>m!==mid);
+  delete medCustom[mid];
+  delete doses[mid];
+  selectedChartItems.delete('med_'+mid);
+  if(selectedMedId===mid)selectedMedId=medications[0]||'';
+  renderCatalog();
+}
+function catalogSetHormoneRange(hk,which,v){
+  const p=getActive();if(!p)return;
+  if(!p.hormoneRanges)p.hormoneRanges={};
+  if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};
+  const n=parseFloat(v);
+  if(Number.isFinite(n))p.hormoneRanges[hk][which]=n;
+}
+function catalogAddCustom(type){
+  const list=document.getElementById('catalogList');
+  const rowId='newRow_'+Date.now();
+  const row=document.createElement('div');row.className='catalog-row';row.id=rowId;row.style.background='var(--surface3)';
+  row.innerHTML=`<input type="color" class="catalog-swatch" value="#a48bcf"><input type="text" placeholder="${lang==='pt'?'Nome':'Name'}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:13px"><select class="catalog-unit-select"><option value="mg">mg</option><option value="ml">ml</option><option value="pg/mL">pg/mL</option><option value="ng/mL">ng/mL</option><option value="ng/dL">ng/dL</option><option value="nmol/L">nmol/L</option><option value="IU">IU</option><option value="g">g</option></select><button class="btn btn-accent btn-sm" style="padding:3px 10px">${lang==='pt'?'OK':'OK'}</button><button class="btn btn-sm" style="padding:3px 10px">×</button>`;
+  list.appendChild(row);
+  const [colorInp,nameInp,unitSel,okBtn,cancelBtn]=row.querySelectorAll('input,select,button');
+  nameInp.focus();
+  okBtn.onclick=()=>{
+    const n=nameInp.value.trim();if(!n){nameInp.focus();return;}
+    if(type==='med'){const id='custom_'+Date.now();customMeds.push({id,name:n,color:colorInp.value,unit:unitSel.value});medCustom[id]={color:colorInp.value,unit:unitSel.value,showDots:true};if(!medications.includes(id))medications.push(id);if(!doses[id])doses[id]=[];}
+    else{const id='ch_'+Date.now();customHormones.push({id,name:n,color:colorInp.value,unit:unitSel.value,maxScale:100,step:10,tprehrtm:{typ:0,tLo:0,tHi:0},tprehrtf:{typ:0,tLo:0,tHi:0}});if(!trackedHormones.includes(id))trackedHormones.push(id);if(!shownAxes.includes(id))shownAxes.push(id);}
+    renderCatalog();
+  };
+  cancelBtn.onclick=()=>row.remove();
+}
+function catalogApply(){
+  pushUndo();syncToProfile();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();redraw();
+  closeModal('catalogModal');catalogSnapshot=null;
+}
+function catalogCancel(){
+  if(catalogSnapshot){
+    const p=getActive();
+    medCustom=catalogSnapshot.medCustom;
+    customMeds=catalogSnapshot.customMeds;
+    customHormones=catalogSnapshot.customHormones;
+    if(p)p.hormoneRanges=catalogSnapshot.hormoneRanges;
+    renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();redraw();
+  }
+  closeModal('catalogModal');catalogSnapshot=null;
+}
+function catalogSetMedColor(id,color){if(!medCustom[id])medCustom[id]={};medCustom[id].color=color;}
+function catalogSetMedUnit(id,unit){if(!medCustom[id])medCustom[id]={};medCustom[id].unit=unit;}
+function catalogSetHormoneColor(hk,color){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};p.hormoneRanges[hk].color=color;}
+function catalogSetHormoneUnit(hk,unit){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};p.hormoneRanges[hk].unit=unit;}
+function openAddMedModal(){
+  renderAddMedModal();
+  document.getElementById('customMedForm').style.display='none';
+  document.getElementById('addMedModal').classList.add('open');
+}
+function renderAddMedModal(){
+  const body=document.getElementById('addMedBody');
+  const estrogens=['een','ev','ec','eun','patch','gel','pill_e'];
+  const antiandrogens=['spiro','bica','cyp','gnrha','fina','duta'];
+  const testosterone=['testo_c','testo_e','testo_gel'];
+  const other=['prog','pred'];
+  const customIds=customMeds.map(m=>m.id);
+  function chip(mid){
+    const m=getAllMeds().find(x=>x.id===mid);if(!m)return'';
+    const on=medications.includes(mid);
+    const activeTag=on?`<span style="margin-left:6px;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;font-weight:600">${lang==='pt'?'ativo':'active'}</span>`:'';
+    return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?m.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleMedFromModal('${mid}')"><span class="tag-dot" style="background:${m.color}"></span>${esc(m.name)}${activeTag}</div>`;
+  }
+  function group(titleEn,titlePt,ids){
+    if(!ids.length)return'';
+    const title=lang==='pt'?titlePt:titleEn;
+    return`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${ids.map(chip).join('')}</div></div>`;
+  }
+  const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="document.getElementById('customMedForm').style.display='block';setTimeout(()=>document.getElementById('customMedName').focus(),30)"><span style="font-size:14px">+</span> ${lang==='pt'?'Adicionar Personalizado':'Add Custom'}</button>`;
+  const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${lang==='pt'?'Personalizadas':'Custom'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(chip).join('')}${addCustomBtn}</div></div>`;
+  const preamble=`<div class="modal-label">${lang==='pt'?'Escolha medicações (clique para adicionar/remover)':'Pick medications (click to add/remove)'}</div>`;
+  body.innerHTML=preamble+group('Estrogens','Estrogênios',estrogens)+group('Anti-androgens','Antiandrógenos',antiandrogens)+group('Testosterone','Testosterona',testosterone)+group('Other','Outros',other)+customSection;
+}
+function toggleMedFromModal(mid){
+  pushUndo();
+  const i=medications.indexOf(mid);
+  if(i>=0){
+    // Remove
+    medications.splice(i,1);
+    if(selectedMedId===mid)selectedMedId=medications[0]||'';
+  }else{
+    // Add
+    medications.push(mid);
+    if(!doses[mid])doses[mid]=[];
+    if(!medCustom[mid])medCustom[mid]={showDots:true};
+    selectedMedId=mid;
+  }
+  syncToProfile();renderAddMedModal();renderDosePanel();renderChartTabs();redraw();
+}
+function pickMedFromModal(mid){toggleMedFromModal(mid);}
+function confirmAddCustomMedFromModal(){
+  const name=document.getElementById('customMedName').value.trim();
+  if(!name)return;
+  const unit=document.getElementById('customMedUnit').value||'mg';
+  const color=document.getElementById('customMedColor').value||'#b07cd8';
+  const id='custom_'+Date.now();
+  customMeds.push({id,name,color,unit});
+  medications.push(id);
+  doses[id]=[];
+  medCustom[id]={showDots:true,color,unit};
+  selectedMedId=id;
+  pushUndo();syncToProfile();closeModal('addMedModal');renderDosePanel();renderChartTabs();redraw();
+}
+function confirmAddMed(){pickMedFromModal(document.getElementById('medModalSelect')?.value);}
+
+// ═══ ADD HORMONE MODAL ═══
+function openAddHormoneModal(){
+  renderAddHormoneModal();
+  document.getElementById('customHormoneForm').style.display='none';
+  document.getElementById('addHormoneModal').classList.add('open');
+}
+function renderAddHormoneModal(){
+  const body=document.getElementById('addHormoneBody');
+  const sexHorm=['E2','T','DHT','PROG','SHBG'];
+  const pituitary=['PRL','LH','FSH','IGF1','CORT'];
+  const liverKidney=['ALT','AST','CREAT'];
+  const nutrients=['VITD','FE','B12'];
+  const blood=['HCT','K'];
+  const customIds=customHormones.map(h=>h.id);
+  function chip(hk){
+    const h=getHormone(hk)||BUILTIN_HORMONES[hk];if(!h)return'';
+    const on=trackedHormones.includes(hk);
+    const activeTag=on?`<span style="margin-left:6px;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;font-weight:600">${lang==='pt'?'ativo':'active'}</span>`:'';
+    return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?h.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleHormoneFromModal('${hk}')"><span class="tag-dot" style="background:${h.color}"></span>${esc(h.name)}${activeTag}</div>`;
+  }
+  function group(titleEn,titlePt,ids){
+    if(!ids.length)return'';
+    const title=lang==='pt'?titlePt:titleEn;
+    return`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${ids.map(chip).join('')}</div></div>`;
+  }
+  const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="document.getElementById('customHormoneForm').style.display='block';setTimeout(()=>document.getElementById('customHormoneName').focus(),30)"><span style="font-size:14px">+</span> ${lang==='pt'?'Adicionar Personalizado':'Add Custom'}</button>`;
+  const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${lang==='pt'?'Personalizados':'Custom'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(chip).join('')}${addCustomBtn}</div></div>`;
+  const preamble=`<div class="modal-label">${lang==='pt'?'Escolha hormônios (clique para adicionar/remover)':'Pick hormones (click to add/remove)'}</div>`;
+  body.innerHTML=preamble+group('Sex Hormones','Hormônios Sexuais',sexHorm)+group('Pituitary & Other','Hipófise e Outros',pituitary)+group('Liver & Kidney','Fígado e Rim',liverKidney)+group('Vitamins & Minerals','Vitaminas e Minerais',nutrients)+group('Blood Panel','Hemograma',blood)+customSection;
+}
+function toggleHormoneFromModal(hk){
+  pushUndo();
+  const i=trackedHormones.indexOf(hk);
+  if(i>=0){
+    trackedHormones.splice(i,1);
+    shownAxes=shownAxes.filter(h=>h!==hk);
+    selectedChartItems.delete('h_'+hk);
+  }else{
+    trackedHormones.push(hk);
+    if(!shownAxes.includes(hk))shownAxes.push(hk);
+  }
+  syncToProfile();renderAddHormoneModal();renderLabPanel();renderAxisToggles();renderChartTabs();redraw();
+}
+function pickHormoneFromModal(hk){toggleHormoneFromModal(hk);}
+function confirmAddCustomHormoneFromModal(){
+  const name=document.getElementById('customHormoneName').value.trim();
+  if(!name)return;
+  const unit=document.getElementById('customHormoneUnit').value||'ng/mL';
+  const color=document.getElementById('customHormoneColor').value||'#dd88aa';
+  const id='ch_'+Date.now();
+  customHormones.push({id,name,color,unit,maxScale:100,step:10,tprehrtm:{typ:0,tLo:0,tHi:0},tprehrtf:{typ:0,tLo:0,tHi:0}});
+  trackedHormones.push(id);shownAxes.push(id);
+  pushUndo();syncToProfile();closeModal('addHormoneModal');renderLabPanel();renderAxisToggles();renderChartTabs();redraw();
+}
+function confirmAddHormone(){pickHormoneFromModal(document.getElementById('hormoneModalSelect')?.value);}
+
+// ═══ MEDICATION UI ═══
+// ═══ DYNAMIC PANELS ═══
+function renderDosePanel(){
+  const c=document.getElementById('dosePanel');
+  if(!medications.length){c.innerHTML=`<div style="color:var(--text-dim);padding:10px 0;font-size:14px">${t('selectMedFirst')}</div>`;return;}
+  const u=getMedUnit(selectedMedId)||'mg';
+  // Build HTML with recurring fields always present but hidden via CSS
+  let html='<div class="tag-row" id="medTagsRow"></div>';
+  html+=`<div class="field-row"><div class="field"><label>${t('date')}</label><div class="date-selects" id="doseDateSelects"></div></div><div class="field"><label>${t('amount')} (${esc(u)})</label><input id="doseMg" type="number" step="0.1" placeholder="e.g. 4"></div></div>`;
+  // Recurring — all fields always visible, dimmed when off
+  html+=`<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--text-muted)"><label class="toggle-switch"><input type="checkbox" id="recurToggle" ${recurOpen?'checked':''} onchange="recurOpen=this.checked;var _re=document.getElementById('recurExtra');_re.style.opacity=this.checked?'1':'.4';_re.style.pointerEvents=this.checked?'auto':'none';_re.style.filter=this.checked?'none':'grayscale(.3)';document.getElementById('addSingleBtn').textContent=this.checked?'${t('addAllDosesBtn')}':'${t('addDoseBtn')}'"><span class="toggle-slider"></span></label><span>${t('recurring')}</span><span id="recurExtra" style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;opacity:${recurOpen?'1':'.4'};pointer-events:${recurOpen?'auto':'none'};transition:opacity .2s;${recurOpen?'':'filter:grayscale(.3)'}"><span>${t('every')}</span><input id="recurEvery" type="number" value="7" min="1" style="width:55px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-size:14px;font-family:'JetBrains Mono',monospace"><span>${t('days2')}</span><span>${t('forDuration')}</span><input id="recurDur" type="number" value="12" min="1" style="width:55px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-size:14px;font-family:'JetBrains Mono',monospace"><select id="recurDurUnit" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif"><option value="days">${t('days2')}</option><option value="weeks">${t('weeks')}</option><option value="months" selected>${t('months')}</option><option value="years">${t('years')}</option></select></span></div>`;
+  html+=`<div style="margin-top:10px"><button class="btn btn-accent" id="addSingleBtn" onclick="recurOpen?addRecurringDoses():addDoseByDate()">${recurOpen?t('addAllDosesBtn'):t('addDoseBtn')}</button></div>`;
+  // Properties
+  if(selectedMedId){const med=getMed(selectedMedId);if(med){const dotsOn=getMedDots(selectedMedId);
+    html+=`<div style="margin-top:14px;padding:12px;border-top:1px solid var(--border)"><div style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:500">${t('settingsFor')} ${esc(med.name)}</div><div class="field-row"><div class="field"><label>${t('color')}</label><input type="color" value="${getMedColor(selectedMedId)}" onchange="setMedColor('${selectedMedId}',this.value)"></div><div class="field"><label>${t('unit')}</label><input type="text" value="${esc(getMedUnit(selectedMedId))}" style="width:80px" onchange="setMedUnit('${selectedMedId}',this.value)"></div><div style="display:flex;align-items:center;gap:8px;align-self:end;padding-bottom:4px"><label class="toggle-switch"><input type="checkbox" ${dotsOn?'checked':''} onchange="setMedDots('${selectedMedId}',this.checked)"><span class="toggle-slider"></span></label><span class="toggle-label">${t('showDoseDots')}</span></div></div></div>`;}}
+  c.innerHTML=html;
+  // Build med tags
+  const tagRow=document.getElementById('medTagsRow');
+  for(const id of medications){const med=getMed(id);if(!med)continue;const isSel=id===selectedMedId;
+    const tag=document.createElement('span');tag.className='tag med-pill'+(isSel?' selected':'');
+    tag.innerHTML=`<span class="tag-dot" style="background:${getMedColor(id)}"></span><span>${esc(med.name)}</span>`;
+    const xBtn=document.createElement('button');xBtn.className='tag-x';xBtn.innerHTML='&times;';
+    xBtn.addEventListener('click',function(e){e.stopPropagation();removeMedication(id);});
+    tag.appendChild(xBtn);
+    tag.addEventListener('click',function(){selectedMedId=id;renderDosePanel();redraw();});
+    tagRow.appendChild(tag);
+  }
+  renderDateSelects('doseDateSelects');
+}
+function renderLabPanel(){
+  const c=document.getElementById('labPanel');
+  if(!trackedHormones.length){c.innerHTML=`<div style="color:var(--text-dim);padding:10px 0;font-size:14px">${t('enterOneValue')}</div>`;return;}
+  const UNITS=['pg/mL','ng/mL','ng/dL','ng/L','mIU/mL','nmol/L','µg/dL','U/L','mg/dL','mEq/L','%','pmol/L','IU/L'];
+  const G='display:grid;grid-template-columns:28px 1fr 78px 72px 50px;gap:6px;align-items:center;';
+  let html=`<div class="field-row"><div class="field"><label>${t('date')}</label><div class="date-selects" id="labDateSelects"></div></div></div>`;
+  html+=`<div style="${G}padding:6px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px"><span></span><span>${lang==='pt'?'Hormônio':'Hormone'}</span><span>${t('unit')}</span><span>${lang==='pt'?'Valor':'Value'}</span><span></span></div>`;
+  for(const hk of trackedHormones){const h=getHormone(hk);if(!h)continue;
+    let unitOpts='';for(const u of UNITS)unitOpts+=`<option value="${u}"${u===h.unit?' selected':''}>${u}</option>`;
+    html+=`<div style="${G}padding:8px 0;border-bottom:1px solid var(--border)"><input type="color" value="${h.color}" style="width:26px;height:26px;padding:1px;border:1px solid var(--border);border-radius:4px;cursor:pointer" onchange="setHormoneColor('${hk}',this.value)"><span style="color:${h.color};font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(h.name)}">${esc(h.name)}</span><select style="padding:3px 2px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);font-size:11px;width:100%" onchange="setHormoneUnit('${hk}',this.value)">${unitOpts}</select><input id="lab_${hk}" type="number" step="0.01" placeholder="—" style="width:100%;padding:4px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);font-size:12px;font-family:'JetBrains Mono',monospace"><button class="hist-btn hist-del" id="hx_${hk}" style="font-size:11px;padding:3px 0;width:50px;text-align:center">${t('deleteBtn')}</button></div>`;}
+  html+=`<div class="field-row" style="margin-top:12px"><button class="btn btn-accent" onclick="addLabByDate()">${t('addLabBtn')}</button></div>`;
+  c.innerHTML=html;
+  for(const hk of trackedHormones){const btn=document.getElementById('hx_'+hk);if(btn)btn.addEventListener('click',()=>removeHormone(hk));}
+  renderDateSelects('labDateSelects');
+}
+function renderAxisToggles(){
+  const c=document.getElementById('axisToggles');if(!c)return;c.innerHTML='';
+  // Medications first
+  for(const mid of medications){
+    const m=getMed(mid);if(!m)continue;
+    const axKey='med:'+mid;
+    const isOn=shownAxes.includes(axKey);
+    const color=getMedColor(mid);
+    const tag=document.createElement('span');tag.className='tag axis-toggle'+(isOn?' show-axis':'');
+    tag.innerHTML=`<span class="tag-dot" style="background:${color}"></span>${esc(m.name)}`;
+    tag.addEventListener('click',()=>{if(shownAxes.includes(axKey))shownAxes=shownAxes.filter(a=>a!==axKey);else shownAxes.push(axKey);syncToProfile();renderAxisToggles();redraw();});
+    c.appendChild(tag);
+  }
+  // Then hormones
+  for(const hk of trackedHormones){
+    const h=getHormone(hk);if(!h)continue;
+    const isOn=shownAxes.includes(hk);
+    const tag=document.createElement('span');tag.className='tag axis-toggle'+(isOn?' show-axis':'');
+    tag.innerHTML=`<span class="tag-dot" style="background:${h.color}"></span>${esc(h.name)}`;
+    tag.addEventListener('click',()=>{if(shownAxes.includes(hk))shownAxes=shownAxes.filter(h2=>h2!==hk);else shownAxes.push(hk);syncToProfile();renderAxisToggles();redraw();});
+    c.appendChild(tag);
+  }
+}
+let showAxesMaster=false;
+let showPreHrt=true;
+let showRanges=true;
+function togglePreHrt(){showPreHrt=document.getElementById('showPreHrtToggle').checked;redraw();}
+function toggleRanges(){showRanges=document.getElementById('showRangesToggle').checked;redraw();}
+function toggleShowAxes(){
+  showAxesMaster=document.getElementById('showAxesToggle').checked;
+  document.getElementById('axesForRow').style.display=showAxesMaster?'':'none';
+  redraw();
+}
+function setMedColor(id,c2){pushUndo();if(!medCustom[id])medCustom[id]={};medCustom[id].color=c2;syncToProfile();renderDosePanel();redraw();}
+function setMedUnit(id,u){pushUndo();if(!medCustom[id])medCustom[id]={};medCustom[id].unit=u;syncToProfile();renderDosePanel();redraw();}
+function setMedDots(id,on){if(!medCustom[id])medCustom[id]={};medCustom[id].showDots=on;syncToProfile();redraw();}
+function removeMedication(id){pushUndo();medications=medications.filter(m=>m!==id);delete doses[id];delete medCustom[id];selectedChartItems.delete('med_'+id);if(selectedChartItems.size===0&&chartView==='individual')chartView='multi';if(selectedMedId===id){selectedMedId=medications[0]||'';}syncToProfile();renderDosePanel();renderChartTabs();renderHistory();renderStats();redraw();toast(t('removed'));}
+
+// ═══ HORMONE UI ═══
+function removeHormone(hk){pushUndo();trackedHormones=trackedHormones.filter(h=>h!==hk);shownAxes=shownAxes.filter(h=>h!==hk);selectedChartItems.delete('h_'+hk);if(selectedChartItems.size===0&&chartView==='individual')chartView='multi';syncToProfile();renderLabPanel();renderAxisToggles();renderChartTabs();redraw();}
+function toggleLabels(){showLabels=document.getElementById('showLabelsToggle').checked;redraw();}
+function toggleValues(){showValues=document.getElementById('showValuesToggle').checked;redraw();}
+function toggleGuides(){showGuides=document.getElementById('showGuidesToggle').checked;redraw();}
+function toggleLegend(){showLegend=document.getElementById('showLegendToggle').checked;redraw();}
+
+// ═══ DATE SELECTS ═══
+function renderDateSelects(containerId){const c=document.getElementById(containerId);if(!c)return;const ms=lang==='pt'?MONTHS_PT:MONTHS_EN;const today=new Date();let html=`<select class="ds-day" id="${containerId}_day">`;for(let d=1;d<=31;d++)html+=`<option value="${d}"${d===today.getDate()?' selected':''}>${d}</option>`;html+=`</select><select class="ds-month" id="${containerId}_month">`;for(let m=0;m<12;m++)html+=`<option value="${m}"${m===today.getMonth()?' selected':''}>${ms[m]}</option>`;html+=`</select><select class="ds-year" id="${containerId}_year">`;const curY=today.getFullYear();for(let y=curY-10;y<=curY+5;y++)html+=`<option value="${y}"${y===curY?' selected':''}>${y}</option>`;html+=`</select>`;c.innerHTML=html;}
+function getDateFromSelects(containerId){const d=parseInt(document.getElementById(containerId+'_day')?.value);const m=parseInt(document.getElementById(containerId+'_month')?.value);const y=parseInt(document.getElementById(containerId+'_year')?.value);if(!Number.isFinite(d)||!Number.isFinite(m)||!Number.isFinite(y))return null;return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+function setDateSelectsTo(containerId,dateObj){const dEl=document.getElementById(containerId+'_day');if(dEl)dEl.value=dateObj.getDate();const mEl=document.getElementById(containerId+'_month');if(mEl)mEl.value=dateObj.getMonth();const yEl=document.getElementById(containerId+'_year');if(yEl)yEl.value=dateObj.getFullYear();}
+function openStartDateModal(){
+  const p=getActive();if(!p)return toast(lang==='pt'?'Nenhum perfil ativo':'No active profile');
+  renderDateSelects('hrtStartDateSelects');
+  if(p.startDate)setDateSelectsTo('hrtStartDateSelects',startDate);
+  document.getElementById('startDateModal').classList.add('open');
+}
+function updateStartDate(){const ds=getDateFromSelects('hrtStartDateSelects');if(!ds)return;const p=getActive();if(!p)return;pushUndo();p.startDate=ds;saveToStorage();syncFromProfile();renderHistory();renderStats();redraw();}
+
+// ═══ RECURRING DOSE ═══
+function addRecurringDoses(){const medId=selectedMedId;if(!medId)return;const amt=parseFloat(document.getElementById('doseMg').value);const every=parseInt(document.getElementById('recurEvery').value);const startStr=getDateFromSelects('doseDateSelects');const dur=parseInt(document.getElementById('recurDur').value);const durUnit=document.getElementById('recurDurUnit').value;if(!Number.isFinite(amt)||!Number.isFinite(every)||every<1||!startStr||!Number.isFinite(dur)||dur<1)return toast(t('fillDateAmount'));pushUndo();const p=getActive();if(p&&!p.startDate){p.startDate=startStr;startDate=new Date(startStr+'T12:00:00');saveToStorage();}const start2=new Date(startStr+'T12:00:00');let end=new Date(start2);if(durUnit==='days')end.setDate(end.getDate()+dur);else if(durUnit==='weeks')end.setDate(end.getDate()+dur*7);else if(durUnit==='months')end.setMonth(end.getMonth()+dur);else end.setFullYear(end.getFullYear()+dur);if(!doses[medId])doses[medId]=[];let count=0;const cur=new Date(start2);while(cur<=end){const day=Math.round((cur-startDate)/864e5);doses[medId].push([day,amt]);count++;cur.setDate(cur.getDate()+every);}syncToProfile();renderHistory();renderStats();redraw();toast(`${count} ${t('dosesAdded')}`);}
+
+// ═══ DATA INPUT ═══
+function addDoseByDate(){const date=getDateFromSelects('doseDateSelects');const medId=selectedMedId;const mg=parseFloat(document.getElementById('doseMg').value);if(!date||!medId)return toast(medId?t('fillDateAmount'):t('selectMedFirst'));if(!Number.isFinite(mg))return toast(t('enterValidAmount'));pushUndo();const p=getActive();if(p&&!p.startDate){p.startDate=date;startDate=new Date(date+'T12:00:00');saveToStorage();}const day=dateToDays(date);if(!doses[medId])doses[medId]=[];doses[medId].push([day,mg]);syncToProfile();renderHistory();renderStats();redraw();}
+function addLabByDate(){const date=getDateFromSelects('labDateSelects');if(!date)return toast(t('enterDate'));const values={};let any=false;for(const hk of trackedHormones){const inp=document.getElementById('lab_'+hk);if(inp&&inp.value!==''){values[hk]=parseFloat(inp.value);any=true;}}if(!any)return toast(t('enterOneValue'));pushUndo();const day=dateToDays(date);labs.push({day,date,values});for(const hk of trackedHormones){const inp=document.getElementById('lab_'+hk);if(inp)inp.value='';}syncToProfile();renderHistory();renderStats();redraw();}
+
+// ═══ CHART TABS ═══
+let selectedChartItems=new Set();
+function renderChartTabs(){const c=document.getElementById('chartTabs');c.innerHTML='';
+  // Multi-view tab (combined)
+  const multiBtn=document.createElement('button');multiBtn.className='chart-tab'+(chartView==='multi'?' active':'');multiBtn.textContent=t('viewSplit');
+  multiBtn.onclick=()=>{chartView='multi';selectedChartItems.clear();renderChartTabs();redraw();};c.appendChild(multiBtn);
+  // All tab (shows everything split)
+  const allBtn=document.createElement('button');allBtn.className='chart-tab'+(chartView==='all'?' active':'');allBtn.textContent=t('viewAll');
+  allBtn.onclick=()=>{chartView='all';selectedChartItems.clear();for(const mid of medications)selectedChartItems.add('med_'+mid);for(const hk of trackedHormones)selectedChartItems.add('h_'+hk);renderChartTabs();redraw();};c.appendChild(allBtn);
+  // Separator + individual tabs
+  if(medications.length||trackedHormones.length){const sep=document.createElement('span');sep.style.cssText='color:var(--text-dim);font-size:12px;align-self:center;margin:0 4px';sep.textContent='|';c.appendChild(sep);}
+  for(const medId of medications){const btn=document.createElement('button');const isOn=selectedChartItems.has('med_'+medId);btn.className='chart-tab'+(isOn?' active':'');btn.textContent='💊 '+getMedShortName(medId);btn.style.borderColor=isOn?getMedColor(medId):'';
+    btn.onclick=()=>{chartView='individual';if(selectedChartItems.has('med_'+medId))selectedChartItems.delete('med_'+medId);else selectedChartItems.add('med_'+medId);if(!selectedChartItems.size)chartView='multi';renderChartTabs();redraw();};c.appendChild(btn);}
+  for(const hk of trackedHormones){const h=getHormone(hk);if(!h)continue;const btn=document.createElement('button');const isOn=selectedChartItems.has('h_'+hk);btn.className='chart-tab'+(isOn?' active':'');btn.textContent='🔬 '+h.name;btn.style.borderColor=isOn?h.color:'';
+    btn.onclick=()=>{chartView='individual';if(selectedChartItems.has('h_'+hk))selectedChartItems.delete('h_'+hk);else selectedChartItems.add('h_'+hk);if(!selectedChartItems.size)chartView='multi';renderChartTabs();redraw();};c.appendChild(btn);}
+  // Sparkle add profile button when no profiles
+  const addBtn=document.querySelector('.add-profile-btn');if(addBtn)addBtn.classList.toggle('sparkle',!Object.keys(profiles).length);
+}
+
+// ═══ STATS ═══
+function renderStats(){const c=document.getElementById('statsBar');let html='<div class="stat-item" style="color:var(--text-dim);font-weight:500">Stats:</div>';const p=getActive();if(!p){c.innerHTML=html;return;}const today=Math.round((new Date()-startDate)/864e5);const mos=Math.floor(today/30.44);if(p.startDate)html+=`<div class="stat-item">📅 ${t('daySinceStart')}: ${today} (${mos} ${t('months')})</div>`;for(const medId of medications){const md=doses[medId];if(md&&md.length){const total=md.reduce((s,d)=>s+d[1],0);const u=getMedUnit(medId);html+=`<div class="stat-item"><span class="stat-dot" style="background:${getMedColor(medId)}"></span>${esc(getMedShortName(medId))}: ${md.length} ${t('dosesTaken')} (${total%1===0?total:total.toFixed(1)} ${esc(u)} total)</div>`;}}if(labs.length){const nonBaselineLabs=labs.filter(l=>!l.isBaseline);if(nonBaselineLabs.length){const lastLab=Math.max(...nonBaselineLabs.map(l=>l.day));const daysSince=today-lastLab;const labMos=Math.floor(daysSince/30.44);html+=`<div class="stat-item">🔬 ${daysSince} ${t('daysSinceLab')} (${labMos} ${t('months')})</div>`;}}c.innerHTML=html;}
+
+// ═══ HISTORY ═══
+function switchHistoryTab(tab2,el){historyTab=tab2;histSortKey='day';histSortAsc=false;editingDose=null;editingLab=null;document.querySelectorAll('.history-tab').forEach(btn=>btn.classList.remove('active'));el.classList.add('active');renderHistory();}
+function sortHistory(key){if(histSortKey===key)histSortAsc=!histSortAsc;else{histSortKey=key;histSortAsc=true;}renderHistory();}
+function sortArrow(key){return histSortKey===key?`<span style="font-size:10px;margin-left:3px;opacity:.5">${histSortAsc?'▲':'▼'}</span>`:''}
+function renderHistory(){
+  const c=document.getElementById('historyContent');
+  if(historyTab==='doses'){
+    let rows=[];for(const medId of medications){const md=doses[medId];if(!md)continue;for(let i=0;i<md.length;i++)rows.push({medId,idx:i,day:md[i][0],amount:md[i][1]});}
+    rows.sort((a,b)=>{let v;if(histSortKey==='med')v=getMedShortName(a.medId).localeCompare(getMedShortName(b.medId));else if(histSortKey==='amount')v=a.amount-b.amount;else v=a.day-b.day;return histSortAsc?v:-v;});
+    if(!rows.length){c.innerHTML=`<div class="history-empty">${t('noDoses')}</div>`;return;}
+    let html=`<table class="history-table"><thead><tr><th onclick="sortHistory('day')">${t('date')}${sortArrow('day')}</th><th onclick="sortHistory('day')">${t('day')}${sortArrow('day')}</th><th onclick="sortHistory('med')">${t('medication')}${sortArrow('med')}</th><th onclick="sortHistory('amount')">${t('amount')}${sortArrow('amount')}</th><th></th></tr></thead><tbody>`;
+    for(const r of rows){const isEd=editingDose&&editingDose.medId===r.medId&&editingDose.idx===r.idx;
+      if(isEd){let medOpts='';for(const mid of medications)medOpts+=`<option value="${mid}"${mid===r.medId?' selected':''}>${esc(getMedShortName(mid))}</option>`;
+        html+=`<tr style="background:var(--surface2)"><td><input type="date" value="${daysToISO(r.day)}" id="ed_d_date" style="width:150px;padding:6px 8px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:14px"></td><td id="ed_d_dayp">${r.day}</td><td><select id="ed_d_med" style="padding:6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:14px">${medOpts}</select></td><td><input type="number" step="0.1" value="${r.amount}" id="ed_d_amt" style="width:80px;padding:6px 8px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:14px"></td><td class="hist-actions"><button class="hist-btn" style="color:var(--accent);border-color:var(--accent)" onclick="saveDoseEdit('${r.medId}',${r.idx})">✓</button><button class="hist-btn" onclick="editingDose=null;renderHistory()">✕</button></td></tr>`;
+      }else html+=`<tr><td>${daysToDate(r.day)}</td><td>${r.day}</td><td><span style="color:${getMedColor(r.medId)}">${esc(getMedShortName(r.medId))}</span></td><td>${r.amount} ${esc(getMedUnit(r.medId))}</td><td class="hist-actions"><button class="hist-btn" onclick="editingDose={medId:'${r.medId}',idx:${r.idx}};renderHistory()">${t('edit')}</button><button class="hist-btn hist-del" onclick="deleteDose('${r.medId}',${r.idx})">${t('deleteBtn')}</button></td></tr>`;}
+    html+='</tbody></table>';c.innerHTML=html;
+    const di=document.getElementById('ed_d_date');if(di)di.addEventListener('input',()=>{const p=document.getElementById('ed_d_dayp');if(p&&di.value)p.textContent=dateToDays(di.value);});
+  }else{
+    if(!labs.length){c.innerHTML=`<div class="history-empty">${t('noLabs')}</div>`;return;}
+    const sorted=[...labs].map((l,i)=>({...l,origIdx:i})).sort((a,b)=>{return histSortAsc?a.day-b.day:b.day-a.day;});
+    let html=`<table class="history-table"><thead><tr><th onclick="sortHistory('day')">${t('date')}${sortArrow('day')}</th><th onclick="sortHistory('day')">${t('day')}${sortArrow('day')}</th><th>${t('values')}</th><th></th></tr></thead><tbody>`;
+    for(const lab of sorted){const isEd=editingLab===lab.origIdx;
+      if(isEd){let vf='';for(const[k,v]of Object.entries(lab.values)){const h=getHormone(k);if(!h)continue;vf+=`<span style="margin-right:8px;white-space:nowrap"><span style="color:${h.color};font-size:12px">${h.name}:</span> <input type="number" step="0.01" value="${v}" id="ed_l_${k}" style="width:70px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px"></span>`;}
+        html+=`<tr style="background:var(--surface2)"><td><input type="date" value="${daysToISO(lab.day)}" id="ed_l_date" style="width:150px;padding:6px 8px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:14px"></td><td id="ed_l_dayp">${lab.day}</td><td>${vf}</td><td class="hist-actions"><button class="hist-btn" style="color:var(--accent);border-color:var(--accent)" onclick="saveLabEdit(${lab.origIdx})">✓</button><button class="hist-btn" onclick="editingLab=null;renderHistory()">✕</button></td></tr>`;
+      }else{
+        // Order values by trackedHormones (consistent order across all rows)
+        const orderedKeys=trackedHormones.filter(k=>lab.values[k]!=null).concat(Object.keys(lab.values).filter(k=>!trackedHormones.includes(k)));
+        const vals=orderedKeys.map(k=>{const h=getHormone(k);const v=lab.values[k];return h?`<span style="color:${h.color}">${v} ${h.unit}</span>`:''}).filter(Boolean).join(', ');
+        const baselineTag=lab.isBaseline?`<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-left:8px;vertical-align:middle">${lang==='pt'?'pré-TRH':'pre-HRT'}</span>`:'';
+        const editAction=lab.isBaseline?'openBaselineEditModal()':`editingLab=${lab.origIdx};renderHistory()`;
+        const rightCell=lab.isBaseline?`<div style="display:flex;justify-content:center;align-items:center;min-width:55px"><label class="toggle-switch" title="${lang==='pt'?'Mostrar pré-TRH no gráfico':'Show pre-HRT on chart'}"><input type="checkbox" ${showPreHrt?'checked':''} onclick="event.stopPropagation();document.getElementById('showPreHrtToggle').checked=this.checked;togglePreHrt()"><span class="toggle-slider"></span></label></div>`:`<button class="hist-btn hist-del" onclick="deleteLab(${lab.origIdx})">${t('deleteBtn')}</button>`;
+        html+=`<tr${lab.isBaseline?' style="background:var(--accent-dim)"':''}><td>${lab.isBaseline&&lab.day===-30?'—':daysToDate(lab.day)}</td><td>${lab.day}</td><td>${vals}${baselineTag}</td><td class="hist-actions"><button class="hist-btn" onclick="${editAction}">${t('edit')}</button>${rightCell}</td></tr>`;
+      }}
+    html+='</tbody></table>';c.innerHTML=html;
+    const di=document.getElementById('ed_l_date');if(di)di.addEventListener('input',()=>{const p=document.getElementById('ed_l_dayp');if(p&&di.value)p.textContent=dateToDays(di.value);});
+  }
+}
+function saveDoseEdit(oldMedId,idx){pushUndo();const di=document.getElementById('ed_d_date'),ai=document.getElementById('ed_d_amt'),mi=document.getElementById('ed_d_med');const newMedId=mi?mi.value:oldMedId;const newDay=di&&di.value?dateToDays(di.value):doses[oldMedId][idx][0];const newAmt=ai?parseFloat(ai.value):doses[oldMedId][idx][1];if(newMedId!==oldMedId){doses[oldMedId].splice(idx,1);if(!doses[newMedId])doses[newMedId]=[];doses[newMedId].push([newDay,Number.isFinite(newAmt)?newAmt:0]);}else{if(Number.isFinite(newDay))doses[oldMedId][idx][0]=newDay;if(Number.isFinite(newAmt))doses[oldMedId][idx][1]=newAmt;}editingDose=null;syncToProfile();renderHistory();renderStats();redraw();}
+function saveLabEdit(idx){pushUndo();const lab=labs[idx];const di=document.getElementById('ed_l_date');if(di&&di.value){lab.day=dateToDays(di.value);lab.date=di.value;}for(const k of Object.keys(lab.values)){const inp=document.getElementById('ed_l_'+k);if(inp){const pv=parseFloat(inp.value);if(Number.isFinite(pv))lab.values[k]=pv;}}editingLab=null;syncToProfile();renderHistory();renderStats();redraw();}
+function deleteDose(medId,idx){pushUndo();doses[medId].splice(idx,1);editingDose=null;syncToProfile();renderHistory();renderStats();redraw();toast(t('removed'));}
+function deleteLab(idx){pushUndo();labs.splice(idx,1);editingLab=null;syncToProfile();renderHistory();renderStats();redraw();toast(t('removed'));}
+
+// ═══ CHART ENGINE ═══
+const margin={left:55,right:50,top:55,bottom:105};
+function niceStep(range,maxTicks){if(range<=0||maxTicks<=0)return 1;const raw=range/maxTicks;const mag=Math.pow(10,Math.floor(Math.log10(raw)));const n=raw/mag;let s;if(n<=1.5)s=1;else if(n<=3)s=2;else if(n<=7)s=5;else s=10;return s*mag;}
+function makeMonotone(xs,ys){const xs2=[],ys2=[];for(let i=0;i<xs.length;i++)if(i===0||xs[i]!==xs[i-1]){xs2.push(xs[i]);ys2.push(ys[i]);}const n=xs2.length;if(n<2)return()=>ys2[0]||0;const dx=new Array(n-1),dy=new Array(n-1),m=new Array(n);for(let i=0;i<n-1;i++){dx[i]=xs2[i+1]-xs2[i];dy[i]=(ys2[i+1]-ys2[i])/dx[i];}m[0]=dy[0];m[n-1]=dy[n-2];for(let i=1;i<n-1;i++){if(dy[i-1]*dy[i]<=0)m[i]=0;else{const w1=2*dx[i]+dx[i-1],w2=dx[i]+2*dx[i-1];m[i]=(w1+w2)/(w1/dy[i-1]+w2/dy[i]);}}return function(x){if(x<=xs2[0])return ys2[0];if(x>=xs2[n-1])return ys2[n-1];let i2=0;while(!(x>=xs2[i2]&&x<=xs2[i2+1]))i2++;const h2=dx[i2],tt=(x-xs2[i2])/h2,t2=tt*tt,t3=t2*tt;return(2*t3-3*t2+1)*ys2[i2]+(t3-2*t2+tt)*h2*m[i2]+(-2*t3+3*t2)*ys2[i2+1]+(t3-t2)*h2*m[i2+1];};}
+
+function drawChart(canvas,opts){
+  const ctx=canvas.getContext('2d');
+  const cssW=canvas.clientWidth;
+  // If container has an explicit height set, use that; otherwise fall back to opts.height
+  let cssH=opts.height||400;
+  const parent=canvas.parentElement;
+  if(!opts.noAutoHeight&&parent&&parent.style.height){const pH=parseInt(parent.style.height,10);if(pH>50)cssH=pH;}
+  dpr=window.devicePixelRatio||1;canvas.width=cssW*dpr;canvas.height=cssH*dpr;canvas.style.height=cssH+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W=cssW,H=cssH;const cw=W-margin.left-margin.right;
+  const medsToShow=opts.meds||[];const hormonesToShow=opts.hormones||[];
+  const rightAxes=showAxesMaster?hormonesToShow.filter(hk=>shownAxes.includes(hk)):[];
+  const mr=Math.max(50,rightAxes.length*50+10);
+
+  // Background
+  const bgColor=opts.bgOverride||getChartBg();
+  ctx.fillStyle=bgColor;ctx.fillRect(0,0,W*dpr,H*dpr);
+  // Read theme colors for chart elements
+  const cs=getComputedStyle(document.body);
+  const cBorder=cs.getPropertyValue('--border').trim()||'#2e3239';
+  const cDim=cs.getPropertyValue('--text-dim').trim()||'#5c606c';
+  const cMuted=cs.getPropertyValue('--text-muted').trim()||'#8a8e9a';
+  const cText=cs.getPropertyValue('--text').trim()||'#d8dae0';
+  // Axes
+  ctx.strokeStyle=cBorder;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(margin.left,margin.top);ctx.lineTo(margin.left,H-margin.bottom);ctx.lineTo(W-mr,H-margin.bottom);ctx.stroke();
+  ctx.font='14px "DM Sans",sans-serif';
+
+  // X axis
+  function xS(x){return margin.left+((x-tMin)/(xMax-tMin))*(W-margin.left-mr);}
+  const xRange=xMax-tMin;const xStep=niceStep(xRange,Math.max(4,Math.floor((W-margin.left-mr)/60)));
+  const xStart=Math.ceil(tMin/xStep)*xStep;ctx.fillStyle=cDim;
+  for(let x=xStart;x<=xMax;x+=xStep){const xx=xS(x);ctx.beginPath();ctx.moveTo(xx,H-margin.bottom);ctx.lineTo(xx,H-margin.bottom+4);ctx.strokeStyle=cBorder;ctx.stroke();ctx.fillText(String(Math.round(x)),xx-8,H-margin.bottom+18);}
+  ctx.fillStyle=cMuted;ctx.fillText(t('daysLabel'),W/2-40,H-margin.bottom+36);
+
+  // Dose axes (left, per-med) — only draw numbers when master axes toggle is on AND this med is selected
+  for(const medId of medsToShow){const md=doses[medId];if(!md||!md.length)continue;let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;const dMax=Math.max(1,mx*1.4);const dStep2=niceStep(dMax,6);const col=getMedColor(medId);ctx.fillStyle=col;
+    function yD(y){return H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);}
+    const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
+    if(showThisAxis){for(let y=0;y<=dMax*1.5;y+=dStep2){const yy=yD(y);if(yy<margin.top-2)break;if(yy<=H-margin.bottom)ctx.fillText(String(Math.round(y*100)/100),margin.left-ctx.measureText(String(Math.round(y*100)/100)).width-4,yy+4);}}
+    // Draw dose line (always)
+    const sorted=[...md].sort((a,b)=>a[0]-b[0]);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(xS(sorted[0][0]),yD(sorted[0][1]));let prev=sorted[0][1];
+    for(let i=1;i<sorted.length;i++){const[x,y]=sorted[i];ctx.lineTo(xS(x),yD(prev));ctx.lineTo(xS(x),yD(y));prev=y;}ctx.stroke();
+    if(getMedDots(medId)){for(const[x,y]of sorted){ctx.fillStyle=col;ctx.beginPath();ctx.arc(xS(x),yD(y),3.5,0,Math.PI*2);ctx.fill();}}
+    if(showLabels){ctx.fillStyle=col;ctx.font='13px "DM Sans",sans-serif';ctx.fillText(getMedShortName(medId),xS(sorted[0][0])+6,yD(sorted[0][1])-10);ctx.font='14px "DM Sans",sans-serif';}
+  }
+
+  // Right hormone axes — compact columns with clear separation
+  let axisX=W-mr+8;
+  ctx.font='11px "DM Sans",sans-serif';
+  for(let ai=0;ai<rightAxes.length;ai++){
+    const hk=rightAxes[ai];const h=getHormone(hk);if(!h)continue;
+    ctx.strokeStyle=h.color+'40';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(axisX-2,margin.top);ctx.lineTo(axisX-2,H-margin.bottom);ctx.stroke();
+    ctx.fillStyle=h.color;const shortName=h.name.length>8?h.name.slice(0,7)+'.':h.name;
+    ctx.fillText(shortName,axisX,margin.top-4);
+    ctx.fillStyle=h.color+'99';const axisStep=niceStep(h.maxScale,4);
+    for(let y=0;y<=h.maxScale;y+=axisStep){const yy=H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);if(yy>=margin.top&&yy<=H-margin.bottom)ctx.fillText(String(y),axisX,yy+3);}
+    axisX+=50;
+  }
+  ctx.font='14px "DM Sans",sans-serif';
+
+  // Target bands
+  if(showRanges){for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const vals=getHormoneVals(hk);if(!vals.tLo&&!vals.tHi)continue;function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}const yLo=yH(vals.tLo),yHi=yH(vals.tHi);const top2=Math.min(yLo,yHi),ht=Math.abs(yLo-yHi);const r=parseInt(h.color.slice(1,3),16),g=parseInt(h.color.slice(3,5),16),b=parseInt(h.color.slice(5,7),16);ctx.fillStyle=`rgba(${r},${g},${b},0.045)`;ctx.fillRect(margin.left,top2,W-margin.left-mr,ht);}}
+
+  // Guides
+  ctx.font='13px "DM Sans",sans-serif';
+  const hasDoses2=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
+  if(showGuides&&tMin<0&&hasDoses2){const xx=xS(0);ctx.setLineDash([5,3]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(xx,margin.top);ctx.lineTo(xx,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cMuted;const t1=t('hrtStart'),t2=daysToDate(0),tw1=ctx.measureText(t1).width,tw2=ctx.measureText(t2).width;ctx.fillText(t1,xx-tw1/2,margin.top-22);ctx.fillText(t2,xx-tw2/2,margin.top-8);}
+  if(showGuides){for(const lab of labs){if(lab.isBaseline)continue;const x=xS(lab.day);ctx.setLineDash([4,4]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(x,margin.top);ctx.lineTo(x,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cMuted;const d1=daysToDate(lab.day),d2=`${t('day')} ${lab.day}`;const tw1=ctx.measureText(d1).width,tw2=ctx.measureText(d2).width;ctx.fillText(d1,x-tw1/2,margin.top-22);ctx.fillText(d2,x-tw2/2,margin.top-8);}}
+
+  // Hormone curves
+  for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hv=getHormoneVals(hk);
+    function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}
+    // Separate baseline lab (day -30) from regular labs
+    const baselineLab=showPreHrt?labs.find(l=>l.isBaseline&&l.values[hk]!=null):null;
+    const times=[],vals=[];for(const lab of labs)if(!lab.isBaseline&&lab.values[hk]!=null){times.push(lab.day);vals.push(lab.values[hk]);}
+    if(!times.length&&!baselineLab)continue;
+    // Determine the "pre-HRT" value: use baseline lab value if present, else the baseline preset typ
+    const preHrtVal=baselineLab?baselineLab.values[hk]:hv.typ;
+    let xs2,ys2;
+    if(baseline==='none'||!showPreHrt){xs2=[...times];ys2=[...vals];}
+    else{xs2=[tMin,0,...times];ys2=[preHrtVal,preHrtVal,...vals];}
+    // If there are no real labs to draw, skip — pre-HRT lines only show when they connect to real data
+    if(!times.length)continue;
+    const f=makeMonotone(xs2,ys2);const step2=Math.max(0.25,(xMax-tMin)/800);const drawFrom=(baseline==='none'||!showPreHrt)?times[0]:tMin;
+    // Dashed pre-HRT curve from drawFrom to first real lab, then solid curves between real labs
+    ctx.strokeStyle=h.color;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();let s=false;
+    for(let x=drawFrom;x<=times[0];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();ctx.setLineDash([]);
+    // Solid curves between real lab points
+    ctx.lineWidth=2.5;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}
+    // Dots + value labels ONLY on real (non-baseline) lab points
+    for(let i=0;i<times.length;i++){const X=xS(times[i]),Y=yH(vals[i]);ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,5,0,Math.PI*2);ctx.fill();if(showValues){ctx.font='14px "DM Sans",sans-serif';const curTheme=document.body.dataset.theme||'dark';const useShadow=curTheme!=='light'&&curTheme!=='cottage';if(useShadow){ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=4;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;}ctx.fillStyle=cText;ctx.fillText(`${vals[i]} ${h.unit}`,X+9,Y-7);ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;}}
+    // Hormone name label at the FIRST real lab point only
+    if(showLabels&&times.length){const fx=xS(times[0]),fy=yH(vals[0]);ctx.fillStyle=h.color;ctx.font='13px "DM Sans",sans-serif';const curTheme2=document.body.dataset.theme||'dark';if(curTheme2!=='light'&&curTheme2!=='cottage'){ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=3;}ctx.fillText(h.name,fx+9,fy-22);ctx.shadowColor='transparent';ctx.shadowBlur=0;}
+  }
+
+  // Legend — only show categories that have data
+  if(showLegend){
+    const blY=H-margin.bottom+40;ctx.font='14px "DM Sans",sans-serif';
+    const hasMedData=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
+    const hasHormData=hormonesToShow.some(hk=>{for(const lab of labs)if(!lab.isBaseline&&lab.values[hk]!=null)return true;return false;});
+    let legendRow=0;
+    if(hasMedData){
+      const ly=blY+legendRow*22;ctx.fillStyle=cDim;ctx.fillText(t('doseMg'),margin.left,ly);
+      let lx=margin.left+ctx.measureText(t('doseMg')).width+10;
+      for(const medId of medsToShow){if(!doses[medId]||!doses[medId].length)continue;const col=getMedColor(medId);const sn=getMedShortName(medId);const u=getMedUnit(medId);ctx.fillStyle=col;ctx.fillRect(lx,ly-9,10,10);ctx.fillStyle=cMuted;const lb=`${sn} (${u})`;ctx.fillText(lb,lx+14,ly);lx+=ctx.measureText(lb).width+24;}
+      legendRow++;
+    }
+    if(hasHormData){
+      const ly=blY+legendRow*22;let lx2=margin.left;ctx.fillStyle=cDim;ctx.fillText(t('hormonesLabel'),lx2,ly);lx2+=ctx.measureText(t('hormonesLabel')).width+10;
+      for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hasData=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!hasData)continue;ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(lx2+5,ly-4,5,0,Math.PI*2);ctx.fill();ctx.fillStyle=cMuted;const hl=`${h.name} (${h.unit})`;ctx.fillText(hl,lx2+14,ly);lx2+=ctx.measureText(hl).width+24;}
+    }
+  }
+}
+
+function redraw(){
+  const container=document.getElementById('chartContainer');
+  if(!Object.keys(profiles).length){container.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-dim)">No profiles yet</div>';return;}
+  // Hide vertical grips when showing multiple charts — per-chart heights are auto-distributed
+  const gripTEl=document.getElementById('gripT');const gripBEl=document.getElementById('gripB');
+  const isMulti=chartView==='multi';
+  if(gripTEl)gripTEl.style.visibility=isMulti?'visible':'hidden';
+  if(gripBEl)gripBEl.style.visibility=isMulti?'visible':'hidden';
+  if(!isMulti&&container.style.height){container.style.height='';}
+  if(chartView==='multi'){
+    container.innerHTML='<canvas id="chart"></canvas>';
+    drawChart(document.getElementById('chart'),{meds:medications,hormones:trackedHormones,height:620});
+  }else{
+    const items=[...selectedChartItems];if(!items.length){container.innerHTML='<canvas id="chart"></canvas>';drawChart(document.getElementById('chart'),{meds:medications,hormones:trackedHormones,height:620});return;}
+    let html='';const meds=items.filter(i=>i.startsWith('med_')).map(i=>i.slice(4));
+    const horms=items.filter(i=>i.startsWith('h_')).map(i=>i.slice(2));
+    const totalCharts=meds.length+horms.length;
+    const perChartH=totalCharts===1?400:240;
+    for(const medId of meds){const m=getMed(medId);const name=m?m.name:medId;const u=getMedUnit(medId);
+      html+=`<div style="font-size:16px;font-weight:600;color:${getMedColor(medId)};padding:10px 0 4px;margin-top:8px">💊 ${esc(name)} (${esc(u)})</div><canvas id="chart_med_${medId}"></canvas>`;}
+    for(const hk of horms){const h=getHormone(hk);if(!h)continue;
+      html+=`<div style="font-size:16px;font-weight:600;color:${h.color};padding:10px 0 4px;margin-top:8px">🔬 ${esc(h.name)} (${esc(h.unit)})</div><canvas id="chart_h_${hk}"></canvas>`;}
+    container.innerHTML=html;
+    for(const medId of meds){const cv=document.getElementById('chart_med_'+medId);if(cv)drawChart(cv,{meds:[medId],hormones:[],height:perChartH,noAutoHeight:true});}
+    for(const hk of horms){const cv=document.getElementById('chart_h_'+hk);if(cv)drawChart(cv,{meds:[],hormones:[hk],height:perChartH,noAutoHeight:true});}
+  }
+}
+function updateRange(){const v=parseFloat(document.getElementById('xMaxInput').value);const v2=parseFloat(document.getElementById('xMinInput').value);if(Number.isFinite(v)&&v>0)xMax=v;if(Number.isFinite(v2))tMin=v2;redraw();}
+function exportPNG(){
+  const container=document.getElementById('chartContainer');
+  const safeName=activeProfileName.replace(/[^a-zA-Z0-9]/g,'_');
+  const canvases=container.querySelectorAll('canvas');
+  if(canvases.length===1){const a=document.createElement('a');a.download=`HRT_${safeName}.png`;a.href=canvases[0].toDataURL('image/png');a.click();return;}
+  if(canvases.length>1){
+    // Gather title+canvas pairs
+    const blocks=[];let pendingTitle='';
+    for(const child of container.children){
+      if(child.tagName==='DIV'&&!child.querySelector('canvas')&&child.textContent.trim()){pendingTitle=child.textContent.trim();}
+      const cv=child.tagName==='CANVAS'?child:child.querySelector('canvas');
+      if(cv){blocks.push({title:pendingTitle,canvas:cv});pendingTitle='';}
+    }
+    const titleH=32;const totalH=blocks.reduce((s,b)=>s+(b.title?titleH:0)+b.canvas.height,0);
+    const maxW=Math.max(...blocks.map(b=>b.canvas.width));
+    const combo=document.createElement('canvas');combo.width=maxW;combo.height=totalH;
+    const cx=combo.getContext('2d');
+    cx.fillStyle=getChartBg();cx.fillRect(0,0,maxW,totalH);
+    let y=0;
+    const cs=getComputedStyle(document.body);
+    for(const b of blocks){
+      if(b.title){cx.fillStyle=cs.getPropertyValue('--text').trim()||'#d8dae0';cx.font='bold 16px "DM Sans",sans-serif';cx.fillText(b.title,12,y+22);y+=titleH;}
+      cx.drawImage(b.canvas,0,y);y+=b.canvas.height;
+    }
+    const a=document.createElement('a');a.download=`HRT_${safeName}.png`;a.href=combo.toDataURL('image/png');a.click();
+  }
+}
+
+function printChart(){
+  const container=document.getElementById('chartContainer');
+  const origTheme=document.body.dataset.theme;
+  document.body.dataset.theme='light';
+  redraw();
+  // Give drawChart a tick to finish rendering to the new theme
+  setTimeout(()=>{
+    const win=window.open('','_blank');
+    if(!win){document.body.dataset.theme=origTheme;redraw();return toast('Popup blocked');}
+    win.document.write(`<html><head><title>HRT Tracker - ${esc(activeProfileName)}</title><style>
+      body{margin:0;padding:20mm;background:#fff;font-family:'DM Sans',sans-serif;color:#333}
+      img{max-width:100%;height:auto;display:block;margin-bottom:12px;border:1px solid #ddd}
+      h2{margin-bottom:16px;font-size:22px;color:#222}
+      h3{color:#555;margin:20px 0 6px;font-size:16px}
+      .chart-block{page-break-inside:avoid;margin-bottom:18px}
+      @media print{body{padding:10mm}.chart-block{page-break-inside:avoid}}
+    </style></head><body>`);
+    win.document.write('<h2>HRT Tracker — '+esc(activeProfileName)+'</h2>');
+    // Walk children: titles are DIVs with text, canvases are either direct or inside .chart-resizer
+    const kids=Array.from(container.children);
+    let pendingTitle=null;
+    for(const child of kids){
+      if(child.tagName==='CANVAS'){
+        // Direct canvas (multi-view)
+        win.document.write('<div class="chart-block">'+(pendingTitle?'<h3>'+esc(pendingTitle)+'</h3>':'')+'<img src="'+child.toDataURL('image/png')+'"></div>');
+        pendingTitle=null;
+      }else if(child.tagName==='DIV'){
+        // Could be title div, or a .chart-resizer wrapping a canvas
+        const nestedCanvas=child.querySelector('canvas');
+        if(nestedCanvas){
+          // It's a resizer containing a canvas
+          win.document.write('<div class="chart-block">'+(pendingTitle?'<h3>'+esc(pendingTitle)+'</h3>':'')+'<img src="'+nestedCanvas.toDataURL('image/png')+'"></div>');
+          pendingTitle=null;
+        }else if(child.textContent.trim()){
+          // Title div
+          pendingTitle=child.textContent.trim();
+        }
+      }
+    }
+    win.document.write('</body></html>');win.document.close();
+    document.body.dataset.theme=origTheme;
+    redraw();
+    setTimeout(()=>win.print(),500);
+  },100);
+}
+
+// Chart resize handles (4-way)
+(function(){
+  const resizer=document.getElementById('chartResizer');
+  const container=document.getElementById('chartContainer');
+  const gripL=document.getElementById('gripL');
+  const gripR=document.getElementById('gripR');
+  const gripT=document.getElementById('gripT');
+  const gripB=document.getElementById('gripB');
+  let dragging=false,startX=0,startY=0,startW=0,startH=0,activeGrip=null,axis='';
+  function getMaxW(){return resizer.parentElement.clientWidth-20;}
+  function onDown(e){
+    e.preventDefault();dragging=true;activeGrip=this;
+    const p=e.touches?.[0]||e;
+    startX=p.clientX;startY=p.clientY;
+    startW=container.clientWidth;startH=container.clientHeight;
+    axis=this.classList.contains('grip-v')?'v':'h';
+    document.body.style.cursor=axis==='v'?'row-resize':'col-resize';
+    this.classList.add('active');
+  }
+  function onMove(e){
+    if(!dragging)return;
+    const p=e.touches?.[0]||e;
+    if(axis==='h'){
+      const isRight=activeGrip===gripR;
+      const delta=isRight?(startX-p.clientX):(p.clientX-startX);
+      const newW=Math.max(300,Math.min(getMaxW(),startW-delta*2));
+      resizer.style.maxWidth=(newW+20)+'px';
+      resizer.style.margin='0 auto';
+    }else{
+      const isBottom=activeGrip===gripB;
+      const delta=isBottom?(startY-p.clientY):(p.clientY-startY);
+      const newH=Math.max(250,Math.min(1400,startH-delta*2));
+      container.style.height=newH+'px';
+    }
+  }
+  function onUp(){
+    if(!dragging)return;dragging=false;
+    document.body.style.cursor='';
+    document.querySelectorAll('.chart-grip').forEach(g=>g.classList.remove('active'));
+    redraw();
+  }
+  [gripL,gripR,gripT,gripB].forEach(g=>{
+    g.addEventListener('mousedown',onDown);
+    g.addEventListener('touchstart',onDown,{passive:false});
+    g.addEventListener('dblclick',()=>{resizer.style.maxWidth='';resizer.style.margin='';container.style.height='';redraw();});
+  });
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('mouseup',onUp);
+  document.addEventListener('touchend',onUp);
+})();
+
+let toastTimer;function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),2500);}
+window.addEventListener('resize',()=>redraw());
+loadLang();loadTheme();loadFromStorage();fullRefresh();
+</script></body></html>
