@@ -276,8 +276,8 @@ body[data-theme="cottage"] .chart-tab.active{
   color:var(--text);
 }
 /* Section titles get a tiny floral flourish */
-body[data-theme="cottage"] .panel-title::before{
-  content:"❀  ";
+body[data-theme="cottage"] .panel-title::after{
+  content:"  ❀";
   color:var(--accent);
   font-size:.85em;
   opacity:.7;
@@ -335,119 +335,114 @@ body[data-theme="evil"] .profile-tab.active{box-shadow:0 0 10px rgba(220,32,64,.
 body[data-theme="nonchalant"] .panel,body[data-theme="nonchalant"] .history-panel{border:1px solid var(--border);box-shadow:0 2px 14px rgba(30,40,30,.18)}
 body[data-theme="nonchalant"] .btn-accent{background:linear-gradient(180deg,#9cbf8c,#7a9e6e);color:#1e2420!important;border:1px solid #6a8a60;font-weight:500}
 body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180deg,#abd099,#87a87a)}
+/* ──────── Fluid proportional scaling (instead of hard breakpoints) ──────── */
+/* Header sizes scale from full desktop down through mobile via clamp() */
+.header h1{font-size:clamp(24px,5.5vw,42px)}
+body[data-theme="dark"] .header h1{font-size:clamp(20px,4.7vw,36px)}
+body[data-theme="cottage"] .header h1{font-size:clamp(26px,6vw,46px)}
+.header .by{font-size:clamp(11px,2vw,16px)}
+.header-btn,.lang-select,.undo-btn,.feedback-btn{font-size:clamp(11px,1.7vw,14px)}
+.header .lang-select{padding:clamp(4px,.9vw,7px) clamp(6px,1.2vw,12px)}
+.header .undo-btn{padding:clamp(4px,.9vw,7px) clamp(6px,1.2vw,12px)}
+.header .feedback-btn{padding:clamp(4px,.9vw,6px) clamp(8px,1.5vw,14px);line-height:1.2}
+.header .feedback-btn span{font-size:clamp(8px,1.2vw,10px)}
+.header .header-btn[title*="About"]{width:clamp(26px,3.6vw,32px)!important;height:clamp(26px,3.6vw,32px)!important;font-size:clamp(12px,1.8vw,15px)!important}
+.header{gap:clamp(4px,1vw,8px);margin-bottom:clamp(12px,2.5vw,24px)}
+
+/* Body padding scales gently */
+body{padding:clamp(8px,2.2vw,30px)}
+.panels-grid{gap:clamp(10px,1.6vw,16px)}
+.panel{padding:clamp(12px,2vw,20px)}
+.panel-title{font-size:clamp(13px,1.3vw,15px)}
+
+/* Profile bar buttons + tabs scale */
+.profile-bar{padding:clamp(8px,1.2vw,14px) clamp(10px,1.5vw,16px);gap:clamp(6px,1vw,10px)}
+.profile-bar .btn{font-size:clamp(11px,1.3vw,14px);padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,14px)}
+.profile-tab{font-size:clamp(12px,1.4vw,15px)}
+.profile-tab .tab-pic{width:clamp(28px,3.5vw,32px);height:clamp(28px,3.5vw,32px)}
+
+/* Range bar + toggle bar */
+.range-bar,.toggle-bar{padding:clamp(8px,1.2vw,12px) clamp(10px,1.5vw,16px);gap:clamp(5px,1vw,10px)}
+.range-bar input[type="number"]{width:clamp(56px,7vw,80px);font-size:clamp(12px,1.3vw,14px)}
+.range-bar .btn{padding:clamp(5px,.9vw,8px) clamp(8px,1.4vw,14px);font-size:clamp(11px,1.3vw,14px)}
+.range-bar label,.toggle-bar .toggle-label{font-size:clamp(11px,1.2vw,13px)}
+.toggle-switch{width:clamp(30px,3.6vw,40px);height:clamp(16px,1.9vw,20px)}
+.toggle-slider:before{width:clamp(12px,1.5vw,16px);height:clamp(12px,1.5vw,16px)}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(clamp(14px,1.7vw,18px))}
+
+/* Chart tabs */
+.chart-tab{font-size:clamp(12px,1.3vw,14px);padding:clamp(5px,.9vw,7px) clamp(10px,1.6vw,18px)}
+
+/* Stats bar fluid */
+.stats-bar{padding:clamp(8px,1.2vw,14px) clamp(10px,1.5vw,16px);font-size:clamp(11px,1.2vw,13px);gap:clamp(6px,1.5vw,16px)}
+.stats-bar .stat-item{font-size:clamp(11px,1.2vw,13px)}
+
+/* History */
+.history-panel{padding:clamp(12px,2vw,20px)}
+.history-table{font-size:clamp(11px,1.2vw,13px)}
+.history-table th,.history-table td{padding:clamp(4px,.7vw,8px) clamp(4px,.8vw,10px)}
+.hist-btn{padding:clamp(3px,.5vw,5px) clamp(6px,.9vw,10px);font-size:clamp(10px,1.1vw,12px)}
+
+/* When viewport is narrow enough, panels stack */
 @media(max-width:768px){
-  body{padding:14px;font-size:15px}
-  /* Header: stack title row + actions */
-  .header{gap:6px;margin-bottom:14px}
-  .header h1,body[data-theme="dark"] .header h1,:root .header h1,body[data-theme="cottage"] .header h1,body[data-theme="evil"] .header h1,body[data-theme="nonchalant"] .header h1{font-size:30px}
-  .header .by{font-size:14px}
+  .panels-grid{grid-template-columns:1fr}
   .header-spacer{flex-basis:100%;width:0;height:0;margin:0}
-  .header .feedback-btn{font-size:11px;padding:6px 10px;line-height:1.2}
-  .undo-btn,.lang-select{font-size:13px;padding:6px 10px}
-  /* Profile bar */
-  .profile-bar{flex-wrap:wrap;gap:8px;padding:10px 12px}
-  #profileTabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;flex:1;min-width:0}
-  #profileTabs::-webkit-scrollbar{height:4px}
+  /* Profile tabs scroll horizontally so the row doesn't break */
+  #profileTabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;flex:1;min-width:0;scrollbar-width:thin}
+  #profileTabs::-webkit-scrollbar{height:3px}
   #profileTabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
   .profile-tab{flex-shrink:0}
-  /* Chart tabs */
-  .chart-tabs-bar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
-  .chart-tabs-bar::-webkit-scrollbar{height:4px}
-  .chart-tab{flex-shrink:0;padding:6px 14px;font-size:13px}
-  /* Range bar — stacks */
-  .range-bar{padding:10px 12px;gap:8px}
-  .range-bar input[type="number"]{width:64px;font-size:14px}
-  .range-bar label{font-size:13px}
-  .range-bar .btn{padding:6px 12px;font-size:13px}
+  /* Chart tabs scroll horizontally too */
+  .chart-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;scrollbar-width:thin}
+  .chart-tabs::-webkit-scrollbar{height:3px}
+  .chart-tab{flex-shrink:0}
+  /* Range bar wraps */
+  .range-bar{flex-wrap:wrap}
   .range-bar > div[style*="flex:1"]{flex-basis:100%;width:0;height:0;margin:0}
-  /* Toggle bar */
-  .toggle-bar{padding:8px 10px;gap:6px}
-  .toggle-bar .toggle-label{font-size:12px}
-  .toggle-switch{width:34px;height:18px}
-  .toggle-slider:before{height:14px;width:14px}
-  .toggle-switch input:checked+.toggle-slider:before{transform:translateX(16px)}
-  /* Panels grid */
-  .panels-grid{grid-template-columns:1fr;gap:14px;margin-top:14px}
-  .panel{padding:14px}
-  .panel h2{font-size:16px}
-  /* Charts */
-  .chart-resizer{max-width:100%!important}
-  .chart-grip.grip-h{display:none}
-  .chart-grip.grip-v{height:18px}
-  /* History */
-  .history-panel{padding:14px}
-  .history-table th,.history-table td{padding:6px 6px;font-size:13px}
-  .history-table .hist-actions{flex-direction:column;gap:4px}
-  .hist-btn{padding:4px 8px;font-size:12px}
-  /* Modals */
-  .modal-overlay{padding:8px}
-  .modal{max-width:96vw!important;width:96vw;padding:18px;max-height:92vh}
-  .modal h3{font-size:18px}
-  /* Catalog: drop range columns on narrow */
-  .catalog-row{grid-template-columns:22px 1fr 50px 60px!important;gap:6px;padding:6px 8px;font-size:13px}
-  .catalog-row .catalog-range-input,.catalog-row .catalog-range-dash{display:none}
-  .catalog-row > span:nth-child(5){display:none}
-  /* Stats */
-  .stats-bar{flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px;font-size:12px}
-  .stats-bar .stat-item{font-size:12px}
-  /* Date selects more compact */
-  .date-selects{gap:4px}
-  .date-selects select{padding:8px 4px;font-size:13px}
-  /* Inputs in fields */
-  .field input,.field select{width:100%;font-size:14px;padding:9px 10px}
+  /* Toggle bar can scroll if it overflows */
+  .toggle-bar{flex-wrap:wrap;justify-content:flex-start}
+  /* Field rows stack */
   .field-row{flex-direction:column;gap:8px}
   .field-row .field{width:100%}
-  /* Wizard avatar+name row stays horizontal */
-  /* Profile context menu wider so taps don't miss */
-  .ctx-menu{min-width:200px}
-  .ctx-menu-item{padding:11px 18px;font-size:15px}
-  /* Toast bigger for thumbs */
-  #toast{bottom:14px;left:14px;right:14px;max-width:none;text-align:center}
-  /* Recipe-style history value rows: bigger taps */
-  .history-table tr td button{min-height:32px}
-  /* Help button + circular header buttons */
-  .header .header-btn[title*="About"]{width:32px;height:32px}
-  /* Hide the 'data settings' label hint, keep the gear */
-  /* Reduce section header sizes inside modal info */
-  .modal h4{font-size:13px;margin:14px 0 4px}
-  /* Wizard chips */
+  .field input,.field select{width:100%}
+  /* Modals fill screen */
+  .modal-overlay{padding:8px}
+  .modal{max-width:96vw!important;width:96vw;max-height:94vh}
+  /* Catalog drops range columns */
+  .catalog-row{grid-template-columns:22px 1fr 50px 60px!important;gap:6px;padding:6px 8px}
+  .catalog-row .catalog-range-input,.catalog-row .catalog-range-dash{display:none}
+  .catalog-row > span:nth-child(5),
+  .catalog-row > span:nth-child(8){display:none}
+  /* History wraps actions horizontally */
+  .history-table .hist-actions{flex-direction:row;flex-wrap:wrap;gap:3px;justify-content:flex-end}
+  /* Charts: hide grips, full width */
+  .chart-resizer{max-width:100%!important;margin:0!important}
+  .chart-grip{display:none}
+  /* Wizard chip vertical layout */
   .baseline-options{flex-direction:column;gap:8px}
   .baseline-opt{width:100%}
-  .tag{font-size:12px;padding:5px 10px}
+  /* Stats row wraps */
+  .stats-bar{flex-wrap:wrap}
+  /* Padding for catalog-gear */
+  .panel{padding-bottom:clamp(46px,7vw,50px)}
 }
 @media(max-width:480px){
-  body{padding:10px;font-size:14px}
-  .header h1,body[data-theme="dark"] .header h1,:root .header h1,body[data-theme="cottage"] .header h1,body[data-theme="evil"] .header h1,body[data-theme="nonchalant"] .header h1{font-size:26px}
-  .header h1{letter-spacing:0}
-  .header .by{font-size:13px}
-  /* Hide secondary header buttons text, keep icons only */
-  .header .feedback-btn{font-size:0;padding:8px;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
-  .header .feedback-btn::before{content:"!";font-size:16px;font-weight:600}
-  .header .feedback-btn br,.header .feedback-btn span{display:none}
-  /* Bigger profile pic on mobile so tap is comfy */
-  .profile-tab .tab-pic{width:36px;height:36px}
-  .profile-tab{padding:4px 8px 4px 4px;border-radius:28px;font-size:14px}
-  .profile-tab .tab-menu-btn{width:24px;height:24px;font-size:13px}
-  /* Range bar even tighter */
+  /* Report Bug becomes icon-only at smallest sizes */
+  .header .feedback-btn{font-size:0;padding:0;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+  .header .feedback-btn::before{content:"!";font-size:14px;font-weight:700}
+  .header .feedback-btn span,.header .feedback-btn br{display:none}
+  /* Range bar fully stacks */
   .range-bar{flex-direction:column;align-items:stretch}
   .range-bar > *{width:100%}
   .range-bar > .btn{justify-content:center}
   .range-bar input[type="number"]{width:100%}
-  /* Print/Export PNG/Set Start Date stack */
-  /* Toggle labels wrap less awkwardly */
-  .toggle-bar{justify-content:flex-start}
-  .toggle-bar .toggle-label{font-size:11px}
-  /* Stats compact */
-  .stats-bar{font-size:11px;padding:8px 10px}
-  /* History action buttons inline */
-  .history-table .hist-actions{flex-direction:row;flex-wrap:wrap}
+  .range-bar > div[style*="display:flex;gap:6px"]{flex-direction:row}
 }
 @media(hover:none){
   /* Touch devices — bigger tap targets */
-  button,select,input[type="checkbox"],input[type="radio"],.tag,.profile-tab,.chart-tab{min-height:36px}
+  button:not(.toggle-switch):not(.tab-menu-btn),
+  .profile-tab,.chart-tab,.history-tab{min-height:34px}
   .toggle-switch{min-height:auto}
-  .hist-btn{min-height:32px}
-  /* Show grip indicators always since hover doesn't apply */
   .chart-grip{opacity:.65}
 }
 @media print{body{background:#fff!important;color:#333!important;padding:10mm}canvas{page-break-inside:avoid}.header,.profile-bar,.range-bar,.toggle-bar,.panels-grid,.history-panel,.chart-tabs,.stats-bar,.toast,.modal-overlay{display:none!important}.chart-container canvas{border:1px solid #ccc}}
@@ -1817,11 +1812,23 @@ function makeMonotone(xs,ys){const xs2=[],ys2=[];for(let i=0;i<xs.length;i++)if(
 function drawChart(canvas,opts){
   const ctx=canvas.getContext('2d');
   const cssW=canvas.clientWidth;
-  // Responsive margins — tighter on narrow screens
-  const isMobile=cssW<600;
-  const margin=isMobile
-    ?{left:38,right:30,top:42,bottom:115}
-    :{...BASE_MARGIN};
+  // Smooth proportional scale: at 1000+px width = 1.0 (full desktop), at 320px = ~0.6 (smallest)
+  // Lerps continuously rather than doing a sudden binary switch
+  const chartScale=Math.max(0.55,Math.min(1,(cssW-280)/720));
+  const isMobile=cssW<600;// kept for narrow-only behaviors (single-line guides etc)
+  const lerp=(a,b)=>Math.round(a+(b-a)*chartScale);// b=desktop, a=minimum
+  const lerpF=(a,b)=>(a+(b-a)*chartScale).toFixed(1);// for fonts (precise px sizes)
+  // Fluid font sizes used throughout the chart
+  const fSm=`${lerpF(9,12)}px "DM Sans",sans-serif`;// small (legend small text)
+  const fMd=`${lerpF(10,13)}px "DM Sans",sans-serif`;// medium (med names, axis labels)
+  const fLg=`${lerpF(10.5,14)}px "DM Sans",sans-serif`;// large (values, primary)
+  const dotR=lerpF(3.5,5);// hormone dot radius
+  const margin={
+    left:lerp(36,55),
+    right:lerp(28,50),
+    top:lerp(40,55),
+    bottom:lerp(105,125)
+  };
   // If container has an explicit height set, use that; otherwise fall back to opts.height
   let cssH=opts.height||400;
   const parent=canvas.parentElement;
@@ -1861,7 +1868,7 @@ function drawChart(canvas,opts){
     const sorted=[...md].sort((a,b)=>a[0]-b[0]);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(xS(sorted[0][0]),yD(sorted[0][1]));let prev=sorted[0][1];
     for(let i=1;i<sorted.length;i++){const[x,y]=sorted[i];ctx.lineTo(xS(x),yD(prev));ctx.lineTo(xS(x),yD(y));prev=y;}ctx.stroke();
     if(getMedDots(medId)){for(const[x,y]of sorted){ctx.fillStyle=col;ctx.beginPath();ctx.arc(xS(x),yD(y),3.5,0,Math.PI*2);ctx.fill();}}
-    if(showLabels){ctx.fillStyle=col;ctx.font='13px "DM Sans",sans-serif';ctx.fillText(getMedShortName(medId),xS(sorted[0][0])+6,yD(sorted[0][1])-10);ctx.font='14px "DM Sans",sans-serif';}
+    if(showLabels){ctx.fillStyle=col;ctx.font=fMd;ctx.fillText(getMedShortName(medId),xS(sorted[0][0])+6,yD(sorted[0][1])-10);ctx.font=fLg;}
   }
 
   // Right hormone axes — compact columns with clear separation
@@ -1894,16 +1901,41 @@ function drawChart(canvas,opts){
     for(let y=0;y<=h.maxScale;y+=axisStep){const yy=H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);if(yy>=margin.top&&yy<=H-margin.bottom)ctx.fillText(String(y),axisX,yy+3);}
     axisX+=50;
   }
-  ctx.font='14px "DM Sans",sans-serif';
+  ctx.font=fLg;
 
   // Target bands
   if(showRanges){for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const vals=getHormoneVals(hk);if(!vals.tLo&&!vals.tHi)continue;function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}const yLo=yH(vals.tLo),yHi=yH(vals.tHi);const top2=Math.min(yLo,yHi),ht=Math.abs(yLo-yHi);const r=parseInt(h.color.slice(1,3),16),g=parseInt(h.color.slice(3,5),16),b=parseInt(h.color.slice(5,7),16);ctx.fillStyle=`rgba(${r},${g},${b},0.045)`;ctx.fillRect(margin.left,top2,W-margin.left-mr,ht);}}
 
   // Guides
-  ctx.font='13px "DM Sans",sans-serif';
+  ctx.font=fMd;
   const hasDoses2=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
-  if(showGuides&&tMin<0&&hasDoses2){const xx=xS(0);ctx.setLineDash([5,3]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(xx,margin.top);ctx.lineTo(xx,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cMuted;const t1=t('hrtStart'),t2=daysToDate(0),tw1=ctx.measureText(t1).width,tw2=ctx.measureText(t2).width;ctx.fillText(t1,xx-tw1/2,margin.top-22);ctx.fillText(t2,xx-tw2/2,margin.top-8);}
-  if(showGuides){for(const lab of labs){if(lab.isBaseline)continue;const x=xS(lab.day);ctx.setLineDash([4,4]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(x,margin.top);ctx.lineTo(x,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cMuted;const d1=daysToDate(lab.day),d2=`${t('day')} ${lab.day}`;const tw1=ctx.measureText(d1).width,tw2=ctx.measureText(d2).width;ctx.fillText(d1,x-tw1/2,margin.top-22);ctx.fillText(d2,x-tw2/2,margin.top-8);}}
+  // Narrow-mode threshold: collapse two-line date+day labels into single "d76" form when chart is squeezed
+  const narrowGuides=cssW<700;
+  if(showGuides&&tMin<0&&hasDoses2){const xx=xS(0);ctx.setLineDash([5,3]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(xx,margin.top);ctx.lineTo(xx,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cMuted;const t1=t('hrtStart'),t2=narrowGuides?'':daysToDate(0),tw1=ctx.measureText(t1).width,tw2=ctx.measureText(t2).width;ctx.fillText(t1,xx-tw1/2,margin.top-(narrowGuides?8:22));if(t2)ctx.fillText(t2,xx-tw2/2,margin.top-8);}
+  if(showGuides){
+    // Build list of guide x-positions and only render ones with enough space (collision avoidance)
+    const guideMin=lerp(40,60);
+    const candidates=labs.filter(l=>!l.isBaseline).sort((a,b)=>a.day-b.day);
+    const drawn=[];
+    for(const lab of candidates){
+      const x=xS(lab.day);
+      // Skip if too close to any already-drawn guide
+      if(drawn.some(d=>Math.abs(d-x)<guideMin))continue;
+      drawn.push(x);
+      ctx.setLineDash([4,4]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(x,margin.top);ctx.lineTo(x,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);
+      ctx.fillStyle=cMuted;
+      if(narrowGuides){
+        // Narrow viewport: just the day number, single line
+        const d2=`d${lab.day}`;const tw2=ctx.measureText(d2).width;
+        ctx.fillText(d2,x-tw2/2,margin.top-8);
+      }else{
+        const d1=daysToDate(lab.day),d2=`${t('day')} ${lab.day}`;
+        const tw1=ctx.measureText(d1).width,tw2=ctx.measureText(d2).width;
+        ctx.fillText(d1,x-tw1/2,margin.top-22);
+        ctx.fillText(d2,x-tw2/2,margin.top-8);
+      }
+    }
+  }
 
   // Hormone curves
   for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hv=getHormoneVals(hk);
@@ -1955,57 +1987,66 @@ function drawChart(canvas,opts){
     // Solid curves between real lab points
     ctx.lineWidth=2.5;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}
     // Dots + value labels ONLY on real (non-baseline) lab points
-    for(let i=0;i<times.length;i++){const X=xS(times[i]),Y=yH(vals[i]);ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,5,0,Math.PI*2);ctx.fill();if(showValues){ctx.font='14px "DM Sans",sans-serif';const curTheme=document.body.dataset.theme||'dark';const useShadow=curTheme!=='light'&&curTheme!=='cottage';if(useShadow){ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=4;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;}ctx.fillStyle=cText;ctx.fillText(`${vals[i]} ${h.unit}`,X+9,Y-7);ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;}}
+    for(let i=0;i<times.length;i++){const X=xS(times[i]),Y=yH(vals[i]);ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,parseFloat(dotR),0,Math.PI*2);ctx.fill();if(showValues){ctx.font=fLg;const curTheme=document.body.dataset.theme||'dark';const useShadow=curTheme!=='light'&&curTheme!=='cottage';if(useShadow){ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=4;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;}ctx.fillStyle=cText;ctx.fillText(`${vals[i]} ${h.unit}`,X+lerp(6,9),Y-lerp(5,7));ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;}}
     // Hormone name label at the FIRST real lab point only
-    if(showLabels&&times.length){const fx=xS(times[0]),fy=yH(vals[0]);ctx.fillStyle=h.color;ctx.font='13px "DM Sans",sans-serif';const curTheme2=document.body.dataset.theme||'dark';if(curTheme2!=='light'&&curTheme2!=='cottage'){ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=3;}ctx.fillText(h.name,fx+9,fy-22);ctx.shadowColor='transparent';ctx.shadowBlur=0;}
+    if(showLabels&&times.length){const fx=xS(times[0]),fy=yH(vals[0]);ctx.fillStyle=h.color;ctx.font=fMd;const curTheme2=document.body.dataset.theme||'dark';if(curTheme2!=='light'&&curTheme2!=='cottage'){ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=3;}ctx.fillText(h.name,fx+lerp(6,9),fy-lerp(16,22));ctx.shadowColor='transparent';ctx.shadowBlur=0;}
   }
 
   // Legend — only show categories that have data
   if(showLegend){
-    const blY=H-margin.bottom+40;ctx.font='14px "DM Sans",sans-serif';
+    const lFont=fLg;
+    const lFontSm=fSm;
+    const rowH=lerp(15,22);
+    const swatchOff=-lerp(7,9);const swatchH=lerp(8,10);
+    const lDotR=lerpF(3.5,5);const dotOff=-lerp(3,4);
+    const swatchW=lerp(8,10);const labelGap=lerp(11,14);const itemGap=lerp(14,24);
+    const blY=H-margin.bottom+lerp(26,40);ctx.font=lFont;
     const hasMedData=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
     const hasHormData=hormonesToShow.some(hk=>{for(const lab of labs)if(!lab.isBaseline&&lab.values[hk]!=null)return true;return false;});
+    // Drop "(unit)" suffix on narrower viewports to save space
+    const showUnits=cssW>=720;
     let legendRow=0;
     if(hasMedData){
-      const ly=blY+legendRow*22;ctx.fillStyle=cDim;ctx.fillText(t('doseMg'),margin.left,ly);
-      let lx=margin.left+ctx.measureText(t('doseMg')).width+10;
-      for(const medId of medsToShow){if(!doses[medId]||!doses[medId].length)continue;const col=getMedColor(medId);const sn=getMedShortName(medId);const u=getMedUnit(medId);ctx.fillStyle=col;ctx.fillRect(lx,ly-9,10,10);ctx.fillStyle=cMuted;const lb=`${sn} (${u})`;ctx.fillText(lb,lx+14,ly);lx+=ctx.measureText(lb).width+24;}
+      const ly=blY+legendRow*rowH;ctx.fillStyle=cDim;ctx.fillText(t('doseMg'),margin.left,ly);
+      let lx=margin.left+ctx.measureText(t('doseMg')).width+lerp(7,10);
+      for(const medId of medsToShow){if(!doses[medId]||!doses[medId].length)continue;const col=getMedColor(medId);const sn=getMedShortName(medId);const u=getMedUnit(medId);ctx.fillStyle=col;ctx.fillRect(lx,ly+swatchOff,swatchW,swatchH);ctx.fillStyle=cMuted;const lb=showUnits?`${sn} (${u})`:sn;ctx.fillText(lb,lx+labelGap,ly);lx+=ctx.measureText(lb).width+itemGap;}
       legendRow++;
     }
     if(hasHormData){
-      const ly=blY+legendRow*22;let lx2=margin.left;ctx.fillStyle=cDim;ctx.fillText(t('hormonesLabel'),lx2,ly);lx2+=ctx.measureText(t('hormonesLabel')).width+10;
-      for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hasData=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!hasData)continue;ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(lx2+5,ly-4,5,0,Math.PI*2);ctx.fill();ctx.fillStyle=cMuted;const hl=`${h.name} (${h.unit})`;ctx.fillText(hl,lx2+14,ly);lx2+=ctx.measureText(hl).width+24;}
+      const ly=blY+legendRow*rowH;let lx2=margin.left;ctx.fillStyle=cDim;ctx.fillText(t('hormonesLabel'),lx2,ly);lx2+=ctx.measureText(t('hormonesLabel')).width+lerp(7,10);
+      for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hasData=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!hasData)continue;ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(lx2+parseFloat(lDotR),ly+dotOff,parseFloat(lDotR),0,Math.PI*2);ctx.fill();ctx.fillStyle=cMuted;const hl=showUnits?`${h.name} (${h.unit})`:h.name;ctx.fillText(hl,lx2+labelGap,ly);lx2+=ctx.measureText(hl).width+itemGap;}
       legendRow++;
     }
     // Explainer row: shaded ranges + error halo — labeled "bands"
     if(showRanges||(showError&&hasHormData)){
-      const ly=blY+legendRow*22;let lx3=margin.left;
-      ctx.font='14px "DM Sans",sans-serif';ctx.fillStyle=cDim;
+      const ly=blY+legendRow*rowH;let lx3=margin.left;
+      ctx.font=lFont;ctx.fillStyle=cDim;
       const prefix=pick('bands','faixas','intervals');
       ctx.fillText(prefix,lx3,ly);
-      lx3+=ctx.measureText(prefix).width+10;
-      ctx.font='12px "DM Sans",sans-serif';
+      lx3+=ctx.measureText(prefix).width+lerp(7,10);
+      ctx.font=lFontSm;
+      const bandSwatchW=lerp(13,18);
       if(showRanges&&hasHormData){
-        // Faint band swatch
-        ctx.fillStyle='rgba(160,160,160,0.18)';ctx.fillRect(lx3,ly-9,18,11);
-        ctx.strokeStyle='rgba(160,160,160,0.35)';ctx.lineWidth=1;ctx.strokeRect(lx3+0.5,ly-8.5,17,10);
+        ctx.fillStyle='rgba(160,160,160,0.18)';ctx.fillRect(lx3,ly+swatchOff,bandSwatchW,swatchH+1);
+        ctx.strokeStyle='rgba(160,160,160,0.35)';ctx.lineWidth=1;ctx.strokeRect(lx3+0.5,ly+swatchOff+.5,bandSwatchW-1,swatchH);
         ctx.fillStyle=cDim;
         const lbl=pick('Target range','Faixa-alvo','Interval objectiu');
-        ctx.fillText(lbl,lx3+24,ly);
-        lx3+=24+ctx.measureText(lbl).width+24;
+        ctx.fillText(lbl,lx3+bandSwatchW+lerp(4,6),ly);
+        lx3+=bandSwatchW+lerp(4,6)+ctx.measureText(lbl).width+itemGap;
       }
       if(showError&&hasHormData){
-        // Halo gradient swatch — three layers like the actual halo
-        const swStops=[[18,11,0.04],[14,7,0.06],[10,3,0.09]];
+        const stop1=Math.round(bandSwatchW),stop2=Math.round(bandSwatchW*0.78),stop3=Math.round(bandSwatchW*0.55);
+        const swStops=[[stop1,swatchH+1,0.04],[stop2,Math.max(5,swatchH-3),0.06],[stop3,Math.max(3,swatchH-7),0.09]];
         for(const[w,h2,a]of swStops){
           ctx.fillStyle=`rgba(160,160,160,${a*5})`;
-          ctx.fillRect(lx3+(18-w)/2,ly-9+(11-h2)/2,w,h2);
+          ctx.fillRect(lx3+(stop1-w)/2,ly+swatchOff+((swatchH+1)-h2)/2,w,h2);
         }
         ctx.fillStyle=cDim;
-        const lbl=pick('Lab error margin (~10–15%)','Margem de erro (~10–15%)','Marge d\'error del laboratori (~10–15%)');
-        ctx.fillText(lbl,lx3+24,ly);
+        const compact=cssW<700;
+        const lbl=pick(compact?'Lab error':'Lab error margin (~10–15%)',compact?'Erro lab':'Margem de erro (~10–15%)',compact?'Error lab':'Marge d\'error del laboratori (~10–15%)');
+        ctx.fillText(lbl,lx3+stop1+lerp(4,6),ly);
       }
-      ctx.font='14px "DM Sans",sans-serif';
+      ctx.font=lFont;
     }
   }
 }
