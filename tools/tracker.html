@@ -2,26 +2,32 @@
 <html lang='en'>
 <head>
 <meta charset='UTF-8'>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101216">
 <title>HRT Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=JetBrains+Mono:wght@400;500&family=Metamorphous&family=Cabin+Sketch:wght@400;700&family=Silkscreen:wght@400;700&family=Fascinate&display=swap" rel="stylesheet">
 <style>
-:root,body[data-theme="dark"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#a48bcf;--accent-dim:rgba(164,139,207,.13);--accent-glow:rgba(164,139,207,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5);--chart-bg:#181b20}
-body[data-theme="light"]{--bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#7c5cad;--accent-dim:rgba(124,92,173,.1);--accent-glow:rgba(124,92,173,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08);--chart-bg:#ffffff}
-body[data-theme="cottage"]{--bg:#faf5ee;--surface:#fdf8f0;--surface2:#f3ece0;--surface3:#e8dfd0;--border:#d4c4aa;--border-hover:#bfac8e;--text:#4a3f2f;--text-muted:#7a6f5e;--text-dim:#a69882;--accent:#c27a98;--accent-dim:rgba(194,122,152,.12);--accent-glow:rgba(194,122,152,.22);--danger:#c46b5e;--radius:16px;--radius-sm:12px;--shadow:0 3px 16px rgba(80,60,30,.06);--chart-bg:#fdf8f0}
+:root,body[data-theme="dark"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#e89854;--accent-dim:rgba(232,152,84,.13);--accent-glow:rgba(232,152,84,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5);--chart-bg:#181b20}
+body[data-theme="light"]{--bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08);--chart-bg:#ffffff}
+body[data-theme="cottage"]{--bg:#f1ece4;--surface:#f5efe6;--surface2:#e9e3d8;--surface3:#dfd9ce;--border:#cabfa9;--border-hover:#b3a78d;--text:#4a3f33;--text-muted:#7a6f63;--text-dim:#a09687;--accent:#b87290;--accent-dim:rgba(184,114,144,.12);--accent-glow:rgba(184,114,144,.22);--danger:#b86658;--radius:16px;--radius-sm:12px;--shadow:0 3px 16px rgba(80,60,30,.06);--chart-bg:#f5efe6}
 body[data-theme="evil"]{--bg:#08040a;--surface:#0e060c;--surface2:#180a14;--surface3:#22101c;--border:#3c1428;--border-hover:#5c1e3a;--text:#e8c0cc;--text-muted:#a87088;--text-dim:#6c3850;--accent:#dc2040;--accent-dim:rgba(220,32,64,.15);--accent-glow:rgba(220,32,64,.35);--danger:#ff2848;--radius:10px;--radius-sm:7px;--shadow:0 4px 30px rgba(220,0,40,.2);--chart-bg:#0e060c}
 body[data-theme="nonchalant"]{--bg:#1e2420;--surface:#262d28;--surface2:#2e3630;--surface3:#3a4238;--border:#3d4a3e;--border-hover:#556253;--text:#d4d9ce;--text-muted:#9aa696;--text-dim:#6b7668;--accent:#8fb380;--accent-dim:rgba(143,179,128,.14);--accent-glow:rgba(143,179,128,.25);--danger:#c78a6b;--radius:12px;--radius-sm:9px;--shadow:0 4px 20px rgba(20,30,20,.3);--chart-bg:#262d28}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:28px;line-height:1.6;font-size:17px}
-.header{display:flex;align-items:center;gap:8px;margin-bottom:24px;flex-wrap:wrap}
-.header h1{font-size:32px;font-weight:600;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),#7eaad4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap}
-body[data-theme="light"] .header h1{background:linear-gradient(135deg,#6a4c93,#4a8cc4);-webkit-background-clip:text}
-body[data-theme="cottage"] .header h1{background:linear-gradient(135deg,#c27a98,#8aab7a,#d4a574);-webkit-background-clip:text}
+.header{display:flex;align-items:baseline;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.header h1{align-self:baseline}
+.header .by{font-size:16px;color:var(--text-dim);white-space:nowrap;align-self:baseline;margin-left:-2px}
+.header .undo-btn,.header .header-btn,.header .lang-select,.header .feedback-btn,.header .header-spacer,.header select{align-self:center}
+.header h1{font-size:42px;font-weight:600;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),#7eaad4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;line-height:1;margin:0;padding:0}
+body[data-theme="light"] .header h1{background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+body[data-theme="cottage"] .header h1{background:linear-gradient(135deg,#b87290,#8aab7a,#c89a6e);-webkit-background-clip:text}
 body[data-theme="evil"] .header h1{background:linear-gradient(135deg,#dc2040,#880020);-webkit-background-clip:text}
-body[data-theme="nonchalant"] .header h1{background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text}
-.header .by{font-size:16px;color:var(--text-dim);white-space:nowrap}
-.header .by a{color:var(--accent);text-decoration:none;opacity:.7}
+body[data-theme="nonchalant"] .header h1{background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text;font-family:'Fascinate',cursive;letter-spacing:0;font-weight:400;font-size:42px}
+body[data-theme="dark"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+:root .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+body[data-theme="cottage"] .header h1{font-family:'Cabin Sketch',cursive;font-weight:700;letter-spacing:0;font-size:46px}
+body[data-theme="evil"] .header h1{font-family:'Metamorphous',serif;font-weight:400;letter-spacing:1px;font-size:42px}
 .header-btn{font-size:13px;padding:6px 12px;color:var(--text-muted)}
-.header .by a:hover{opacity:1}
 .header-spacer{flex:1}
 .lang-select,.undo-btn{padding:7px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;outline:none}
 .undo-btn{display:none;gap:5px;align-items:center}
@@ -76,6 +82,12 @@ body[data-theme="nonchalant"] .header h1{background:linear-gradient(135deg,#8fb3
 .panels-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
 @media(max-width:900px){.panels-grid{grid-template-columns:1fr}}
 .panel{padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.panel-watermarked{overflow:hidden;isolation:isolate}
+.panel-watermark{position:absolute;right:-40px;bottom:-50px;width:300px;height:300px;color:var(--text);opacity:.025;transform:rotate(-42deg);transform-origin:center;pointer-events:none;z-index:0}
+.panel-watermark.flip-h{width:243px;height:243px;right:-20px;bottom:0;transform:rotate(-170deg) scaleX(-1)}
+body[data-theme="light"] .panel-watermark{opacity:.04}
+body[data-theme="cottage"] .panel-watermark{opacity:.05}
+body[data-theme="evil"] .panel-watermark{opacity:.035;color:var(--accent)}
 .panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .panel-title{font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:8px}
 .panel-title::before{content:'';width:3px;height:16px;border-radius:2px;background:var(--accent)}
@@ -202,7 +214,7 @@ body[data-theme="nonchalant"] .header h1{background:linear-gradient(135deg,#8fb3
 .catalog-gear{position:absolute;bottom:10px;right:10px;width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .2s}
 .catalog-gear:hover{color:var(--accent);border-color:var(--accent);transform:rotate(30deg)}
 .catalog-list{max-height:60vh;overflow-y:auto;margin:-8px -4px 12px -4px;padding:4px}
-.catalog-row{display:grid;grid-template-columns:22px minmax(120px,1.4fr) 58px 78px 18px 82px 14px 82px;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);font-size:14px;border:1px solid transparent;border-bottom:1px solid var(--border)}
+.catalog-row{display:grid;grid-template-columns:22px minmax(120px,1.4fr) 58px 78px 18px 70px 14px 70px 18px 56px;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);font-size:14px;border:1px solid transparent;border-bottom:1px solid var(--border)}
 .catalog-row.med-row{grid-template-columns:22px 1fr 58px 78px}
 .catalog-row.tracked{background:var(--accent-dim)}
 .catalog-swatch{width:22px;height:22px;border-radius:4px;flex-shrink:0;cursor:pointer;padding:0;border:1px solid var(--border)}
@@ -231,15 +243,129 @@ body[data-theme="evil"] .profile-tab.active{box-shadow:0 0 10px rgba(220,32,64,.
 body[data-theme="nonchalant"] .panel,body[data-theme="nonchalant"] .history-panel{border:1px solid var(--border);box-shadow:0 2px 14px rgba(30,40,30,.18)}
 body[data-theme="nonchalant"] .btn-accent{background:linear-gradient(180deg,#9cbf8c,#7a9e6e);color:#1e2420!important;border:1px solid #6a8a60;font-weight:500}
 body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180deg,#abd099,#87a87a)}
-body[data-theme="nonchalant"] .header h1::after{content:" 🍃";font-size:24px;-webkit-text-fill-color:initial;opacity:.7}
-@media print{body{background:#fff!important;color:#333!important;padding:10mm}canvas{page-break-inside:avoid}.header,.profile-bar,.range-bar,.panels-grid,.history-panel,.chart-tabs,.stats-bar,.toast,.modal-overlay{display:none!important}.chart-container canvas{border:1px solid #ccc}}
+@media(max-width:768px){
+  body{padding:14px;font-size:15px}
+  /* Header: stack title row + actions */
+  .header{gap:6px;margin-bottom:14px}
+  .header h1,body[data-theme="dark"] .header h1,:root .header h1,body[data-theme="cottage"] .header h1,body[data-theme="evil"] .header h1,body[data-theme="nonchalant"] .header h1{font-size:30px}
+  .header .by{font-size:14px}
+  .header-spacer{flex-basis:100%;width:0;height:0;margin:0}
+  .header .feedback-btn{font-size:11px;padding:6px 10px;line-height:1.2}
+  .undo-btn,.lang-select{font-size:13px;padding:6px 10px}
+  /* Profile bar */
+  .profile-bar{flex-wrap:wrap;gap:8px;padding:10px 12px}
+  #profileTabs{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;flex:1;min-width:0}
+  #profileTabs::-webkit-scrollbar{height:4px}
+  #profileTabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .profile-tab{flex-shrink:0}
+  /* Chart tabs */
+  .chart-tabs-bar{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .chart-tabs-bar::-webkit-scrollbar{height:4px}
+  .chart-tab{flex-shrink:0;padding:6px 14px;font-size:13px}
+  /* Range bar — stacks */
+  .range-bar{padding:10px 12px;gap:8px}
+  .range-bar input[type="number"]{width:64px;font-size:14px}
+  .range-bar label{font-size:13px}
+  .range-bar .btn{padding:6px 12px;font-size:13px}
+  .range-bar > div[style*="flex:1"]{flex-basis:100%;width:0;height:0;margin:0}
+  /* Toggle bar */
+  .toggle-bar{padding:8px 10px;gap:6px}
+  .toggle-bar .toggle-label{font-size:12px}
+  .toggle-switch{width:34px;height:18px}
+  .toggle-slider:before{height:14px;width:14px}
+  .toggle-switch input:checked+.toggle-slider:before{transform:translateX(16px)}
+  /* Panels grid */
+  .panels-grid{grid-template-columns:1fr;gap:14px;margin-top:14px}
+  .panel{padding:14px}
+  .panel h2{font-size:16px}
+  /* Charts */
+  .chart-resizer{max-width:100%!important}
+  .chart-grip.grip-h{display:none}
+  .chart-grip.grip-v{height:18px}
+  /* History */
+  .history-panel{padding:14px}
+  .history-table th,.history-table td{padding:6px 6px;font-size:13px}
+  .history-table .hist-actions{flex-direction:column;gap:4px}
+  .hist-btn{padding:4px 8px;font-size:12px}
+  /* Modals */
+  .modal-overlay{padding:8px}
+  .modal{max-width:96vw!important;width:96vw;padding:18px;max-height:92vh}
+  .modal h3{font-size:18px}
+  /* Catalog: drop range columns on narrow */
+  .catalog-row{grid-template-columns:22px 1fr 50px 60px!important;gap:6px;padding:6px 8px;font-size:13px}
+  .catalog-row .catalog-range-input,.catalog-row .catalog-range-dash{display:none}
+  .catalog-row > span:nth-child(5){display:none}
+  /* Stats */
+  .stats-bar{flex-direction:column;align-items:flex-start;gap:6px;padding:10px 12px;font-size:12px}
+  .stats-bar .stat-item{font-size:12px}
+  /* Date selects more compact */
+  .date-selects{gap:4px}
+  .date-selects select{padding:8px 4px;font-size:13px}
+  /* Inputs in fields */
+  .field input,.field select{width:100%;font-size:14px;padding:9px 10px}
+  .field-row{flex-direction:column;gap:8px}
+  .field-row .field{width:100%}
+  /* Wizard avatar+name row stays horizontal */
+  /* Profile context menu wider so taps don't miss */
+  .ctx-menu{min-width:200px}
+  .ctx-menu-item{padding:11px 18px;font-size:15px}
+  /* Toast bigger for thumbs */
+  #toast{bottom:14px;left:14px;right:14px;max-width:none;text-align:center}
+  /* Recipe-style history value rows: bigger taps */
+  .history-table tr td button{min-height:32px}
+  /* Help button + circular header buttons */
+  .header .header-btn[title*="About"]{width:32px;height:32px}
+  /* Hide the 'data settings' label hint, keep the gear */
+  /* Reduce section header sizes inside modal info */
+  .modal h4{font-size:13px;margin:14px 0 4px}
+  /* Wizard chips */
+  .baseline-options{flex-direction:column;gap:8px}
+  .baseline-opt{width:100%}
+  .tag{font-size:12px;padding:5px 10px}
+}
+@media(max-width:480px){
+  body{padding:10px;font-size:14px}
+  .header h1,body[data-theme="dark"] .header h1,:root .header h1,body[data-theme="cottage"] .header h1,body[data-theme="evil"] .header h1,body[data-theme="nonchalant"] .header h1{font-size:26px}
+  .header h1{letter-spacing:0}
+  .header .by{font-size:13px}
+  /* Hide secondary header buttons text, keep icons only */
+  .header .feedback-btn{font-size:0;padding:8px;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+  .header .feedback-btn::before{content:"!";font-size:16px;font-weight:600}
+  .header .feedback-btn br,.header .feedback-btn span{display:none}
+  /* Bigger profile pic on mobile so tap is comfy */
+  .profile-tab .tab-pic{width:36px;height:36px}
+  .profile-tab{padding:4px 8px 4px 4px;border-radius:28px;font-size:14px}
+  .profile-tab .tab-menu-btn{width:24px;height:24px;font-size:13px}
+  /* Range bar even tighter */
+  .range-bar{flex-direction:column;align-items:stretch}
+  .range-bar > *{width:100%}
+  .range-bar > .btn{justify-content:center}
+  .range-bar input[type="number"]{width:100%}
+  /* Print/Export PNG/Set Start Date stack */
+  /* Toggle labels wrap less awkwardly */
+  .toggle-bar{justify-content:flex-start}
+  .toggle-bar .toggle-label{font-size:11px}
+  /* Stats compact */
+  .stats-bar{font-size:11px;padding:8px 10px}
+  /* History action buttons inline */
+  .history-table .hist-actions{flex-direction:row;flex-wrap:wrap}
+}
+@media(hover:none){
+  /* Touch devices — bigger tap targets */
+  button,select,input[type="checkbox"],input[type="radio"],.tag,.profile-tab,.chart-tab{min-height:36px}
+  .toggle-switch{min-height:auto}
+  .hist-btn{min-height:32px}
+  /* Show grip indicators always since hover doesn't apply */
+  .chart-grip{opacity:.65}
+}
+@media print{body{background:#fff!important;color:#333!important;padding:10mm}canvas{page-break-inside:avoid}.header,.profile-bar,.range-bar,.toggle-bar,.panels-grid,.history-panel,.chart-tabs,.stats-bar,.toast,.modal-overlay{display:none!important}.chart-container canvas{border:1px solid #ccc}}
 </style>
 </head>
 <body>
 
 <div class="header">
   <h1>HRT Tracker</h1>
-  <span class="by">by Lúcia <a id="kofiLink" href="#" title="Ko-fi">☕ ko-fi</a></span>
+  <span class="by">by Luci</span>
   <div class="header-spacer"></div>
   <button class="undo-btn" id="undoBtn" onclick="undo()">↩ Undo</button>
   <button class="btn btn-sm header-btn" onclick="document.getElementById('infoModal').classList.add('open')" title="About / License / Disclaimer" style="font-weight:600;width:28px;height:28px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;line-height:1">?</button>
@@ -253,6 +379,7 @@ body[data-theme="nonchalant"] .header h1::after{content:" 🍃";font-size:24px;-
   <select id="langSelect" class="lang-select" onchange="setLang(this.value)">
     <option value="en">English</option>
     <option value="pt">Português (BR)</option>
+    <option value="ca">Català</option>
   </select>
   <a href="mailto:bugport.helpline266@passmail.net?subject=HRT%20Tracker%20Feedback" class="btn btn-sm header-btn" style="text-decoration:none;line-height:1.2;padding:6px 14px;text-align:center;display:inline-flex;flex-direction:column;align-items:center;gap:0;white-space:nowrap;margin-left:auto">Report Bug<span style="font-size:10px;opacity:.75;margin-top:1px">Give Feedback</span></a>
 </div>
@@ -314,6 +441,8 @@ body[data-theme="nonchalant"] .header h1::after{content:" 🍃";font-size:24px;-
   <span class="toggle-label" data-i18n="showPreHrt">Pre-HRT</span>
   <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showRangesToggle" checked onchange="toggleRanges()"><span class="toggle-slider"></span></label>
   <span class="toggle-label" data-i18n="showRanges">Ranges</span>
+  <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showErrorToggle" onchange="toggleError()"><span class="toggle-slider"></span></label>
+  <span class="toggle-label" data-i18n="showError">Error</span>
   <label class="toggle-switch" style="margin-left:10px"><input type="checkbox" id="showAxesToggle" onchange="toggleShowAxes()"><span class="toggle-slider"></span></label>
   <span class="toggle-label" data-i18n="showAxesLabel">Axes</span>
 </div>
@@ -326,7 +455,8 @@ body[data-theme="nonchalant"] .header h1::after{content:" 🍃";font-size:24px;-
 <!-- Panels -->
 <div class="panels-grid">
   <!-- Dosage Panel -->
-  <div class="panel" style="position:relative">
+  <div class="panel panel-watermarked" style="position:relative">
+    <svg class="panel-watermark flip-h" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 3.5a4.95 4.95 0 0 1 7 7l-7 7a4.95 4.95 0 0 1-7-7z"/><path d="M7 7l7 7"/></svg>
     <div class="panel-header">
       <div class="panel-title" data-i18n="addDosage">Add Dosage</div>
       <button class="btn btn-accent btn-sm" onclick="openAddMedModal()">+ <span data-i18n="addMedication">Add Medication</span></button>
@@ -335,7 +465,8 @@ body[data-theme="nonchalant"] .header h1::after{content:" 🍃";font-size:24px;-
     <button class="catalog-gear" onclick="openCatalog('meds')" title="Medication catalog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
   </div>
   <!-- Lab Panel -->
-  <div class="panel" style="position:relative">
+  <div class="panel panel-watermarked" style="position:relative">
+    <svg class="panel-watermark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6"/><path d="M10 3v9.5a3.5 3.5 0 1 0 4 0V3"/><path d="M10 13h4"/></svg>
     <div class="panel-header">
       <div class="panel-title" data-i18n="addLabTest">Add Lab Test</div>
       <button class="btn btn-accent btn-sm" onclick="openAddHormoneModal()">+ <span data-i18n="trackHormone">Track Hormone</span></button>
@@ -374,23 +505,27 @@ body[data-theme="nonchalant"] .header h1::after{content:" 🍃";font-size:24px;-
     <h3>HRT Tracker</h3>
     <div style="font-size:14px;line-height:1.7;color:var(--text-muted)">
       <div style="padding:14px;background:var(--danger);background:rgba(207,107,107,.12);border:1px solid var(--danger);border-radius:var(--radius-sm);margin-bottom:16px;color:var(--text)">
-        <strong style="color:var(--danger);display:block;margin-bottom:6px;font-size:15px">⚠ Medical Disclaimer</strong>
+        <strong style="color:var(--danger);display:block;margin-bottom:6px;font-size:15px">Medical Disclaimer</strong>
         This tool is provided <strong>for informational and personal tracking purposes only</strong>. It is <strong>NOT</strong> a medical device and is <strong>NOT</strong> intended to diagnose, treat, cure, or prevent any medical condition. The creator of this tool is not a medical professional and assumes no responsibility for any decisions, health outcomes, or damages — physical, emotional, financial, or otherwise — arising from its use.<br><br>
         Always consult a qualified healthcare provider about hormone therapy or medication. Do not use this tool as a substitute for professional medical advice, diagnosis, or treatment. Lab reference ranges, preset baselines, and target values shown here are generalizations and may not apply to your specific situation.<br><br>
         Calculations, visualizations, and data interpretations may contain errors or inaccuracies. Verify all medical information with your physician.
       </div>
-      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">🔒 Privacy</h4>
+      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">About</h4>
+      <p>This website began as a tool I "put together" for myself about a year ago. After several people asked me what the program was, I decided to attempt creating a tool that could help all kinds of trans folk and others in the same way it helped me.</p>
+      <p>Since its conception, it has been going through constant considerations and feedback from helpful friends. If you find a bug or have feedback for the website, don't be afraid to send me an e-mail about it: <a href="mailto:bugport.helpline266@passmail.net" style="color:var(--accent)">bugport.helpline266@passmail.net</a>.</p>
+      <p>Disclaimer: this project is made with extensive use of coding assistance from an assortment of different LLMs. I am a bit nervous about that and I'm aware that had I contacted the right people I would've been able to do this without the collateral damage. Due to the nature of my job, I was given access to higher-quality models that could really do an okay job at coding and I figured it could be a nice way to use this opportune technology for good.</p>
+      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">Privacy</h4>
       <p>All your data is stored <strong>locally on your device</strong>, in your browser's localStorage. Nothing is sent to any server. You can export your data as a JSON file at any time for backup. Clearing your browser data will erase all profiles.</p>
-      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">📜 License</h4>
+      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">License</h4>
       <p>This tool is released under the <strong>MIT License</strong>. You are free to use, modify, and distribute it. No warranty is provided; use at your own risk.</p>
-      <pre style="background:var(--surface2);padding:10px;border-radius:var(--radius-sm);font-size:11px;overflow-x:auto;color:var(--text-dim);font-family:'JetBrains Mono',monospace;line-height:1.4;margin:8px 0">MIT License — Copyright (c) 2025 Lúcia
+      <pre style="background:var(--surface2);padding:10px;border-radius:var(--radius-sm);font-size:11px;overflow-x:auto;color:var(--text-dim);font-family:'JetBrains Mono',monospace;line-height:1.4;margin:8px 0">MIT License — Copyright (c) 2025 Luci
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</pre>
-      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">🙏 Credits</h4>
-      <p>Made with care by Lúcia. Fonts: DM Sans &amp; JetBrains Mono (Google Fonts, OFL).</p>
-      <p style="font-size:13px;color:var(--text-dim);margin-top:12px">If this tool helped you, consider <a href="#" id="kofiLink2" style="color:var(--accent)">supporting on Ko-fi ☕</a>.</p>
+      <h4 style="color:var(--text);margin:16px 0 6px;font-size:14px">Credits</h4>
+      <p>Made with care by Luci. Fonts (all from Google Fonts, OFL): DM Sans &amp; JetBrains Mono (UI &amp; data), Silkscreen (Dark logo), Cabin Sketch (Cottage logo), Fascinate (Nonchalant logo), Metamorphous (Evil logo).</p>
+      <p style="font-size:13px;color:var(--text-dim);margin-top:12px">If this tool helped you, consider <a href="https://ko-fi.com/K3K01XPH6P" target="_blank" rel="noopener" id="kofiLink2" style="color:var(--accent)">supporting on Ko-fi</a>.</p>
     </div>
     <div class="modal-buttons">
       <button class="btn btn-accent" onclick="closeModal('infoModal')">OK</button>
@@ -414,7 +549,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <!-- Catalog Modal -->
 <div class="modal-overlay" id="catalogModal">
-  <div class="modal" style="max-width:780px;width:90vw">
+  <div class="modal" style="max-width:880px;width:92vw">
     <h3 id="catalogTitle">Catalog</h3>
     <div id="catalogHint" style="display:none;font-size:12px;color:var(--text-dim);line-height:1.5;padding:10px 12px;margin-bottom:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"></div>
     <div id="catalogHeader" style="display:none"></div>
@@ -483,7 +618,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 <script>
 // ═══ DEFINITIONS ═══
-const BUILTIN_HORMONES={E2:{name:'Estradiol',unit:'pg/mL',color:'#7eb8da',maxScale:1000,step:100,tprehrtm:{typ:30,tLo:100,tHi:350},tprehrtf:{typ:100,tLo:100,tHi:350}},PRL:{name:'Prolactin',unit:'ng/mL',color:'#daa06d',maxScale:40,step:5,tprehrtm:{typ:8,tLo:2,tHi:25},tprehrtf:{typ:12,tLo:2,tHi:25}},T:{name:'Testosterone',unit:'ng/mL',color:'#7eda9c',maxScale:7,step:1,tprehrtm:{typ:5.5,tLo:0.1,tHi:0.55},tprehrtf:{typ:0.3,tLo:0.15,tHi:0.7}},SHBG:{name:'SHBG',unit:'nmol/L',color:'#c49cde',maxScale:160,step:20,tprehrtm:{typ:35,tLo:20,tHi:130},tprehrtf:{typ:60,tLo:20,tHi:130}},DHT:{name:'DHT',unit:'pg/mL',color:'#de9c9c',maxScale:500,step:50,tprehrtm:{typ:400,tLo:0,tHi:100},tprehrtf:{typ:20,tLo:0,tHi:100}},LH:{name:'LH',unit:'mIU/mL',color:'#9cccde',maxScale:20,step:2,tprehrtm:{typ:5,tLo:0.5,tHi:9},tprehrtf:{typ:6,tLo:0.5,tHi:9}},FSH:{name:'FSH',unit:'mIU/mL',color:'#a8de9c',maxScale:20,step:2,tprehrtm:{typ:5,tLo:0.5,tHi:8},tprehrtf:{typ:6,tLo:0.5,tHi:8}},PROG:{name:'Progesterone',unit:'ng/mL',color:'#deb89c',maxScale:25,step:5,tprehrtm:{typ:0.4,tLo:0.1,tHi:1.5},tprehrtf:{typ:1,tLo:0.1,tHi:1.5}},IGF1:{name:'IGF-1',unit:'ng/mL',color:'#9cb8de',maxScale:400,step:50,tprehrtm:{typ:200,tLo:100,tHi:300},tprehrtf:{typ:180,tLo:100,tHi:300}},CORT:{name:'Cortisol',unit:'µg/dL',color:'#b8de9c',maxScale:30,step:5,tprehrtm:{typ:12,tLo:5,tHi:23},tprehrtf:{typ:12,tLo:5,tHi:23}},ALT:{name:'ALT',unit:'U/L',color:'#de9cba',maxScale:80,step:10,tprehrtm:{typ:28,tLo:0,tHi:44},tprehrtf:{typ:18,tLo:0,tHi:44}},AST:{name:'AST',unit:'U/L',color:'#9cdec4',maxScale:80,step:10,tprehrtm:{typ:26,tLo:0,tHi:40},tprehrtf:{typ:20,tLo:0,tHi:40}},VITD:{name:'Vitamin D',unit:'ng/mL',color:'#ded49c',maxScale:100,step:10,tprehrtm:{typ:30,tLo:30,tHi:80},tprehrtf:{typ:30,tLo:30,tHi:80}},FE:{name:'Ferritin',unit:'ng/mL',color:'#c4a882',maxScale:300,step:50,tprehrtm:{typ:120,tLo:20,tHi:200},tprehrtf:{typ:50,tLo:20,tHi:200}},B12:{name:'Vitamin B12',unit:'pg/mL',color:'#a8c4de',maxScale:1200,step:200,tprehrtm:{typ:400,tLo:200,tHi:900},tprehrtf:{typ:400,tLo:200,tHi:900}},HCT:{name:'Hematocrit',unit:'%',color:'#de8e8e',maxScale:60,step:5,tprehrtm:{typ:45,tLo:36,tHi:46},tprehrtf:{typ:40,tLo:36,tHi:46}},CREAT:{name:'Creatinine',unit:'mg/dL',color:'#8edeb2',maxScale:2,step:0.5,tprehrtm:{typ:1.0,tLo:0.5,tHi:1.2},tprehrtf:{typ:0.8,tLo:0.5,tHi:1.2}},K:{name:'Potassium',unit:'mEq/L',color:'#dece8e',maxScale:7,step:1,tprehrtm:{typ:4.2,tLo:3.5,tHi:5.0},tprehrtf:{typ:4.0,tLo:3.5,tHi:5.0}}};
+const BUILTIN_HORMONES={E2:{name:'Estradiol',unit:'pg/mL',color:'#7eb8da',maxScale:1000,step:100,errorPct:15,tprehrtm:{typ:30,tLo:100,tHi:350},tprehrtf:{typ:100,tLo:100,tHi:350}},PRL:{name:'Prolactin',unit:'ng/mL',color:'#daa06d',maxScale:40,step:5,errorPct:10,tprehrtm:{typ:8,tLo:2,tHi:25},tprehrtf:{typ:12,tLo:2,tHi:25}},T:{name:'Testosterone',unit:'ng/mL',color:'#7eda9c',maxScale:7,step:1,errorPct:12,tprehrtm:{typ:5.5,tLo:0.1,tHi:0.55},tprehrtf:{typ:0.3,tLo:0.15,tHi:0.7}},SHBG:{name:'SHBG',unit:'nmol/L',color:'#c49cde',maxScale:160,step:20,errorPct:8,tprehrtm:{typ:35,tLo:20,tHi:130},tprehrtf:{typ:60,tLo:20,tHi:130}},DHT:{name:'DHT',unit:'pg/mL',color:'#de9c9c',maxScale:500,step:50,errorPct:18,tprehrtm:{typ:400,tLo:0,tHi:100},tprehrtf:{typ:20,tLo:0,tHi:100}},LH:{name:'LH',unit:'mIU/mL',color:'#9cccde',maxScale:20,step:2,errorPct:8,tprehrtm:{typ:5,tLo:0.5,tHi:9},tprehrtf:{typ:6,tLo:0.5,tHi:9}},FSH:{name:'FSH',unit:'mIU/mL',color:'#a8de9c',maxScale:20,step:2,errorPct:8,tprehrtm:{typ:5,tLo:0.5,tHi:8},tprehrtf:{typ:6,tLo:0.5,tHi:8}},PROG:{name:'Progesterone',unit:'ng/mL',color:'#deb89c',maxScale:25,step:5,errorPct:15,tprehrtm:{typ:0.4,tLo:0.1,tHi:1.5},tprehrtf:{typ:1,tLo:0.1,tHi:1.5}},IGF1:{name:'IGF-1',unit:'ng/mL',color:'#9cb8de',maxScale:400,step:50,errorPct:10,tprehrtm:{typ:200,tLo:100,tHi:300},tprehrtf:{typ:180,tLo:100,tHi:300}},CORT:{name:'Cortisol',unit:'µg/dL',color:'#b8de9c',maxScale:30,step:5,errorPct:12,tprehrtm:{typ:12,tLo:5,tHi:23},tprehrtf:{typ:12,tLo:5,tHi:23}},ALT:{name:'ALT',unit:'U/L',color:'#de9cba',maxScale:80,step:10,errorPct:5,tprehrtm:{typ:28,tLo:0,tHi:44},tprehrtf:{typ:18,tLo:0,tHi:44}},AST:{name:'AST',unit:'U/L',color:'#9cdec4',maxScale:80,step:10,errorPct:5,tprehrtm:{typ:26,tLo:0,tHi:40},tprehrtf:{typ:20,tLo:0,tHi:40}},VITD:{name:'Vitamin D',unit:'ng/mL',color:'#ded49c',maxScale:100,step:10,errorPct:10,tprehrtm:{typ:30,tLo:30,tHi:80},tprehrtf:{typ:30,tLo:30,tHi:80}},FE:{name:'Ferritin',unit:'ng/mL',color:'#c4a882',maxScale:300,step:50,errorPct:10,tprehrtm:{typ:120,tLo:20,tHi:200},tprehrtf:{typ:50,tLo:20,tHi:200}},B12:{name:'Vitamin B12',unit:'pg/mL',color:'#a8c4de',maxScale:1200,step:200,errorPct:10,tprehrtm:{typ:400,tLo:200,tHi:900},tprehrtf:{typ:400,tLo:200,tHi:900}},HCT:{name:'Hematocrit',unit:'%',color:'#de8e8e',maxScale:60,step:5,errorPct:3,tprehrtm:{typ:45,tLo:36,tHi:46},tprehrtf:{typ:40,tLo:36,tHi:46}},CREAT:{name:'Creatinine',unit:'mg/dL',color:'#8edeb2',maxScale:2,step:0.5,errorPct:5,tprehrtm:{typ:1.0,tLo:0.5,tHi:1.2},tprehrtf:{typ:0.8,tLo:0.5,tHi:1.2}},K:{name:'Potassium',unit:'mEq/L',color:'#dece8e',maxScale:7,step:1,errorPct:3,tprehrtm:{typ:4.2,tLo:3.5,tHi:5.0},tprehrtf:{typ:4.0,tLo:3.5,tHi:5.0}}};
 const BUILTIN_MEDS=[{id:'een',name:'Estradiol Enanthate (EEn)',color:'#b07cd8',unit:'mg'},{id:'ev',name:'Estradiol Valerate (EV)',color:'#c87cba',unit:'mg'},{id:'ec',name:'Estradiol Cypionate (EC)',color:'#a87cc8',unit:'mg'},{id:'patch',name:'Estradiol Patch',color:'#7caac8',unit:'mg'},{id:'gel',name:'Estradiol Gel',color:'#7cc8a8',unit:'mg'},{id:'pill_e',name:'Estradiol Oral/SL',color:'#c8a87c',unit:'mg'},{id:'spiro',name:'Spironolactone',color:'#7cc8c8',unit:'mg'},{id:'bica',name:'Bicalutamide',color:'#8898c8',unit:'mg'},{id:'cyp',name:'Cyproterone Acetate (CPA)',color:'#c87c8a',unit:'mg'},{id:'gnrha',name:'GnRH Agonist',color:'#98c87c',unit:'mg'},{id:'fina',name:'Finasteride',color:'#c8b87c',unit:'mg'},{id:'duta',name:'Dutasteride',color:'#c8987c',unit:'mg'},{id:'prog',name:'Progesterone',color:'#deb89c',unit:'mg'},{id:'pred',name:'Prednisone',color:'#9cb8a8',unit:'mg'},{id:'testo_c',name:'Testosterone Cypionate',color:'#7cdab0',unit:'mg'},{id:'testo_e',name:'Testosterone Enanthate',color:'#7cb0da',unit:'mg'},{id:'testo_gel',name:'Testosterone Gel',color:'#a0da7c',unit:'mg'},{id:'eun',name:'Estradiol Undecylate (EUn)',color:'#da7cb0',unit:'mg'}];
 const DEFAULT_PROFILE={startDate:'2024-11-11',baseline:'tprehrtm',profilePic:'',medications:['een'],medCustom:{een:{showDots:true}},customMeds:[],customHormones:[],doses:{een:[[0,10],[6,10],[13,10],[20,10],[27,10],[34,10],[41,10],[48,10],[55,10],[62,10],[70,7.5],[76,7.5],[83,7.5],[90,7.5],[97,7.5],[104,7.5],[111,10],[118,10],[125,10],[132,10],[139,10],[146,10],[153,10],[160,10],[167,10],[179,12.5],[188,10],[195,10],[202,10],[216,4],[223,4],[230,5],[237,5],[246,5],[253,5],[261,5],[268,5],[276,5],[285,5],[293,5],[300,5],[308,4],[316,4]]},trackedHormones:['E2','PRL','T'],shownAxes:['E2','PRL','T'],labs:[{day:76,date:'2025-01-26',values:{E2:343,PRL:31.6,T:0.14}},{day:257,date:'2025-07-26',values:{E2:446,PRL:19.7,T:0.30}}]};
 
@@ -496,6 +631,8 @@ let chartView='multi'; // 'multi' = combined, 'all' or 'individual' = split sele
 let dpr=1;
 const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTHS_CA=['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
+function getMonths(){if(lang==='pt')return MONTHS_PT;if(lang==='ca')return MONTHS_CA;return MONTHS_EN;}
 
 // ═══ HELPERS ═══
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -510,7 +647,7 @@ function setHormoneColor(hk,color){const p=getActive();if(!p)return;if(!p.hormon
 function setHormoneUnit(hk,unit){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};p.hormoneRanges[hk].unit=unit;saveToStorage();renderLabPanel();redraw();}
 function dateToDays(ds){const d=new Date(ds+'T12:00:00');return Math.round((d-startDate)/864e5);}
 function daysToDateObj(day){return new Date(startDate.getTime()+day*864e5);}
-function daysToDate(day){const d=daysToDateObj(day);const ms=lang==='pt'?MONTHS_PT:MONTHS_EN;return`${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`;}
+function daysToDate(day){const d=daysToDateObj(day);const ms=getMonths();return`${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`;}
 function daysToISO(day){return daysToDateObj(day).toISOString().slice(0,10);}
 function getHormoneVals(hk){const h=getHormone(hk);if(!h)return{typ:0,tLo:0,tHi:0};
   const p=getActive();const cr=p?.hormoneRanges?.[hk];
@@ -518,13 +655,16 @@ function getHormoneVals(hk){const h=getHormone(hk);if(!h)return{typ:0,tLo:0,tHi:
   if(cr)return{typ:defaults.typ,tLo:cr.tLo!=null?cr.tLo:defaults.tLo,tHi:cr.tHi!=null?cr.tHi:defaults.tHi};
   return defaults;
 }
+function getHormoneErrorPct(hk){const h=getHormone(hk);if(!h)return 15;const p=getActive();const cr=p?.hormoneRanges?.[hk];if(cr&&cr.errorPct!=null)return cr.errorPct;return h.errorPct!=null?h.errorPct:15;}
 function setHormoneRange(hk,lo,hi){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};if(Number.isFinite(lo))p.hormoneRanges[hk].tLo=lo;if(Number.isFinite(hi))p.hormoneRanges[hk].tHi=hi;saveToStorage();redraw();}
 
 // ═══ i18n ═══
 let lang='en';
-const I18N={en:{profiles:'Profiles',newBtn:'New',exportBtn:'Export',importBtn:'Import',showFromDay:'From day:',showUpToDay:'to day:',showLabels:'Labels',showLegend:'Legend',showValues:'Values',showGuides:'Guides',showPreHrt:'Pre-HRT',showRanges:'Ranges',exportPng:'Export PNG',addDosage:'Add Dosage',addLabTest:'Add Lab Test',date:'Date',amount:'Amount',addBtn:'Add',addDoseBtn:'Add Dose',addLabBtn:'Add Lab Result',addAllDosesBtn:'Add All Doses',addMedication:'Add Medication',trackHormone:'Track Hormone',history:'History',doses:'Doses',labTests:'Lab Tests',day:'Day',medication:'Medication',values:'Values',edit:'edit',deleteBtn:'delete',noDoses:'No doses recorded yet.',noLabs:'No lab tests recorded yet.',settingsFor:'Settings for',color:'Color',unit:'Unit',createProfile:'Create Profile',profileName:'Profile name...',baseline:'Baseline',noBaseline:'No baseline',preHrtMale:'Pre-HRT "male"',preHrtFemale:'Pre-HRT "female"',typMaleLevels:'Typical pre-HRT "male" levels',typFemaleLevels:'Typical pre-HRT "female" levels',cancel:'Cancel',create:'Create',doseUpdated:'Updated',confirmDeleteDose:'Delete this dose?',confirmDeleteLab:'Delete this lab?',daysLabel:'days since start',doseMg:'dose',hrtStart:'HRT Start',selectMedFirst:'Select a medication first.',fillDateAmount:'Fill in date and amount.',enterValidAmount:'Enter a valid amount.',enterDate:'Enter a date.',enterOneValue:'Enter at least one value.',alreadyExists:'Already exists',cantDeleteOnly:"Can't delete only profile",profilePicSet:'Photo set',exported:'Exported',removed:'Removed',rename:'Rename',setPicture:'Set picture',deletePfp:'Remove picture',recurring:'Recurring dose',every:'Every',days2:'days',forDuration:'for',weeks:'weeks',months:'months',years:'year(s)',addAll:'Add all',dosesAdded:'doses added',dosesTaken:'doses taken',daysSinceLab:'days since last lab',daySinceStart:'days since start',undone:'Undone',hormonesLabel:'hormones',hrtStartDate:'HRT Start Date',chooseOrCustom:'Choose from list or create custom',custom:'Custom...',showDoseDots:'Dose dots',viewAll:'All',viewSplit:'Multi-view',addProfileBtn:'Add Profile',showAxesFor:'Show axes for:',showAxesLabel:'Axes',targetRanges:'Target Ranges',nextBtn:'Next →',backBtn:'← Back',applyBtn:'Apply',parseError:'Parse error',invalidFile:'Invalid file'},
-pt:{profiles:'Perfis',newBtn:'Novo',exportBtn:'Exportar',importBtn:'Importar',showFromDay:'Do dia:',showUpToDay:'até o dia:',showLabels:'Rótulos',showLegend:'Legenda',showValues:'Valores',showGuides:'Guias',showPreHrt:'Pré-TRH',showRanges:'Faixas',exportPng:'Exportar PNG',addDosage:'Adicionar Dosagem',addLabTest:'Adicionar Exame',date:'Data',amount:'Quantidade',addBtn:'Adicionar',addDoseBtn:'Adicionar Dose',addLabBtn:'Adicionar Exame',addAllDosesBtn:'Adicionar Todas as Doses',addMedication:'Adicionar Medicação',trackHormone:'Rastrear Hormônio',history:'Histórico',doses:'Doses',labTests:'Exames',day:'Dia',medication:'Medicação',values:'Valores',edit:'editar',deleteBtn:'excluir',noDoses:'Nenhuma dose registrada.',noLabs:'Nenhum exame registrado.',settingsFor:'Configurações de',color:'Cor',unit:'Unidade',createProfile:'Criar Perfil',profileName:'Nome do perfil...',baseline:'Linha de base',noBaseline:'Sem linha de base',preHrtMale:'Pré-TRH "masculino"',preHrtFemale:'Pré-TRH "feminino"',typMaleLevels:'Níveis pré-TRH "masculinos" típicos',typFemaleLevels:'Níveis pré-TRH "femininos" típicos',cancel:'Cancelar',create:'Criar',doseUpdated:'Atualizado',confirmDeleteDose:'Excluir esta dose?',confirmDeleteLab:'Excluir este exame?',daysLabel:'dias desde o início',doseMg:'dose',hrtStart:'Início TRH',selectMedFirst:'Selecione uma medicação.',fillDateAmount:'Preencha data e quantidade.',enterValidAmount:'Valor inválido.',enterDate:'Insira uma data.',enterOneValue:'Insira pelo menos um valor.',alreadyExists:'Já existe',cantDeleteOnly:'Impossível excluir o único perfil',profilePicSet:'Foto definida',exported:'Exportado',removed:'Removido',rename:'Renomear',setPicture:'Definir foto',deletePfp:'Remover foto',recurring:'Dose recorrente',every:'A cada',days2:'dias',forDuration:'por',weeks:'semanas',months:'meses',years:'ano(s)',addAll:'Adicionar tudo',dosesAdded:'doses adicionadas',dosesTaken:'doses tomadas',daysSinceLab:'dias desde último exame',daySinceStart:'dias desde o início',undone:'Desfeito',hormonesLabel:'hormônios',hrtStartDate:'Data de Início TRH',chooseOrCustom:'Escolha da lista ou crie personalizado',custom:'Personalizado...',showDoseDots:'Pontos de dose',viewAll:'Todos',viewSplit:'Multi-visão',addProfileBtn:'Adicionar Perfil',showAxesFor:'Mostrar eixos para:',showAxesLabel:'Eixos',targetRanges:'Faixas Alvo',nextBtn:'Próximo →',backBtn:'← Voltar',applyBtn:'Aplicar',parseError:'Erro',invalidFile:'Arquivo inválido'}};
+const I18N={en:{profiles:'Profiles',newBtn:'New',exportBtn:'Export',importBtn:'Import',showFromDay:'From day:',showUpToDay:'to day:',showLabels:'Labels',showLegend:'Legend',showValues:'Values',showGuides:'Guides',showPreHrt:'Pre-HRT',showRanges:'Ranges',showError:'Error',exportPng:'Export PNG',addDosage:'Add Dosage',addLabTest:'Add Lab Test',date:'Date',amount:'Amount',addBtn:'Add',addDoseBtn:'Add Dose',addLabBtn:'Add Lab Result',addAllDosesBtn:'Add All Doses',addMedication:'Add Medication',trackHormone:'Track Hormone',history:'History',doses:'Doses',labTests:'Lab Tests',day:'Day',medication:'Medication',values:'Values',edit:'edit',deleteBtn:'delete',noDoses:'No doses recorded yet.',noLabs:'No lab tests recorded yet.',settingsFor:'Settings for',color:'Color',unit:'Unit',createProfile:'Create Profile',profileName:'Profile name...',baseline:'Baseline',noBaseline:'No baseline',preHrtMale:'Pre-HRT "male"',preHrtFemale:'Pre-HRT "female"',typMaleLevels:'Typical pre-HRT "male" levels',typFemaleLevels:'Typical pre-HRT "female" levels',cancel:'Cancel',create:'Create',doseUpdated:'Updated',confirmDeleteDose:'Delete this dose?',confirmDeleteLab:'Delete this lab?',daysLabel:'days since start',doseMg:'dose',hrtStart:'HRT Start',selectMedFirst:'Select a medication first.',fillDateAmount:'Fill in date and amount.',enterValidAmount:'Enter a valid amount.',enterDate:'Enter a date.',enterOneValue:'Enter at least one value.',alreadyExists:'Already exists',cantDeleteOnly:"Can't delete only profile",profilePicSet:'Photo set',exported:'Exported',removed:'Removed',rename:'Rename',setPicture:'Set picture',deletePfp:'Remove picture',recurring:'Recurring dose',every:'Every',days2:'days',forDuration:'for',weeks:'weeks',months:'months',years:'year(s)',addAll:'Add all',dosesAdded:'doses added',dosesTaken:'doses taken',daysSinceLab:'days since last lab',daySinceStart:'days since start',undone:'Undone',hormonesLabel:'hormones',hrtStartDate:'HRT Start Date',chooseOrCustom:'Choose from list or create custom',custom:'Custom...',showDoseDots:'Dose dots',viewAll:'All',viewSplit:'Multi-view',addProfileBtn:'Add Profile',showAxesFor:'Show axes for:',showAxesLabel:'Axes',targetRanges:'Target Ranges',nextBtn:'Next →',backBtn:'← Back',applyBtn:'Apply',parseError:'Parse error',invalidFile:'Invalid file'},
+pt:{profiles:'Perfis',newBtn:'Novo',exportBtn:'Exportar',importBtn:'Importar',showFromDay:'Do dia:',showUpToDay:'até o dia:',showLabels:'Rótulos',showLegend:'Legenda',showValues:'Valores',showGuides:'Guias',showPreHrt:'Pré-TRH',showRanges:'Faixas',showError:'Erro',exportPng:'Exportar PNG',addDosage:'Adicionar Dosagem',addLabTest:'Adicionar Exame',date:'Data',amount:'Quantidade',addBtn:'Adicionar',addDoseBtn:'Adicionar Dose',addLabBtn:'Adicionar Exame',addAllDosesBtn:'Adicionar Todas as Doses',addMedication:'Adicionar Medicação',trackHormone:'Rastrear Hormônio',history:'Histórico',doses:'Doses',labTests:'Exames',day:'Dia',medication:'Medicação',values:'Valores',edit:'editar',deleteBtn:'excluir',noDoses:'Nenhuma dose registrada.',noLabs:'Nenhum exame registrado.',settingsFor:'Configurações de',color:'Cor',unit:'Unidade',createProfile:'Criar Perfil',profileName:'Nome do perfil...',baseline:'Linha de base',noBaseline:'Sem linha de base',preHrtMale:'Pré-TRH "masculino"',preHrtFemale:'Pré-TRH "feminino"',typMaleLevels:'Níveis pré-TRH "masculinos" típicos',typFemaleLevels:'Níveis pré-TRH "femininos" típicos',cancel:'Cancelar',create:'Criar',doseUpdated:'Atualizado',confirmDeleteDose:'Excluir esta dose?',confirmDeleteLab:'Excluir este exame?',daysLabel:'dias desde o início',doseMg:'dose',hrtStart:'Início TRH',selectMedFirst:'Selecione uma medicação.',fillDateAmount:'Preencha data e quantidade.',enterValidAmount:'Valor inválido.',enterDate:'Insira uma data.',enterOneValue:'Insira pelo menos um valor.',alreadyExists:'Já existe',cantDeleteOnly:'Impossível excluir o único perfil',profilePicSet:'Foto definida',exported:'Exportado',removed:'Removido',rename:'Renomear',setPicture:'Definir foto',deletePfp:'Remover foto',recurring:'Dose recorrente',every:'A cada',days2:'dias',forDuration:'por',weeks:'semanas',months:'meses',years:'ano(s)',addAll:'Adicionar tudo',dosesAdded:'doses adicionadas',dosesTaken:'doses tomadas',daysSinceLab:'dias desde último exame',daySinceStart:'dias desde o início',undone:'Desfeito',hormonesLabel:'hormônios',hrtStartDate:'Data de Início TRH',chooseOrCustom:'Escolha da lista ou crie personalizado',custom:'Personalizado...',showDoseDots:'Pontos de dose',viewAll:'Todos',viewSplit:'Multi-visão',addProfileBtn:'Adicionar Perfil',showAxesFor:'Mostrar eixos para:',showAxesLabel:'Eixos',targetRanges:'Faixas Alvo',nextBtn:'Próximo →',backBtn:'← Voltar',applyBtn:'Aplicar',parseError:'Erro',invalidFile:'Arquivo inválido'},
+ca:{profiles:'Perfils',newBtn:'Nou',exportBtn:'Exporta',importBtn:'Importa',showFromDay:'Del dia:',showUpToDay:"fins al dia:",showLabels:'Etiquetes',showLegend:'Llegenda',showValues:'Valors',showGuides:'Guies',showPreHrt:'Pre-THS',showRanges:'Intervals',showError:'Error',exportPng:'Exporta PNG',addDosage:'Afegeix Dosi',addLabTest:'Afegeix Anàlisi',date:'Data',amount:'Quantitat',addBtn:'Afegeix',addDoseBtn:'Afegeix Dosi',addLabBtn:'Afegeix Resultat',addAllDosesBtn:'Afegeix Totes les Dosis',addMedication:'Afegeix Medicació',trackHormone:'Segueix Hormona',history:'Historial',doses:'Dosis',labTests:'Anàlisis',day:'Dia',medication:'Medicació',values:'Valors',edit:'edita',deleteBtn:'elimina',noDoses:'Encara no hi ha dosis registrades.',noLabs:'Encara no hi ha anàlisis registrades.',settingsFor:'Configuració de',color:'Color',unit:'Unitat',createProfile:'Crea Perfil',profileName:'Nom del perfil...',baseline:'Línia base',noBaseline:'Sense línia base',preHrtMale:'Pre-THS "masculí"',preHrtFemale:'Pre-THS "femení"',typMaleLevels:'Nivells pre-THS "masculins" típics',typFemaleLevels:'Nivells pre-THS "femenins" típics',cancel:'Cancel·la',create:'Crea',doseUpdated:'Actualitzat',confirmDeleteDose:'Vols eliminar aquesta dosi?',confirmDeleteLab:'Vols eliminar aquesta anàlisi?',daysLabel:'dies des de l\'inici',doseMg:'dosi',hrtStart:'Inici THS',selectMedFirst:'Selecciona primer una medicació.',fillDateAmount:'Omple data i quantitat.',enterValidAmount:'Introdueix un valor vàlid.',enterDate:'Introdueix una data.',enterOneValue:'Introdueix com a mínim un valor.',alreadyExists:'Ja existeix',cantDeleteOnly:"No es pot eliminar l'únic perfil",profilePicSet:'Foto desada',exported:'Exportat',removed:'Eliminat',rename:'Canvia el nom',setPicture:'Posa foto',deletePfp:'Treu foto',recurring:'Dosi recurrent',every:'Cada',days2:'dies',forDuration:'durant',weeks:'setmanes',months:'mesos',years:'any(s)',addAll:'Afegeix-ho tot',dosesAdded:'dosis afegides',dosesTaken:'dosis preses',daysSinceLab:"dies des de l'última anàlisi",daySinceStart:"dies des de l'inici",undone:'Desfet',hormonesLabel:'hormones',hrtStartDate:"Data d'Inici THS",chooseOrCustom:'Tria de la llista o crea personalitzat',custom:'Personalitzat...',showDoseDots:'Punts de dosi',viewAll:'Totes',viewSplit:'Multi-vista',addProfileBtn:'Afegeix Perfil',showAxesFor:'Mostra eixos per a:',showAxesLabel:'Eixos',targetRanges:'Intervals Objectiu',nextBtn:'Següent →',backBtn:'← Enrere',applyBtn:'Aplica',parseError:'Error de lectura',invalidFile:'Fitxer no vàlid'}};
 function t(key){return I18N[lang]?.[key]||I18N.en[key]||key;}
+function pick(en,pt,ca){if(lang==='pt')return pt;if(lang==='ca')return ca;return en;}
 function setLang(l){lang=l;try{localStorage.setItem('hrt_lang',l);}catch(e){}updateStaticLabels();renderProfileTabs();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();renderHistory();renderStats();redraw();}
 function loadLang(){try{const l=localStorage.getItem('hrt_lang');if(l&&I18N[l])lang=l;}catch(e){}}
 function setTheme(t2){document.body.dataset.theme=t2;try{localStorage.setItem('hrt_theme',t2);}catch(e){}const s=document.getElementById('themeSelect');if(s)s.value=t2;redraw();}
@@ -588,25 +728,25 @@ function openBaselineEditModal(){
     const tracked=new Set(trackedHormones);
     const isDefault30=lab.day===-30&&!lab.date;
     const dateISO=lab.date?lab.date:(lab.day!=null?daysToISO(lab.day):'');
-    let body=`<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">${lang==='pt'?'Esses valores aparecem como um exame base. Se você tiver exames pré-TRH reais, pode usar a data deles.':'These values appear as a baseline lab entry. If you have actual pre-HRT labs, you can use their date.'}</div>`;
+    let body=`<div style="font-size:12px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">${pick('These values appear as a baseline lab entry. If you have actual pre-HRT labs, you can use their date.','Esses valores aparecem como um exame base. Se você tiver exames pré-TRH reais, pode usar a data deles.','Aquests valors apareixen com a anàlisi base. Si tens anàlisis pre-THS reals, pots utilitzar-ne la data.')}</div>`;
     // Date selector — two radio choices
-    body+=`<div style="margin-bottom:14px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:600">${lang==='pt'?'Quando?':'When?'}</div>`;
-    body+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="baselineDateMode" value="default" ${isDefault30?'checked':''} onchange="setBaselineDateMode('default')" style="accent-color:var(--accent)"><span>${lang==='pt'?'30 dias antes do início da TRH (padrão)':'30 days before HRT start (default)'}</span></label>`;
-    body+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="baselineDateMode" value="specific" ${!isDefault30?'checked':''} onchange="setBaselineDateMode('specific')" style="accent-color:var(--accent)"><span>${lang==='pt'?'Data específica':'Specific date'}</span></label>`;
-    body+=`<div id="baselineSpecificRow" style="display:${isDefault30?'none':'flex'};gap:10px;align-items:center;margin-top:6px;padding-left:24px"><input type="date" id="baselineEditDate" value="${dateISO}" ${startDate?'':'disabled'} style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit"><span style="font-size:12px;color:var(--text-dim)" id="baselineEditDayLbl">${lang==='pt'?'Dia':'Day'} ${lab.day}</span></div></div>`;
+    body+=`<div style="margin-bottom:14px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;font-weight:600">${pick('When?','Quando?','Quan?')}</div>`;
+    body+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="baselineDateMode" value="default" ${isDefault30?'checked':''} onchange="setBaselineDateMode('default')" style="accent-color:var(--accent)"><span>${pick('30 days before HRT start (default)','30 dias antes do início da TRH (padrão)','30 dies abans de l\'inici de la THS (per defecte)')}</span></label>`;
+    body+=`<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px;color:var(--text)"><input type="radio" name="baselineDateMode" value="specific" ${!isDefault30?'checked':''} onchange="setBaselineDateMode('specific')" style="accent-color:var(--accent)"><span>${pick('Specific date','Data específica','Data específica')}</span></label>`;
+    body+=`<div id="baselineSpecificRow" style="display:${isDefault30?'none':'flex'};gap:10px;align-items:center;margin-top:6px;padding-left:24px"><input type="date" id="baselineEditDate" value="${dateISO}" ${startDate?'':'disabled'} style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit"><span style="font-size:12px;color:var(--text-dim)" id="baselineEditDayLbl">${pick('Day','Dia','Dia')} ${lab.day}</span></div></div>`;
     body+=`<div style="max-height:260px;overflow-y:auto;padding:4px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2)">`;
     const orderedTracked=trackedHormones.filter(k=>BUILTIN_HORMONES[k]);
-    if(orderedTracked.length===0){body+=`<div style="padding:10px;color:var(--text-dim);font-size:13px;text-align:center">${lang==='pt'?'Nenhum hormônio rastreado':'No hormones tracked'}</div>`;}
+    if(orderedTracked.length===0){body+=`<div style="padding:10px;color:var(--text-dim);font-size:13px;text-align:center">${pick('No hormones tracked','Nenhum hormônio rastreado','Cap hormona seguida')}</div>`;}
     for(const hk of orderedTracked){
       const h=BUILTIN_HORMONES[hk];
       const def=h[bkey]||{typ:0};
       const val=lab.values[hk]!=null?lab.values[hk]:def.typ;
-      body+=`<div style="display:grid;grid-template-columns:18px 110px 1fr 50px 24px;gap:8px;align-items:center;padding:6px 10px;font-size:13px;border-bottom:1px solid var(--border)"><span class="tag-dot" style="background:${h.color}"></span><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><input type="number" step="0.01" value="${val}" placeholder="${def.typ}" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace" data-hk="${hk}"><span style="color:var(--text-dim);font-size:11px">${esc(h.unit)}</span><button class="hist-btn hist-del" style="padding:2px 6px;font-size:10px" onclick="removeBaselineHormone('${hk}')" title="${lang==='pt'?'Remover':'Remove'}">×</button></div>`;
+      body+=`<div style="display:grid;grid-template-columns:18px 110px 1fr 50px 24px;gap:8px;align-items:center;padding:6px 10px;font-size:13px;border-bottom:1px solid var(--border)"><span class="tag-dot" style="background:${h.color}"></span><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><input type="number" step="0.01" value="${val}" placeholder="${def.typ}" style="width:100%;padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace" data-hk="${hk}"><span style="color:var(--text-dim);font-size:11px">${esc(h.unit)}</span><button class="hist-btn hist-del" style="padding:2px 6px;font-size:10px" onclick="removeBaselineHormone('${hk}')" title="${pick('Remove','Remover','Treu')}">×</button></div>`;
     }
     body+=`</div>`;
     const untracked=allH.filter(k=>!tracked.has(k));
     if(untracked.length){
-      body+=`<div style="margin-top:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">${lang==='pt'?'Adicionar outros hormônios':'Add other hormones'}</div><div style="display:flex;flex-wrap:wrap;gap:6px">`;
+      body+=`<div style="margin-top:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">${pick('Add other hormones','Adicionar outros hormônios','Afegeix altres hormones')}</div><div style="display:flex;flex-wrap:wrap;gap:6px">`;
       for(const hk of untracked){
         const h=BUILTIN_HORMONES[hk];
         body+=`<button class="tag" style="cursor:pointer;border:1px solid var(--border);background:var(--surface2)" onclick="addBaselineHormone('${hk}')"><span class="tag-dot" style="background:${h.color}"></span>+ ${esc(h.name)}</button>`;
@@ -615,11 +755,11 @@ function openBaselineEditModal(){
     }
     return body;
   }
-  ov.innerHTML=`<div class="modal" style="max-width:560px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">⚙ ${lang==='pt'?'Editar níveis pré-TRH':'Edit pre-HRT levels'}</h3><div id="baselineEditBody" style="overflow-y:auto;flex:1;padding-right:4px"></div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('baselineEditOverlay').remove()">${t('cancel')}</button><button class="btn btn-accent" onclick="saveBaselineEdit()">${t('applyBtn')}</button></div></div>`;
+  ov.innerHTML=`<div class="modal" style="max-width:560px;max-height:85vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">⚙ ${pick('Edit pre-HRT levels','Editar níveis pré-TRH','Edita els nivells pre-THS')}</h3><div id="baselineEditBody" style="overflow-y:auto;flex:1;padding-right:4px"></div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('baselineEditOverlay').remove()">${t('cancel')}</button><button class="btn btn-accent" onclick="saveBaselineEdit()">${t('applyBtn')}</button></div></div>`;
   document.body.appendChild(ov);
   function attachDateHandler(){
     const di=document.getElementById('baselineEditDate');
-    if(di){di.addEventListener('input',()=>{const lbl=document.getElementById('baselineEditDayLbl');if(lbl&&di.value)lbl.textContent=(lang==='pt'?'Dia ':'Day ')+dateToDays(di.value);});}
+    if(di){di.addEventListener('input',()=>{const lbl=document.getElementById('baselineEditDayLbl');if(lbl&&di.value)lbl.textContent=(pick('Day ','Dia ','Dia '))+dateToDays(di.value);});}
   }
   document.getElementById('baselineEditBody').innerHTML=buildBody();
   attachDateHandler();
@@ -643,7 +783,7 @@ function setBaselineDateMode(mode){
     const di=document.getElementById('baselineEditDate');
     if(di){di.value=window._baselineEditLab.date||daysToISO(window._baselineEditLab.day);}
     const lbl=document.getElementById('baselineEditDayLbl');
-    if(lbl)lbl.textContent=(lang==='pt'?'Dia ':'Day ')+window._baselineEditLab.day;
+    if(lbl)lbl.textContent=(pick('Day ','Dia ','Dia '))+window._baselineEditLab.day;
   }
 }
 function addBaselineHormone(hk){
@@ -682,7 +822,7 @@ function saveBaselineEdit(){
   syncToProfile();
   document.getElementById('baselineEditOverlay').remove();
   fullRefresh();
-  toast(lang==='pt'?'Atualizado':'Updated');
+  toast(pick('Updated','Atualizado','Actualitzat'));
 }
 
 function openSetupWizardForActive(startStep){
@@ -724,23 +864,23 @@ let wizardData={name:'',baseline:'',hrtType:'',thoroughness:'basic',profilePic:'
 function getDefaultName(){let base='Default',n=0;while(profiles[n===0?base:`${base} (${n})`])n++;return n===0?base:`${base} (${n})`;}
 function selectBaseline(el){el.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');wizardData.baseline=el.dataset.val;}
 const HRT_PRESETS={
-  feminizing:{basic:{hormones:['E2','T']},standard:{hormones:['E2','T','PRL','PROG']},thorough:{hormones:['E2','T','PRL','SHBG','PROG','LH','FSH','DHT']},desc_en:'Feminizing HRT',desc_pt:'TRH Feminizante'},
-  masculinizing:{basic:{hormones:['T','E2']},standard:{hormones:['T','E2','SHBG','HCT']},thorough:{hormones:['T','E2','SHBG','LH','FSH','HCT','CREAT','ALT']},desc_en:'Masculinizing HRT',desc_pt:'TRH Masculinizante'},
-  custom:{desc_en:'Custom / Start blank',desc_pt:'Personalizado / Em branco'}
+  feminizing:{basic:{hormones:['E2','T']},standard:{hormones:['E2','T','PRL','PROG']},thorough:{hormones:['E2','T','PRL','SHBG','PROG','LH','FSH','DHT']},desc_en:'Feminizing HRT',desc_pt:'TRH Feminizante',desc_ca:'THS Feminitzant'},
+  masculinizing:{basic:{hormones:['T','E2']},standard:{hormones:['T','E2','SHBG','HCT']},thorough:{hormones:['T','E2','SHBG','LH','FSH','HCT','CREAT','ALT']},desc_en:'Masculinizing HRT',desc_pt:'TRH Masculinizante',desc_ca:'THS Masculinitzant'},
+  custom:{desc_en:'Custom / Start blank',desc_pt:'Personalizado / Em branco',desc_ca:'Personalitzat / En blanc'}
 };
 function renderWizardStep(){
   const cc=document.getElementById('wizardContent');const bb=document.getElementById('wizardButtons');const tt=document.getElementById('wizardTitle');
   if(wizardStep===1){
-    tt.textContent=wizardMode==='edit'?(lang==='pt'?'Configuração do Perfil':'Profile Setup'):t('createProfile');
+    tt.textContent=wizardMode==='edit'?(pick('Profile Setup','Configuração do Perfil','Configuració del Perfil')):t('createProfile');
     const defaultName=getDefaultName();
     const nextDisabled=!wizardData.baseline;
     const avatar=wizardData.profilePic?`<img src="${wizardData.profilePic}" style="width:56px;height:56px;border-radius:50%;object-fit:cover">`:(wizardData.emoji?`<span style="font-size:32px">${wizardData.emoji}</span>`:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--text-dim)"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0116 0v1"/></svg>`);
-    cc.innerHTML=`<div class="modal-label">${t('profileName')}</div><div style="display:flex;gap:10px;margin-bottom:10px"><div style="width:52px;height:52px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;line-height:0">${avatar}</div><input type="text" id="wizName" value="${esc(wizardData.name)}" placeholder="${esc(defaultName)}" style="flex:1;height:52px;padding:0 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;outline:none;box-sizing:border-box;margin:0" oninput="wizardData.name=this.value" onkeydown="if(event.key==='Enter'&&wizardData.baseline){wizardData.name=this.value;wizardStep=2;renderWizardStep();}"></div><div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn btn-sm" onclick="syncWizName();document.getElementById('wizPfpInput').click()" style="font-size:12px">${lang==='pt'?'Adicionar Foto':'Add Photo'}</button><button class="btn btn-sm" onclick="syncWizName();openEmojiPicker()" style="font-size:12px">${lang==='pt'?'Escolher Emoji':'Pick Emoji'}</button>${wizardData.profilePic||wizardData.emoji?`<button class="btn btn-sm" onclick="syncWizName();wizardData.profilePic='';wizardData.emoji='';renderWizardStep()" style="font-size:12px;color:var(--danger)">${lang==='pt'?'Remover':'Remove'}</button>`:''}</div><input type="file" id="wizPfpInput" accept="image/*" style="display:none" onchange="wizSetPfp(event)"><div class="modal-label">${t('baseline')}</div><div class="baseline-options"><div class="baseline-opt${wizardData.baseline==='none'?' selected':''}" data-val="none" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('noBaseline')}</div><div class="baseline-opt${wizardData.baseline==='tprehrtm'?' selected':''}" data-val="tprehrtm" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('typMaleLevels')}</div><div class="baseline-opt${wizardData.baseline==='tprehrtf'?' selected':''}" data-val="tprehrtf" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('typFemaleLevels')}</div></div>`;
+    cc.innerHTML=`<div class="modal-label">${t('profileName')}</div><div style="display:flex;gap:10px;margin-bottom:10px"><div style="width:52px;height:52px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;line-height:0">${avatar}</div><input type="text" id="wizName" value="${esc(wizardData.name)}" placeholder="${esc(defaultName)}" style="flex:1;height:52px;padding:0 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;outline:none;box-sizing:border-box;margin:0" oninput="wizardData.name=this.value" onkeydown="if(event.key==='Enter'&&wizardData.baseline){wizardData.name=this.value;wizardStep=2;renderWizardStep();}"></div><div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn btn-sm" onclick="syncWizName();document.getElementById('wizPfpInput').click()" style="font-size:12px">${pick('Add Photo','Adicionar Foto','Afegeix Foto')}</button><button class="btn btn-sm" onclick="syncWizName();openEmojiPicker()" style="font-size:12px">${pick('Pick Emoji','Escolher Emoji','Tria Emoji')}</button>${wizardData.profilePic||wizardData.emoji?`<button class="btn btn-sm" onclick="syncWizName();wizardData.profilePic='';wizardData.emoji='';renderWizardStep()" style="font-size:12px;color:var(--danger)">${pick('Remove','Remover','Treu')}</button>`:''}</div><input type="file" id="wizPfpInput" accept="image/*" style="display:none" onchange="wizSetPfp(event)"><div class="modal-label">${t('baseline')}</div><div class="baseline-options"><div class="baseline-opt${wizardData.baseline==='none'?' selected':''}" data-val="none" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('noBaseline')}</div><div class="baseline-opt${wizardData.baseline==='tprehrtm'?' selected':''}" data-val="tprehrtm" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('typMaleLevels')}</div><div class="baseline-opt${wizardData.baseline==='tprehrtf'?' selected':''}" data-val="tprehrtf" onclick="syncWizName();selectBaseline(this);renderWizardStep()">${t('typFemaleLevels')}</div></div>`;
     bb.innerHTML=`<button class="btn" onclick="closeModal('newProfileModal')">${t('cancel')}</button><button class="btn btn-accent" onclick="wizardData.name=document.getElementById('wizName').value;wizardStep=2;renderWizardStep()" ${nextDisabled?'disabled style="opacity:.45;cursor:not-allowed"':''}>${t('nextBtn')}</button>`;
   }else if(wizardStep===2){
-    tt.textContent=lang==='pt'?'Tipo de TRH':'HRT Type';
-    const desc=k=>lang==='pt'?HRT_PRESETS[k].desc_pt:HRT_PRESETS[k].desc_en;
-    cc.innerHTML=`<div class="modal-label">${lang==='pt'?'Qual o seu tipo de terapia hormonal?':'What type of hormone therapy?'}</div><div class="baseline-options vertical"><div class="baseline-opt${wizardData.hrtType==='feminizing'?' selected':''}" data-val="feminizing" onclick="wizardData.hrtType='feminizing';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">🌸 ${desc('feminizing')}</div><div class="baseline-opt${wizardData.hrtType==='masculinizing'?' selected':''}" data-val="masculinizing" onclick="wizardData.hrtType='masculinizing';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">💪 ${desc('masculinizing')}</div><div class="baseline-opt${wizardData.hrtType==='custom'?' selected':''}" data-val="custom" onclick="wizardData.hrtType='custom';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">⚙️ ${desc('custom')}</div></div>`;
+    tt.textContent=pick('HRT Type','Tipo de TRH','Tipus de THS');
+    const desc=k=>pick(HRT_PRESETS[k].desc_en,HRT_PRESETS[k].desc_pt,HRT_PRESETS[k].desc_ca);
+    cc.innerHTML=`<div class="modal-label">${pick('What type of hormone therapy?','Qual o seu tipo de terapia hormonal?','Quin tipus de teràpia hormonal?')}</div><div class="baseline-options vertical"><div class="baseline-opt${wizardData.hrtType==='feminizing'?' selected':''}" data-val="feminizing" onclick="wizardData.hrtType='feminizing';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">🌸 ${desc('feminizing')}</div><div class="baseline-opt${wizardData.hrtType==='masculinizing'?' selected':''}" data-val="masculinizing" onclick="wizardData.hrtType='masculinizing';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">💪 ${desc('masculinizing')}</div><div class="baseline-opt${wizardData.hrtType==='custom'?' selected':''}" data-val="custom" onclick="wizardData.hrtType='custom';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected')">⚙️ ${desc('custom')}</div></div>`;
     bb.innerHTML=`<button class="btn" onclick="wizardStep=1;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="if(!wizardData.hrtType)return;wizardStep=3;renderWizardStep()">${t('nextBtn')}</button>`;
   }else if(wizardStep===3){
     // Build the pre-HRT levels section (collapsible, embedded)
@@ -750,27 +890,27 @@ function renderWizardStep(){
       // Toggle to enable/disable simulated pre-HRT in wizard
       if(wizardData.simulatePreHrt===undefined)wizardData.simulatePreHrt=true;
       const simOn=wizardData.simulatePreHrt;
-      baselineSection=`<div style="margin-top:14px;display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"><label class="toggle-switch" style="flex-shrink:0;margin-top:2px"><input type="checkbox" ${simOn?'checked':''} onchange="wizardData.simulatePreHrt=this.checked;renderWizardStep()"><span class="toggle-slider"></span></label><div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);font-weight:500;margin-bottom:3px">${lang==='pt'?'Simular níveis pré-TRH':'Simulate pre-HRT levels'}</div><div style="font-size:12px;color:var(--text-dim);line-height:1.5">${lang==='pt'?'Esses valores aparecerão como um exame base no dia -30, editável depois.':'These values will appear as a baseline lab entry at day -30, editable later.'}</div></div></div>`;
+      baselineSection=`<div style="margin-top:14px;display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm)"><label class="toggle-switch" style="flex-shrink:0;margin-top:2px"><input type="checkbox" ${simOn?'checked':''} onchange="wizardData.simulatePreHrt=this.checked;renderWizardStep()"><span class="toggle-slider"></span></label><div style="flex:1;min-width:0"><div style="font-size:13px;color:var(--text);font-weight:500;margin-bottom:3px">${pick('Simulate pre-HRT levels','Simular níveis pré-TRH','Simula els nivells pre-THS')}</div><div style="font-size:12px;color:var(--text-dim);line-height:1.5">${pick('These values will appear as a baseline lab entry at day -30, editable later.','Esses valores aparecerão como um exame base no dia -30, editável depois.','Aquests valors apareixeran com a anàlisi base al dia -30, editables més endavant.')}</div></div></div>`;
     }
     if(wizardData.hrtType==='custom'){
-      tt.textContent=lang==='pt'?'Personalizar rastreamento':'Customize tracking';
+      tt.textContent=pick('Customize tracking','Personalizar rastreamento','Personalitza el seguiment');
       if(!wizardData.customHormones)wizardData.customHormones=[];
       const allH=Object.entries(BUILTIN_HORMONES);
       let chips='';for(const[k,h] of allH){const on=wizardData.customHormones.includes(k);chips+=`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?h.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleWizHormone('${k}')"><span class="tag-dot" style="background:${h.color}"></span>${esc(h.name)}</div>`;}
-      cc.innerHTML=`<div class="modal-label">${lang==='pt'?'Escolha os hormônios que quer rastrear (ou comece em branco)':'Pick hormones to track (or start blank)'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${chips}</div><div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><button class="btn btn-sm" onclick="wizardData.customHormones=[];renderWizardStep()">${lang==='pt'?'Limpar':'Clear all'}</button><button class="btn btn-sm" onclick="wizardData.customHormones=Object.keys(BUILTIN_HORMONES);renderWizardStep()">${lang==='pt'?'Selecionar todos':'Select all'}</button><span style="color:var(--text-dim);font-size:13px;margin-left:auto">${wizardData.customHormones.length} ${lang==='pt'?'selecionado(s)':'selected'}</span></div><div style="padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--text-dim)">${lang==='pt'?'Você pode adicionar hormônios customizados depois pelo catálogo (⚙).':'You can add custom hormones later via the catalog (⚙).'}</div>${baselineSection}`;
+      cc.innerHTML=`<div class="modal-label">${pick('Pick hormones to track (or start blank)','Escolha os hormônios que quer rastrear (ou comece em branco)','Tria hormones a seguir (o comença en blanc)')}</div><div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${chips}</div><div style="display:flex;gap:10px;align-items:center;margin-bottom:10px"><button class="btn btn-sm" onclick="wizardData.customHormones=[];renderWizardStep()">${pick('Clear all','Limpar','Esborra-ho tot')}</button><button class="btn btn-sm" onclick="wizardData.customHormones=Object.keys(BUILTIN_HORMONES);renderWizardStep()">${pick('Select all','Selecionar todos','Selecciona-ho tot')}</button><span style="color:var(--text-dim);font-size:13px;margin-left:auto">${wizardData.customHormones.length} ${pick('selected','selecionado(s)','seleccionades')}</span></div><div style="padding:10px 12px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--text-dim)">${pick('You can add custom hormones later via the catalog (⚙).','Você pode adicionar hormônios customizados depois pelo catálogo (⚙).','Pots afegir hormones personalitzades més tard al catàleg (⚙).')}</div>${baselineSection}`;
       bb.innerHTML=`<button class="btn" onclick="wizardStep=2;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="wizardStep=4;renderWizardStep()">${t('nextBtn')}</button>`;
     }else{
-      tt.textContent=lang==='pt'?'Nível de acompanhamento':'Tracking level';
-      const mkOpt=(val,titleEn,titlePt,descEn,descPt)=>{
-        const title=lang==='pt'?titlePt:titleEn;const desc=lang==='pt'?descPt:descEn;
+      tt.textContent=pick('Tracking level','Nível de acompanhamento','Nivell de seguiment');
+      const mkOpt=(val,titleEn,titlePt,descEn,descPt,titleCa,descCa)=>{
+        const title=pick(titleEn,titlePt,titleCa||titleEn);const desc=pick(descEn,descPt,descCa||descEn);
         return`<div class="baseline-opt${wizardData.thoroughness===val?' selected':''}" data-val="${val}" onclick="wizardData.thoroughness='${val}';this.parentElement.querySelectorAll('.baseline-opt').forEach(o=>o.classList.remove('selected'));this.classList.add('selected');updateWizPreview();renderWizardStep()" style="text-align:left"><div class="opt-title">${title}</div><div class="opt-desc">${desc}</div></div>`;};
-      cc.innerHTML=`<div class="modal-label">${lang==='pt'?'Quais hormônios você quer acompanhar?':'Which hormones do you want to track?'}</div><div class="baseline-options vertical">${mkOpt('basic','Basic','Básico','Essential hormones only','Apenas hormônios essenciais')}${mkOpt('standard','Standard','Padrão','Core hormones + key markers','Hormônios principais + marcadores-chave')}${mkOpt('thorough','Thorough','Detalhado','Comprehensive panel with advanced markers','Painel completo com marcadores avançados')}</div><div id="wizPreview"></div>${baselineSection}`;
+      cc.innerHTML=`<div class="modal-label">${pick('Which hormones do you want to track?','Quais hormônios você quer acompanhar?','Quines hormones vols seguir?')}</div><div class="baseline-options vertical">${mkOpt('basic','Basic','Básico','Essential hormones only','Apenas hormônios essenciais','Bàsic','Només hormones essencials')}${mkOpt('standard','Standard','Padrão','Core hormones + key markers','Hormônios principais + marcadores-chave','Estàndard','Hormones principals + marcadors clau')}${mkOpt('thorough','Thorough','Detalhado','Comprehensive panel with advanced markers','Painel completo com marcadores avançados','Detallat','Panell complet amb marcadors avançats')}</div><div id="wizPreview"></div>${baselineSection}`;
       updateWizPreview();
       bb.innerHTML=`<button class="btn" onclick="wizardStep=2;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="wizardStep=4;renderWizardStep()">${t('nextBtn')}</button>`;
     }
   }else if(wizardStep===4){
     // Medication selection step
-    tt.textContent=lang==='pt'?'Medicações':'Medications';
+    tt.textContent=pick('Medications','Medicações','Medicacions');
     if(!wizardData.medications)wizardData.medications=[];
     if(!wizardData.customMeds)wizardData.customMeds=[];
     // Suggest defaults based on HRT type if user hasn't picked any
@@ -789,21 +929,21 @@ function renderWizardStep(){
       if(!m)return'';
       const on=wizardData.medications.includes(mid);
       const isCustom=mid.startsWith('cm_');
-      const removeBtn=isCustom?`<span style="margin-left:6px;padding:0 4px;border-radius:8px;background:rgba(255,255,255,.1);font-size:10px;cursor:pointer" onclick="event.stopPropagation();removeWizCustomMed('${mid}')" title="${lang==='pt'?'Remover':'Remove'}">×</span>`:'';
+      const removeBtn=isCustom?`<span style="margin-left:6px;padding:0 4px;border-radius:8px;background:rgba(255,255,255,.1);font-size:10px;cursor:pointer" onclick="event.stopPropagation();removeWizCustomMed('${mid}')" title="${pick('Remove','Remover','Treu')}">×</span>`:'';
       return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?m.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleWizMed('${mid}')"><span class="tag-dot" style="background:${m.color}"></span>${esc(m.name)}${removeBtn}</div>`;
     }
-    function groupSection(titleEn,titlePt,ids,extraHTML){
-      const title=lang==='pt'?titlePt:titleEn;
+    function groupSection(titleEn,titlePt,ids,extraHTML,titleCa){
+      const title=pick(titleEn,titlePt,titleCa||titleEn);
       return`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${ids.map(medChip).join('')}${extraHTML||''}</div></div>`;
     }
     const customIds=wizardData.customMeds.map(m=>m.id);
-    const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="openWizCustomMedForm()"><span style="font-size:14px">+</span> ${lang==='pt'?'Adicionar Personalizado':'Add Custom'}</button>`;
-    const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${lang==='pt'?'Personalizadas':'Custom'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(medChip).join('')}${addCustomBtn}</div><div id="wizCustomMedForm" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius-sm)"><div style="display:grid;grid-template-columns:1fr 80px 42px;gap:8px;align-items:center;margin-bottom:8px"><input id="wizCustomMedName" type="text" placeholder="${lang==='pt'?'Nome da medicação':'Medication name'}" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit"><select id="wizCustomMedUnit" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px"><option value="mg">mg</option><option value="mL">mL</option><option value="IU">IU</option><option value="mcg">mcg</option><option value="g">g</option></select><input id="wizCustomMedColor" type="color" value="#b07cd8" style="width:42px;height:32px;padding:1px;border:1px solid var(--border);border-radius:6px;cursor:pointer"></div><div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn btn-sm" onclick="document.getElementById('wizCustomMedForm').style.display='none'">${t('cancel')}</button><button class="btn btn-sm btn-accent" onclick="addWizCustomMed()">${t('addBtn')}</button></div></div></div>`;
-    const preamble=`<div class="modal-label">${lang==='pt'?'Quais medicações você está tomando? (opcional)':'Which medications are you taking? (optional)'}</div><div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">${lang==='pt'?'Você pode adicionar ou remover medicações depois no painel principal.':'You can add or remove medications later from the main panel.'}</div>`;
-    const sections=groupSection('Estrogens','Estrogênios',estrogens)+groupSection('Anti-androgens','Antiandrógenos',antiandrogens)+groupSection('Testosterone','Testosterona',testosterone)+groupSection('Other','Outros',other)+customSection;
-    const countLbl=`<div style="margin-top:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:8px"><span>${wizardData.medications.length} ${lang==='pt'?'medicação(ões) selecionada(s)':'medication(s) selected'}</span>${wizardData.medications.length?`<button class="btn btn-sm" style="margin-left:auto;font-size:11px" onclick="wizardData.medications=[];renderWizardStep()">${lang==='pt'?'Limpar':'Clear'}</button>`:''}</div>`;
+    const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="openWizCustomMedForm()"><span style="font-size:14px">+</span> ${pick('Add Custom','Adicionar Personalizado','Afegeix Personalitzat')}</button>`;
+    const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${pick('Custom','Personalizadas','Personalitzat')}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(medChip).join('')}${addCustomBtn}</div><div id="wizCustomMedForm" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius-sm)"><div style="display:grid;grid-template-columns:1fr 80px 42px;gap:8px;align-items:center;margin-bottom:8px"><input id="wizCustomMedName" type="text" placeholder="${pick('Medication name','Nome da medicação','Nom de la medicació')}" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit"><select id="wizCustomMedUnit" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px"><option value="mg">mg</option><option value="mL">mL</option><option value="IU">IU</option><option value="mcg">mcg</option><option value="g">g</option></select><input id="wizCustomMedColor" type="color" value="#b07cd8" style="width:42px;height:32px;padding:1px;border:1px solid var(--border);border-radius:6px;cursor:pointer"></div><div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn btn-sm" onclick="document.getElementById('wizCustomMedForm').style.display='none'">${t('cancel')}</button><button class="btn btn-sm btn-accent" onclick="addWizCustomMed()">${t('addBtn')}</button></div></div></div>`;
+    const preamble=`<div class="modal-label">${pick('Which medications are you taking? (optional)','Quais medicações você está tomando? (opcional)','Quines medicacions prens? (opcional)')}</div><div style="font-size:12px;color:var(--text-dim);margin-bottom:14px;line-height:1.5">${pick('You can add or remove medications later from the main panel.','Você pode adicionar ou remover medicações depois no painel principal.','Pots afegir o treure medicacions més tard al tauler principal.')}</div>`;
+    const sections=groupSection('Estrogens','Estrogênios',estrogens,null,'Estrògens')+groupSection('Anti-androgens','Antiandrógenos',antiandrogens,null,'Antiandrògens')+groupSection('Testosterone','Testosterona',testosterone,null,'Testosterona')+groupSection('Other','Outros',other,null,'Altres')+customSection;
+    const countLbl=`<div style="margin-top:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:8px"><span>${wizardData.medications.length} ${pick('medication(s) selected','medicação(ões) selecionada(s)','medicació(ons) seleccionada(es)')}</span>${wizardData.medications.length?`<button class="btn btn-sm" style="margin-left:auto;font-size:11px" onclick="wizardData.medications=[];renderWizardStep()">${pick('Clear','Limpar','Esborra')}</button>`:''}</div>`;
     cc.innerHTML=preamble+sections+countLbl;
-    bb.innerHTML=`<button class="btn" onclick="wizardStep=3;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="finishWizard()">${wizardMode==='edit'?(lang==='pt'?'Salvar':'Save'):t('create')}</button>`;
+    bb.innerHTML=`<button class="btn" onclick="wizardStep=3;renderWizardStep()">${t('backBtn')}</button><button class="btn btn-accent" onclick="finishWizard()">${wizardMode==='edit'?(pick('Save','Salvar','Desa')):t('create')}</button>`;
   }
 }
 function openWizCustomMedForm(){
@@ -847,25 +987,25 @@ function openDataSettings(){
   const body=document.getElementById('dataModalBody');
   const title=document.getElementById('dataModalTitle');
   const desc=document.getElementById('dataModalDesc');
-  title.textContent=lang==='pt'?'Gerenciar Dados':'Data Management';
-  desc.innerHTML=lang==='pt'?'Seus perfis são armazenados localmente no seu navegador. Use estas opções para fazer backup, restaurar ou limpar seus dados.':'Your profiles are stored locally in your browser. Use these options to back up, restore, or clear your data.';
+  title.textContent=pick('Data Management','Gerenciar Dados','Gestió de Dades');
+  desc.innerHTML=pick('Your profiles are stored locally in your browser. Use these options to back up, restore, or clear your data.','Seus perfis são armazenados localmente no seu navegador. Use estas opções para fazer backup, restaurar ou limpar seus dados.','Els teus perfils es desen localment al navegador. Utilitza aquestes opcions per fer còpia, restaurar o esborrar les dades.');
   const totalProfiles=Object.keys(profiles).length;
   const storageKB=(new Blob([JSON.stringify({profiles,active:activeProfileName})]).size/1024).toFixed(1);
   body.innerHTML=`
-    <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:13px;font-weight:500;color:var(--text)">${lang==='pt'?'Armazenamento local':'Local storage'}</div><div style="font-size:12px;color:var(--text-dim)">${totalProfiles} ${lang==='pt'?'perfil(s)':'profile(s)'} · ${storageKB} KB</div></div></div>
-    <button class="btn" onclick="exportProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span style="flex:1">${lang==='pt'?'Exportar perfil ativo':'Export active profile'}</span></button>
-    <button class="btn" onclick="exportAllProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg> <span style="flex:1">${lang==='pt'?'Exportar todos os perfis':'Export all profiles'}</span></button>
-    <button class="btn" onclick="document.getElementById('importInput').click();closeModal('dataModal')" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> <span style="flex:1">${lang==='pt'?'Importar do arquivo JSON':'Import from JSON file'}</span></button>
-    <button class="btn" onclick="clearAllProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px;color:var(--danger);border-color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> <span style="flex:1">${lang==='pt'?'Limpar todos os perfis':'Clear all profiles'}</span></button>
+    <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);display:flex;justify-content:space-between;align-items:center"><div><div style="font-size:13px;font-weight:500;color:var(--text)">${pick('Local storage','Armazenamento local','Emmagatzematge local')}</div><div style="font-size:12px;color:var(--text-dim)">${totalProfiles} ${pick('profile(s)','perfil(s)','perfil(s)')} · ${storageKB} KB</div></div></div>
+    <button class="btn" onclick="exportProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span style="flex:1">${pick('Export active profile','Exportar perfil ativo','Exporta el perfil actiu')}</span></button>
+    <button class="btn" onclick="exportAllProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg> <span style="flex:1">${pick('Export all profiles','Exportar todos os perfis','Exporta tots els perfils')}</span></button>
+    <button class="btn" onclick="document.getElementById('importInput').click();closeModal('dataModal')" style="justify-content:flex-start;text-align:left;padding:10px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> <span style="flex:1">${pick('Import from JSON file','Importar do arquivo JSON','Importa des d\'un fitxer JSON')}</span></button>
+    <button class="btn" onclick="clearAllProfiles()" style="justify-content:flex-start;text-align:left;padding:10px 14px;color:var(--danger);border-color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 01-2 2H9a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> <span style="flex:1">${pick('Clear all profiles','Limpar todos os perfis','Esborra tots els perfils')}</span></button>
   `;
   modal.classList.add('open');
 }
 function exportAllProfiles(){syncToProfile();const blob=new Blob([JSON.stringify({version:5,profiles,active:activeProfileName},null,2)],{type:'application/json'});const a=document.createElement('a');a.download='HRT_all_profiles.json';a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);toast(t('exported'));}
-function confirmAction(msg,onConfirm){const ov=document.createElement('div');ov.className='modal-overlay open';ov.innerHTML=`<div class="modal" style="max-width:400px"><h3 style="color:var(--danger)">⚠ ${lang==='pt'?'Confirmar':'Confirm'}</h3><p style="color:var(--text);margin:12px 0">${esc(msg)}</p><div class="modal-buttons"><button class="btn" id="cA_no">${t('cancel')}</button><button class="btn btn-accent" id="cA_yes" style="background:var(--danger);border-color:var(--danger)">${lang==='pt'?'Confirmar':'Confirm'}</button></div></div>`;document.body.appendChild(ov);ov.querySelector('#cA_no').onclick=()=>ov.remove();ov.querySelector('#cA_yes').onclick=()=>{ov.remove();onConfirm();};}
+function confirmAction(msg,onConfirm){const ov=document.createElement('div');ov.className='modal-overlay open';ov.innerHTML=`<div class="modal" style="max-width:400px"><h3 style="color:var(--danger)">⚠ ${pick('Confirm','Confirmar','Confirma')}</h3><p style="color:var(--text);margin:12px 0">${esc(msg)}</p><div class="modal-buttons"><button class="btn" id="cA_no">${t('cancel')}</button><button class="btn btn-accent" id="cA_yes" style="background:var(--danger);border-color:var(--danger)">${pick('Confirm','Confirmar','Confirma')}</button></div></div>`;document.body.appendChild(ov);ov.querySelector('#cA_no').onclick=()=>ov.remove();ov.querySelector('#cA_yes').onclick=()=>{ov.remove();onConfirm();};}
 function clearAllProfiles(){
   confirmAction(
-    lang==='pt'?'Limpar TODOS os perfis? (você pode desfazer com ↩)':'Clear ALL profiles? (you can undo with ↩)',
-    ()=>{pushUndo();profiles={};activeProfileName='';saveToStorage();fullRefresh();closeModal('dataModal');toast(lang==='pt'?'Todos os perfis apagados':'All profiles cleared');}
+    pick('Clear ALL profiles? (you can undo with ↩)','Limpar TODOS os perfis? (você pode desfazer com ↩)','Vols esborrar TOTS els perfils? (pots desfer amb ↩)'),
+    ()=>{pushUndo();profiles={};activeProfileName='';saveToStorage();fullRefresh();closeModal('dataModal');toast(pick('All profiles cleared','Todos os perfis apagados','Tots els perfils esborrats'));}
   );
 }
 function openEmojiPicker(){
@@ -883,7 +1023,7 @@ function openEmojiPicker(){
   let body='';for(const[cat,list] of Object.entries(EMOJIS)){
     body+=`<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px;font-weight:600">${cat}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px">${list.map(e=>`<button style="background:${wizardData.emoji===e?'var(--accent-dim)':'transparent'};border:1px solid ${wizardData.emoji===e?'var(--accent)':'transparent'};border-radius:8px;padding:6px;cursor:pointer;font-size:22px;line-height:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center" onclick="pickEmoji('${e}')" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='${wizardData.emoji===e?'var(--accent-dim)':'transparent'}'">${e}</button>`).join('')}</div>`;
   }
-  overlay.innerHTML=`<div class="modal" style="max-width:440px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">${lang==='pt'?'Escolher Emoji':'Pick an Emoji'}</h3><div style="overflow-y:auto;flex:1;padding-right:4px">${body}</div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('emojiPickerOverlay').remove()">${t('cancel')}</button></div></div>`;
+  overlay.innerHTML=`<div class="modal" style="max-width:440px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">${pick('Pick an Emoji','Escolher Emoji','Tria un Emoji')}</h3><div style="overflow-y:auto;flex:1;padding-right:4px">${body}</div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('emojiPickerOverlay').remove()">${t('cancel')}</button></div></div>`;
   document.body.appendChild(overlay);
 }
 function pickEmoji(e){wizardData.emoji=e;wizardData.profilePic='';document.getElementById('emojiPickerOverlay').remove();renderWizardStep();}
@@ -904,7 +1044,7 @@ function openQuickEmoji(){
   let body='';for(const[cat,list] of Object.entries(EMOJIS)){
     body+=`<div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px;font-weight:600">${cat}</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:4px">${list.map(e=>`<button style="background:transparent;border:1px solid transparent;border-radius:8px;padding:6px;cursor:pointer;font-size:22px;line-height:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center" onclick="applyQuickEmoji('${e}')" onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='transparent'">${e}</button>`).join('')}</div>`;
   }
-  overlay.innerHTML=`<div class="modal" style="max-width:440px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">${lang==='pt'?'Definir Emoji':'Set Emoji'}</h3><div style="overflow-y:auto;flex:1;padding-right:4px">${body}</div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('emojiPickerOverlay').remove()">${t('cancel')}</button></div></div>`;
+  overlay.innerHTML=`<div class="modal" style="max-width:440px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column"><h3 style="margin-bottom:8px">${pick('Set Emoji','Definir Emoji','Posa Emoji')}</h3><div style="overflow-y:auto;flex:1;padding-right:4px">${body}</div><div class="modal-buttons"><button class="btn" onclick="document.getElementById('emojiPickerOverlay').remove()">${t('cancel')}</button></div></div>`;
   document.body.appendChild(overlay);
 }
 function applyQuickEmoji(e){
@@ -922,7 +1062,7 @@ function wizSetPfp(ev){
     const cropImg=new Image();cropImg.onload=function(){
       // Reuse crop modal approach
       const modal=document.createElement('div');modal.className='modal-overlay open';
-      modal.innerHTML=`<div class="modal" style="max-width:400px;text-align:center"><h3>${lang==='pt'?'Ajustar foto':'Adjust photo'}</h3><div style="position:relative;width:200px;height:200px;margin:16px auto;overflow:hidden;border-radius:50%;border:3px solid var(--accent)"><canvas id="wizCropCanvas" width="200" height="200" style="width:200px;height:200px;cursor:grab"></canvas></div><div style="display:flex;align-items:center;gap:10px;justify-content:center;margin:12px 0"><label style="font-size:13px;color:var(--text-dim)">Zoom</label><input type="range" id="wizCropZoom" min="100" max="400" value="100" style="flex:1;max-width:200px"></div><div class="modal-buttons"><button class="btn" onclick="this.closest('.modal-overlay').remove();">${t('cancel')}</button><button class="btn btn-accent" id="wizCropConfirm">${lang==='pt'?'Usar':'Use'}</button></div></div>`;
+      modal.innerHTML=`<div class="modal" style="max-width:400px;text-align:center"><h3>${pick('Adjust photo','Ajustar foto','Ajusta la foto')}</h3><div style="position:relative;width:200px;height:200px;margin:16px auto;overflow:hidden;border-radius:50%;border:3px solid var(--accent)"><canvas id="wizCropCanvas" width="200" height="200" style="width:200px;height:200px;cursor:grab"></canvas></div><div style="display:flex;align-items:center;gap:10px;justify-content:center;margin:12px 0"><label style="font-size:13px;color:var(--text-dim)">Zoom</label><input type="range" id="wizCropZoom" min="100" max="400" value="100" style="flex:1;max-width:200px"></div><div class="modal-buttons"><button class="btn" onclick="this.closest('.modal-overlay').remove();">${t('cancel')}</button><button class="btn btn-accent" id="wizCropConfirm">${pick('Use','Usar','Utilitza')}</button></div></div>`;
       document.body.appendChild(modal);
       const cv=document.getElementById('wizCropCanvas'),cx=cv.getContext('2d');
       let zoom=1,offX=0,offY=0,dragging=false,sx=0,sy=0;
@@ -949,7 +1089,7 @@ function updateWizPreview(){
   const preset=HRT_PRESETS[wizardData.hrtType]?.[wizardData.thoroughness||'basic'];
   if(!preset){el.innerHTML='';return;}
   const hormNames=preset.hormones.map(k=>{const h=BUILTIN_HORMONES[k];return h?`<span style="color:${h.color};font-weight:500">${h.name}</span>`:k;}).join(', ');
-  el.innerHTML=`<div style="padding:14px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:14px;line-height:1.7"><span style="color:var(--text-dim)">${lang==='pt'?'Vai rastrear:':'Will track:'}</span> ${hormNames}</div>`;
+  el.innerHTML=`<div style="padding:14px;border-radius:var(--radius-sm);background:var(--surface2);border:1px solid var(--border);font-size:14px;line-height:1.7"><span style="color:var(--text-dim)">${pick('Will track:','Vai rastrear:','Seguirà:')}</span> ${hormNames}</div>`;
 }
 function finishWizard(){
   pushUndo();
@@ -1013,7 +1153,7 @@ function finishWizard(){
     if(Object.keys(baselineValues).length){
       p.labs.unshift({day:-30,date:'',values:baselineValues,isBaseline:true});
     }
-    saveToStorage();closeModal('newProfileModal');fullRefresh();toast(lang==='pt'?'Perfil atualizado':'Profile updated');
+    saveToStorage();closeModal('newProfileModal');fullRefresh();toast(pick('Profile updated','Perfil atualizado','Perfil actualitzat'));
     wizardMode='create';wizardEditingName='';
     return;
   }
@@ -1054,7 +1194,7 @@ function startRename(name){
 }
 function triggerPfp(){openCtxMenu=null;document.getElementById('pfpInput').click();}
 function removePfp(){pushUndo();profilePic='';syncToProfile();renderProfileTabs();openCtxMenu=null;}
-function renderProfileTabs(){const c=document.getElementById('profileTabs');c.innerHTML='';for(const name of Object.keys(profiles)){const isA=name===activeProfileName;const p=profiles[name];const safeId=name.replace(/[^a-zA-Z0-9]/g,'_');const tab=document.createElement('button');tab.className='profile-tab'+(isA?' active':'');const picHtml=p.profilePic?`<img class="tab-pic" src="${p.profilePic}">`:'<span class="tab-dot"></span>';const delLabel=t('deleteBtn');const capDel=delLabel.charAt(0).toUpperCase()+delLabel.slice(1);tab.innerHTML=`${picHtml}<span>${esc(name)}</span><button class="tab-menu-btn" onclick="toggleCtxMenu('${esc(name)}',event)">⋯</button><div class="ctx-menu" id="ctx_${safeId}"><button class="ctx-menu-item" onclick="startRename('${esc(name)}')">${t('rename')}</button><button class="ctx-menu-item" onclick="triggerPfp()">${t('setPicture')}</button><button class="ctx-menu-item" onclick="openQuickEmoji()">${lang==='pt'?'Definir emoji':'Set emoji'}</button>${p.profilePic?`<button class="ctx-menu-item" onclick="removePfp()">${t('deletePfp')}</button>`:''}<button class="ctx-menu-item" onclick="openSetupWizardForActive()">${lang==='pt'?'Configuração inicial':'Setup wizard'}</button><button class="ctx-menu-item" style="color:var(--danger)" onclick="deleteProfile('${esc(name)}',event)">${capDel}</button></div>`;tab.addEventListener('click',(e)=>{if(!e.target.closest('.tab-menu-btn')&&!e.target.closest('.ctx-menu'))switchProfile(name);});c.appendChild(tab);}}
+function renderProfileTabs(){const c=document.getElementById('profileTabs');c.innerHTML='';for(const name of Object.keys(profiles)){const isA=name===activeProfileName;const p=profiles[name];const safeId=name.replace(/[^a-zA-Z0-9]/g,'_');const tab=document.createElement('button');tab.className='profile-tab'+(isA?' active':'');const picHtml=p.profilePic?`<img class="tab-pic" src="${p.profilePic}">`:'<span class="tab-dot"></span>';const delLabel=t('deleteBtn');const capDel=delLabel.charAt(0).toUpperCase()+delLabel.slice(1);tab.innerHTML=`${picHtml}<span>${esc(name)}</span><button class="tab-menu-btn" onclick="toggleCtxMenu('${esc(name)}',event)">⋯</button><div class="ctx-menu" id="ctx_${safeId}"><button class="ctx-menu-item" onclick="startRename('${esc(name)}')">${t('rename')}</button><button class="ctx-menu-item" onclick="triggerPfp()">${t('setPicture')}</button><button class="ctx-menu-item" onclick="openQuickEmoji()">${pick('Set emoji','Definir emoji','Posa emoji')}</button>${p.profilePic?`<button class="ctx-menu-item" onclick="removePfp()">${t('deletePfp')}</button>`:''}<button class="ctx-menu-item" onclick="openSetupWizardForActive()">${pick('Setup wizard','Configuração inicial','Configuració inicial')}</button><button class="ctx-menu-item" style="color:var(--danger)" onclick="deleteProfile('${esc(name)}',event)">${capDel}</button></div>`;tab.addEventListener('click',(e)=>{if(!e.target.closest('.tab-menu-btn')&&!e.target.closest('.ctx-menu'))switchProfile(name);});c.appendChild(tab);}}
 function exportProfiles(){syncToProfile();const blob=new Blob([JSON.stringify({version:5,profiles,active:activeProfileName},null,2)],{type:'application/json'});const a=document.createElement('a');a.download=`HRT_${activeProfileName.replace(/[^a-zA-Z0-9]/g,'_')}.json`;a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);toast(t('exported'));}
 function importProfiles(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.profiles){toast(t('invalidFile'));return;}pushUndo();for(const[n,p]of Object.entries(data.profiles)){p.medCustom=p.medCustom||{};p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];profiles[n]=p;}if(data.active&&profiles[data.active])activeProfileName=data.active;saveToStorage();fullRefresh();}catch(err){toast(t('parseError'));}};reader.readAsText(file);event.target.value='';}
 
@@ -1074,7 +1214,7 @@ function renderCatalog(){
   const addBtn=document.getElementById('catalogAddCustomBtn');
   const UNITS=['pg/mL','ng/mL','ng/dL','ng/L','mIU/mL','nmol/L','µg/dL','U/L','mg/dL','mEq/L','%','pmol/L','IU/L','mg','ml','IU','g','µg'];
   if(catalogKind==='meds'){
-    title.textContent=lang==='pt'?'Catálogo de Medicações':'Medication Catalog';
+    title.textContent=pick('Medication Catalog','Catálogo de Medicações','Catàleg de Medicacions');
     const tracked=new Set(medications);
     const allMeds=[...BUILTIN_MEDS,...customMeds];
     // Clear hint & header for meds
@@ -1088,30 +1228,33 @@ function renderCatalog(){
       const unitOpts=UNITS.map(u=>`<option value="${u}"${u===unit?' selected':''}>${u}</option>`).join('');
       const tags=[];
       if(isCustom)tags.push(`<span class="catalog-tag" style="color:var(--accent)">custom</span>`);
-      if(isTracked)tags.push(`<span class="catalog-tag">${lang==='pt'?'ativo':'active'}</span>`);
+      if(isTracked)tags.push(`<span class="catalog-tag">${pick('active','ativo','actiu')}</span>`);
       const tagHtml=`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:9px">${tags.join('')||'<span></span>'}</div>`;
-      const delBtn=isCustom?`<button class="catalog-del-btn" title="${lang==='pt'?'Excluir':'Delete'}" onclick="catalogDeleteCustomMed('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`:'';
+      const delBtn=isCustom?`<button class="catalog-del-btn" title="${pick('Delete','Excluir','Elimina')}" onclick="catalogDeleteCustomMed('${m.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`:'';
       return`<div class="catalog-row med-row${isTracked?' tracked':''}"><input type="color" class="catalog-swatch" value="${color}" onchange="catalogSetMedColor('${m.id}',this.value)"><div class="catalog-name" title="${esc(m.name)}">${esc(m.name)}${delBtn}</div>${tagHtml}<select class="catalog-unit-select" onchange="catalogSetMedUnit('${m.id}',this.value)">${unitOpts}</select></div>`;
     }).join('');
     addBtn.onclick=()=>catalogAddCustom('med');
   }else{
-    title.textContent=lang==='pt'?'Catálogo de Hormônios':'Hormone Catalog';
+    title.textContent=pick('Hormone Catalog','Catálogo de Hormônios','Catàleg d\'Hormones');
     // Helper hint about target ranges
     const hint=document.getElementById('catalogHint');
     if(hint){
       hint.style.display='block';
-      hint.innerHTML=lang==='pt'
-        ? `<strong style="color:var(--text)">Faixas alvo</strong> são pré-preenchidas de acordo com o tipo de TRH selecionado. Para redefinir ao padrão, abra o menu do seu perfil (<span style="font-family:monospace;color:var(--accent)">⋯</span>) e clique em <strong>Configuração inicial</strong>.`
-        : `<strong style="color:var(--text)">Target ranges</strong> are pre-filled based on your selected HRT type. To reset to defaults, open your profile's menu (<span style="font-family:monospace;color:var(--accent)">⋯</span>) and click <strong>Setup wizard</strong>.`;
+      hint.innerHTML=pick(
+        `<strong style="color:var(--text)">Target ranges</strong> are pre-filled based on your selected HRT type. To reset to defaults, open your profile's menu (<span style="font-family:monospace;color:var(--accent)">⋯</span>) and click <strong>Setup wizard</strong>.`,
+        `<strong style="color:var(--text)">Faixas alvo</strong> são pré-preenchidas de acordo com o tipo de TRH selecionado. Para redefinir ao padrão, abra o menu do seu perfil (<span style="font-family:monospace;color:var(--accent)">⋯</span>) e clique em <strong>Configuração inicial</strong>.`,
+        `<strong style="color:var(--text)">Els intervals objectiu</strong> es preomplen segons el tipus de THS triat. Per restablir-los als valors per defecte, obre el menú del teu perfil (<span style="font-family:monospace;color:var(--accent)">⋯</span>) i fes clic a <strong>Configuració inicial</strong>.`
+      );
     }
     // Column header row
     const hdr=document.getElementById('catalogHeader');
     if(hdr){
       hdr.style.display='block';
-      const rangeLbl=lang==='pt'?'Faixa Alvo':'Target Range';
-      const nameLbl=lang==='pt'?'Hormônio':'Hormone';
-      const unitLbl=lang==='pt'?'Unidade':'Unit';
-      hdr.innerHTML=`<div class="catalog-row" style="padding:4px 10px;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:600;border-bottom:1px solid var(--border);margin-bottom:2px"><span></span><span>${nameLbl}</span><span></span><span>${unitLbl}</span><span></span><span style="grid-column:6 / span 3;text-align:center">${rangeLbl}</span></div>`;
+      const rangeLbl=pick('Target Range','Faixa Alvo','Interval Objectiu');
+      const errLbl=pick('Error %','Erro %','Error %');
+      const nameLbl=pick('Hormone','Hormônio','Hormona');
+      const unitLbl=pick('Unit','Unidade','Unitat');
+      hdr.innerHTML=`<div class="catalog-row" style="padding:4px 10px;font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:600;border-bottom:1px solid var(--border);margin-bottom:2px"><span></span><span>${nameLbl}</span><span></span><span>${unitLbl}</span><span></span><span style="grid-column:6 / span 3;text-align:center">${rangeLbl}</span><span></span><span style="text-align:center">${errLbl}</span></div>`;
     }
     const tracked=new Set(trackedHormones);
     const allH=[...Object.entries(BUILTIN_HORMONES).map(([k,h])=>({...h,id:k})),...customHormones];
@@ -1123,10 +1266,11 @@ function renderCatalog(){
       const unitOpts=UNITS.map(u=>`<option value="${u}"${u===actual.unit?' selected':''}>${u}</option>`).join('');
       const tags=[];
       if(isCustom)tags.push(`<span class="catalog-tag" style="color:var(--accent)">custom</span>`);
-      if(isTracked)tags.push(`<span class="catalog-tag">${lang==='pt'?'ativo':'active'}</span>`);
+      if(isTracked)tags.push(`<span class="catalog-tag">${pick('active','ativo','actiu')}</span>`);
       const tagHtml=`<div style="display:flex;flex-direction:column;gap:2px;align-items:flex-start;font-size:9px">${tags.join('')||'<span></span>'}</div>`;
-      const delBtn=isCustom?`<button class="catalog-del-btn" title="${lang==='pt'?'Excluir':'Delete'}" onclick="catalogDeleteCustomHormone('${h.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`:'';
-      return`<div class="catalog-row${isTracked?' tracked':''}"><input type="color" class="catalog-swatch" value="${actual.color}" onchange="catalogSetHormoneColor('${h.id}',this.value)"><div class="catalog-name" title="${esc(actual.name)}">${esc(actual.name)}${delBtn}</div>${tagHtml}<select class="catalog-unit-select" onchange="catalogSetHormoneUnit('${h.id}',this.value)">${unitOpts}</select><span></span><input type="number" step="0.01" value="${vals.tLo||0}" class="catalog-range-input" placeholder="min" title="${lang==='pt'?'Faixa alvo mínima':'Target min'}" onchange="catalogSetHormoneRange('${h.id}','tLo',this.value)"><span class="catalog-range-dash">–</span><input type="number" step="0.01" value="${vals.tHi||0}" class="catalog-range-input" placeholder="max" title="${lang==='pt'?'Faixa alvo máxima':'Target max'}" onchange="catalogSetHormoneRange('${h.id}','tHi',this.value)"></div>`;
+      const delBtn=isCustom?`<button class="catalog-del-btn" title="${pick('Delete','Excluir','Elimina')}" onclick="catalogDeleteCustomHormone('${h.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>`:'';
+      const errPct=getHormoneErrorPct(h.id);
+      return`<div class="catalog-row${isTracked?' tracked':''}"><input type="color" class="catalog-swatch" value="${actual.color}" onchange="catalogSetHormoneColor('${h.id}',this.value)"><div class="catalog-name" title="${esc(actual.name)}">${esc(actual.name)}${delBtn}</div>${tagHtml}<select class="catalog-unit-select" onchange="catalogSetHormoneUnit('${h.id}',this.value)">${unitOpts}</select><span></span><input type="number" step="0.01" value="${vals.tLo||0}" class="catalog-range-input" placeholder="min" title="${pick('Target min','Faixa alvo mínima','Mínim objectiu')}" onchange="catalogSetHormoneRange('${h.id}','tLo',this.value)"><span class="catalog-range-dash">–</span><input type="number" step="0.01" value="${vals.tHi||0}" class="catalog-range-input" placeholder="max" title="${pick('Target max','Faixa alvo máxima','Màxim objectiu')}" onchange="catalogSetHormoneRange('${h.id}','tHi',this.value)"><span></span><input type="number" step="1" min="0" max="50" value="${errPct}" class="catalog-range-input" title="${pick('Lab error margin (%)','Margem de erro do laboratório (%)','Marge d\'error del laboratori (%)')}" onchange="catalogSetHormoneError('${h.id}',this.value)"></div>`;
     }).join('');
     addBtn.onclick=()=>catalogAddCustom('hormone');
   }
@@ -1154,11 +1298,18 @@ function catalogSetHormoneRange(hk,which,v){
   const n=parseFloat(v);
   if(Number.isFinite(n))p.hormoneRanges[hk][which]=n;
 }
+function catalogSetHormoneError(hk,v){
+  const p=getActive();if(!p)return;
+  if(!p.hormoneRanges)p.hormoneRanges={};
+  if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};
+  const n=parseFloat(v);
+  if(Number.isFinite(n)&&n>=0&&n<=50)p.hormoneRanges[hk].errorPct=n;
+}
 function catalogAddCustom(type){
   const list=document.getElementById('catalogList');
   const rowId='newRow_'+Date.now();
   const row=document.createElement('div');row.className='catalog-row';row.id=rowId;row.style.background='var(--surface3)';
-  row.innerHTML=`<input type="color" class="catalog-swatch" value="#a48bcf"><input type="text" placeholder="${lang==='pt'?'Nome':'Name'}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:13px"><select class="catalog-unit-select"><option value="mg">mg</option><option value="ml">ml</option><option value="pg/mL">pg/mL</option><option value="ng/mL">ng/mL</option><option value="ng/dL">ng/dL</option><option value="nmol/L">nmol/L</option><option value="IU">IU</option><option value="g">g</option></select><button class="btn btn-accent btn-sm" style="padding:3px 10px">${lang==='pt'?'OK':'OK'}</button><button class="btn btn-sm" style="padding:3px 10px">×</button>`;
+  row.innerHTML=`<input type="color" class="catalog-swatch" value="#a48bcf"><input type="text" placeholder="${pick('Name','Nome','Nom')}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:13px"><select class="catalog-unit-select"><option value="mg">mg</option><option value="ml">ml</option><option value="pg/mL">pg/mL</option><option value="ng/mL">ng/mL</option><option value="ng/dL">ng/dL</option><option value="nmol/L">nmol/L</option><option value="IU">IU</option><option value="g">g</option></select><button class="btn btn-accent btn-sm" style="padding:3px 10px">${pick('OK','OK','OK')}</button><button class="btn btn-sm" style="padding:3px 10px">×</button>`;
   list.appendChild(row);
   const [colorInp,nameInp,unitSel,okBtn,cancelBtn]=row.querySelectorAll('input,select,button');
   nameInp.focus();
@@ -1204,18 +1355,18 @@ function renderAddMedModal(){
   function chip(mid){
     const m=getAllMeds().find(x=>x.id===mid);if(!m)return'';
     const on=medications.includes(mid);
-    const activeTag=on?`<span style="margin-left:6px;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;font-weight:600">${lang==='pt'?'ativo':'active'}</span>`:'';
+    const activeTag=on?`<span style="margin-left:6px;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;font-weight:600">${pick('active','ativo','actiu')}</span>`:'';
     return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?m.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleMedFromModal('${mid}')"><span class="tag-dot" style="background:${m.color}"></span>${esc(m.name)}${activeTag}</div>`;
   }
-  function group(titleEn,titlePt,ids){
+  function group(titleEn,titlePt,ids,titleCa){
     if(!ids.length)return'';
-    const title=lang==='pt'?titlePt:titleEn;
+    const title=pick(titleEn,titlePt,titleCa||titleEn);
     return`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${ids.map(chip).join('')}</div></div>`;
   }
-  const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="document.getElementById('customMedForm').style.display='block';setTimeout(()=>document.getElementById('customMedName').focus(),30)"><span style="font-size:14px">+</span> ${lang==='pt'?'Adicionar Personalizado':'Add Custom'}</button>`;
-  const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${lang==='pt'?'Personalizadas':'Custom'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(chip).join('')}${addCustomBtn}</div></div>`;
-  const preamble=`<div class="modal-label">${lang==='pt'?'Escolha medicações (clique para adicionar/remover)':'Pick medications (click to add/remove)'}</div>`;
-  body.innerHTML=preamble+group('Estrogens','Estrogênios',estrogens)+group('Anti-androgens','Antiandrógenos',antiandrogens)+group('Testosterone','Testosterona',testosterone)+group('Other','Outros',other)+customSection;
+  const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="document.getElementById('customMedForm').style.display='block';setTimeout(()=>document.getElementById('customMedName').focus(),30)"><span style="font-size:14px">+</span> ${pick('Add Custom','Adicionar Personalizado','Afegeix Personalitzat')}</button>`;
+  const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${pick('Custom','Personalizadas','Personalitzat')}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(chip).join('')}${addCustomBtn}</div></div>`;
+  const preamble=`<div class="modal-label">${pick('Pick medications (click to add/remove)','Escolha medicações (clique para adicionar/remover)','Tria medicacions (fes clic per afegir/treure)')}</div>`;
+  body.innerHTML=preamble+group('Estrogens','Estrogênios',estrogens,'Estrògens')+group('Anti-androgens','Antiandrógenos',antiandrogens,'Antiandrògens')+group('Testosterone','Testosterona',testosterone,'Testosterona')+group('Other','Outros',other,'Altres')+customSection;
 }
 function toggleMedFromModal(mid){
   pushUndo();
@@ -1266,18 +1417,18 @@ function renderAddHormoneModal(){
   function chip(hk){
     const h=getHormone(hk)||BUILTIN_HORMONES[hk];if(!h)return'';
     const on=trackedHormones.includes(hk);
-    const activeTag=on?`<span style="margin-left:6px;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;font-weight:600">${lang==='pt'?'ativo':'active'}</span>`:'';
+    const activeTag=on?`<span style="margin-left:6px;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;font-weight:600">${pick('active','ativo','actiu')}</span>`:'';
     return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?h.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleHormoneFromModal('${hk}')"><span class="tag-dot" style="background:${h.color}"></span>${esc(h.name)}${activeTag}</div>`;
   }
-  function group(titleEn,titlePt,ids){
+  function group(titleEn,titlePt,ids,titleCa){
     if(!ids.length)return'';
-    const title=lang==='pt'?titlePt:titleEn;
+    const title=pick(titleEn,titlePt,titleCa||titleEn);
     return`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${title}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${ids.map(chip).join('')}</div></div>`;
   }
-  const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="document.getElementById('customHormoneForm').style.display='block';setTimeout(()=>document.getElementById('customHormoneName').focus(),30)"><span style="font-size:14px">+</span> ${lang==='pt'?'Adicionar Personalizado':'Add Custom'}</button>`;
-  const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${lang==='pt'?'Personalizados':'Custom'}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(chip).join('')}${addCustomBtn}</div></div>`;
-  const preamble=`<div class="modal-label">${lang==='pt'?'Escolha hormônios (clique para adicionar/remover)':'Pick hormones (click to add/remove)'}</div>`;
-  body.innerHTML=preamble+group('Sex Hormones','Hormônios Sexuais',sexHorm)+group('Pituitary & Other','Hipófise e Outros',pituitary)+group('Liver & Kidney','Fígado e Rim',liverKidney)+group('Vitamins & Minerals','Vitaminas e Minerais',nutrients)+group('Blood Panel','Hemograma',blood)+customSection;
+  const addCustomBtn=`<button class="tag" style="cursor:pointer;border:1px dashed var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500" onclick="document.getElementById('customHormoneForm').style.display='block';setTimeout(()=>document.getElementById('customHormoneName').focus(),30)"><span style="font-size:14px">+</span> ${pick('Add Custom','Adicionar Personalizado','Afegeix Personalitzat')}</button>`;
+  const customSection=`<div style="margin-bottom:14px"><div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;font-weight:600">${pick('Custom','Personalizados','Personalitzat')}</div><div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">${customIds.map(chip).join('')}${addCustomBtn}</div></div>`;
+  const preamble=`<div class="modal-label">${pick('Pick hormones (click to add/remove)','Escolha hormônios (clique para adicionar/remover)','Tria hormones (fes clic per afegir/treure)')}</div>`;
+  body.innerHTML=preamble+group('Sex Hormones','Hormônios Sexuais',sexHorm,'Hormones Sexuals')+group('Pituitary & Other','Hipófise e Outros',pituitary,'Hipòfisi i Altres')+group('Liver & Kidney','Fígado e Rim',liverKidney,'Fetge i Ronyó')+group('Vitamins & Minerals','Vitaminas e Minerais',nutrients,'Vitamines i Minerals')+group('Blood Panel','Hemograma',blood,'Hemograma')+customSection;
 }
 function toggleHormoneFromModal(hk){
   pushUndo();
@@ -1340,7 +1491,7 @@ function renderLabPanel(){
   const UNITS=['pg/mL','ng/mL','ng/dL','ng/L','mIU/mL','nmol/L','µg/dL','U/L','mg/dL','mEq/L','%','pmol/L','IU/L'];
   const G='display:grid;grid-template-columns:28px 1fr 78px 72px 50px;gap:6px;align-items:center;';
   let html=`<div class="field-row"><div class="field"><label>${t('date')}</label><div class="date-selects" id="labDateSelects"></div></div></div>`;
-  html+=`<div style="${G}padding:6px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px"><span></span><span>${lang==='pt'?'Hormônio':'Hormone'}</span><span>${t('unit')}</span><span>${lang==='pt'?'Valor':'Value'}</span><span></span></div>`;
+  html+=`<div style="${G}padding:6px 0;border-bottom:1px solid var(--border);font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px"><span></span><span>${pick('Hormone','Hormônio','Hormona')}</span><span>${t('unit')}</span><span>${pick('Value','Valor','Valor')}</span><span></span></div>`;
   for(const hk of trackedHormones){const h=getHormone(hk);if(!h)continue;
     let unitOpts='';for(const u of UNITS)unitOpts+=`<option value="${u}"${u===h.unit?' selected':''}>${u}</option>`;
     html+=`<div style="${G}padding:8px 0;border-bottom:1px solid var(--border)"><input type="color" value="${h.color}" style="width:26px;height:26px;padding:1px;border:1px solid var(--border);border-radius:4px;cursor:pointer" onchange="setHormoneColor('${hk}',this.value)"><span style="color:${h.color};font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(h.name)}">${esc(h.name)}</span><select style="padding:3px 2px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);font-size:11px;width:100%" onchange="setHormoneUnit('${hk}',this.value)">${unitOpts}</select><input id="lab_${hk}" type="number" step="0.01" placeholder="—" style="width:100%;padding:4px 4px;border:1px solid var(--border);border-radius:4px;background:var(--surface2);color:var(--text);font-size:12px;font-family:'JetBrains Mono',monospace"><button class="hist-btn hist-del" id="hx_${hk}" style="font-size:11px;padding:3px 0;width:50px;text-align:center">${t('deleteBtn')}</button></div>`;}
@@ -1375,8 +1526,10 @@ function renderAxisToggles(){
 let showAxesMaster=false;
 let showPreHrt=true;
 let showRanges=true;
+let showError=false;
 function togglePreHrt(){showPreHrt=document.getElementById('showPreHrtToggle').checked;redraw();}
 function toggleRanges(){showRanges=document.getElementById('showRangesToggle').checked;redraw();}
+function toggleError(){showError=document.getElementById('showErrorToggle').checked;redraw();}
 function toggleShowAxes(){
   showAxesMaster=document.getElementById('showAxesToggle').checked;
   document.getElementById('axesForRow').style.display=showAxesMaster?'':'none';
@@ -1395,11 +1548,11 @@ function toggleGuides(){showGuides=document.getElementById('showGuidesToggle').c
 function toggleLegend(){showLegend=document.getElementById('showLegendToggle').checked;redraw();}
 
 // ═══ DATE SELECTS ═══
-function renderDateSelects(containerId){const c=document.getElementById(containerId);if(!c)return;const ms=lang==='pt'?MONTHS_PT:MONTHS_EN;const today=new Date();let html=`<select class="ds-day" id="${containerId}_day">`;for(let d=1;d<=31;d++)html+=`<option value="${d}"${d===today.getDate()?' selected':''}>${d}</option>`;html+=`</select><select class="ds-month" id="${containerId}_month">`;for(let m=0;m<12;m++)html+=`<option value="${m}"${m===today.getMonth()?' selected':''}>${ms[m]}</option>`;html+=`</select><select class="ds-year" id="${containerId}_year">`;const curY=today.getFullYear();for(let y=curY-10;y<=curY+5;y++)html+=`<option value="${y}"${y===curY?' selected':''}>${y}</option>`;html+=`</select>`;c.innerHTML=html;}
+function renderDateSelects(containerId){const c=document.getElementById(containerId);if(!c)return;const ms=getMonths();const today=new Date();let html=`<select class="ds-day" id="${containerId}_day">`;for(let d=1;d<=31;d++)html+=`<option value="${d}"${d===today.getDate()?' selected':''}>${d}</option>`;html+=`</select><select class="ds-month" id="${containerId}_month">`;for(let m=0;m<12;m++)html+=`<option value="${m}"${m===today.getMonth()?' selected':''}>${ms[m]}</option>`;html+=`</select><select class="ds-year" id="${containerId}_year">`;const curY=today.getFullYear();for(let y=curY-10;y<=curY+5;y++)html+=`<option value="${y}"${y===curY?' selected':''}>${y}</option>`;html+=`</select>`;c.innerHTML=html;}
 function getDateFromSelects(containerId){const d=parseInt(document.getElementById(containerId+'_day')?.value);const m=parseInt(document.getElementById(containerId+'_month')?.value);const y=parseInt(document.getElementById(containerId+'_year')?.value);if(!Number.isFinite(d)||!Number.isFinite(m)||!Number.isFinite(y))return null;return`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
 function setDateSelectsTo(containerId,dateObj){const dEl=document.getElementById(containerId+'_day');if(dEl)dEl.value=dateObj.getDate();const mEl=document.getElementById(containerId+'_month');if(mEl)mEl.value=dateObj.getMonth();const yEl=document.getElementById(containerId+'_year');if(yEl)yEl.value=dateObj.getFullYear();}
 function openStartDateModal(){
-  const p=getActive();if(!p)return toast(lang==='pt'?'Nenhum perfil ativo':'No active profile');
+  const p=getActive();if(!p)return toast(pick('No active profile','Nenhum perfil ativo','Cap perfil actiu'));
   renderDateSelects('hrtStartDateSelects');
   if(p.startDate)setDateSelectsTo('hrtStartDateSelects',startDate);
   document.getElementById('startDateModal').classList.add('open');
@@ -1416,6 +1569,9 @@ function addLabByDate(){const date=getDateFromSelects('labDateSelects');if(!date
 // ═══ CHART TABS ═══
 let selectedChartItems=new Set();
 function renderChartTabs(){const c=document.getElementById('chartTabs');c.innerHTML='';
+  // SVG icons for med + hormone — line art, currentColor for theme adaptability
+  const pillIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><path d="M10.5 3.5a4.95 4.95 0 0 1 7 7l-7 7a4.95 4.95 0 0 1-7-7z"/><path d="M7 7l7 7"/></svg>`;
+  const vialIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><path d="M9 3h6"/><path d="M10 3v9.5a3.5 3.5 0 1 0 4 0V3"/><path d="M10 13h4"/></svg>`;
   // Multi-view tab (combined)
   const multiBtn=document.createElement('button');multiBtn.className='chart-tab'+(chartView==='multi'?' active':'');multiBtn.textContent=t('viewSplit');
   multiBtn.onclick=()=>{chartView='multi';selectedChartItems.clear();renderChartTabs();redraw();};c.appendChild(multiBtn);
@@ -1424,9 +1580,9 @@ function renderChartTabs(){const c=document.getElementById('chartTabs');c.innerH
   allBtn.onclick=()=>{chartView='all';selectedChartItems.clear();for(const mid of medications)selectedChartItems.add('med_'+mid);for(const hk of trackedHormones)selectedChartItems.add('h_'+hk);renderChartTabs();redraw();};c.appendChild(allBtn);
   // Separator + individual tabs
   if(medications.length||trackedHormones.length){const sep=document.createElement('span');sep.style.cssText='color:var(--text-dim);font-size:12px;align-self:center;margin:0 4px';sep.textContent='|';c.appendChild(sep);}
-  for(const medId of medications){const btn=document.createElement('button');const isOn=selectedChartItems.has('med_'+medId);btn.className='chart-tab'+(isOn?' active':'');btn.textContent='💊 '+getMedShortName(medId);btn.style.borderColor=isOn?getMedColor(medId):'';
+  for(const medId of medications){const btn=document.createElement('button');const isOn=selectedChartItems.has('med_'+medId);btn.className='chart-tab'+(isOn?' active':'');btn.innerHTML=pillIcon+esc(getMedShortName(medId));btn.style.borderColor=isOn?getMedColor(medId):'';
     btn.onclick=()=>{chartView='individual';if(selectedChartItems.has('med_'+medId))selectedChartItems.delete('med_'+medId);else selectedChartItems.add('med_'+medId);if(!selectedChartItems.size)chartView='multi';renderChartTabs();redraw();};c.appendChild(btn);}
-  for(const hk of trackedHormones){const h=getHormone(hk);if(!h)continue;const btn=document.createElement('button');const isOn=selectedChartItems.has('h_'+hk);btn.className='chart-tab'+(isOn?' active':'');btn.textContent='🔬 '+h.name;btn.style.borderColor=isOn?h.color:'';
+  for(const hk of trackedHormones){const h=getHormone(hk);if(!h)continue;const btn=document.createElement('button');const isOn=selectedChartItems.has('h_'+hk);btn.className='chart-tab'+(isOn?' active':'');btn.innerHTML=vialIcon+esc(h.name);btn.style.borderColor=isOn?h.color:'';
     btn.onclick=()=>{chartView='individual';if(selectedChartItems.has('h_'+hk))selectedChartItems.delete('h_'+hk);else selectedChartItems.add('h_'+hk);if(!selectedChartItems.size)chartView='multi';renderChartTabs();redraw();};c.appendChild(btn);}
   // Sparkle add profile button when no profiles
   const addBtn=document.querySelector('.add-profile-btn');if(addBtn)addBtn.classList.toggle('sparkle',!Object.keys(profiles).length);
@@ -1462,10 +1618,10 @@ function renderHistory(){
       }else{
         // Order values by trackedHormones (consistent order across all rows)
         const orderedKeys=trackedHormones.filter(k=>lab.values[k]!=null).concat(Object.keys(lab.values).filter(k=>!trackedHormones.includes(k)));
-        const vals=orderedKeys.map(k=>{const h=getHormone(k);const v=lab.values[k];return h?`<span style="color:${h.color}">${v} ${h.unit}</span>`:''}).filter(Boolean).join(', ');
-        const baselineTag=lab.isBaseline?`<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-left:8px;vertical-align:middle">${lang==='pt'?'pré-TRH':'pre-HRT'}</span>`:'';
+        const vals=orderedKeys.map(k=>{const h=getHormone(k);const v=lab.values[k];return h?`<span style="color:${h.color};cursor:help" title="${esc(h.name)}">${v} ${h.unit}</span>`:''}).filter(Boolean).join(', ');
+        const baselineTag=lab.isBaseline?`<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-left:8px;vertical-align:middle">${pick('pre-HRT','pré-TRH','pre-THS')}</span>`:'';
         const editAction=lab.isBaseline?'openBaselineEditModal()':`editingLab=${lab.origIdx};renderHistory()`;
-        const rightCell=lab.isBaseline?`<div style="display:flex;justify-content:center;align-items:center;min-width:55px"><label class="toggle-switch" title="${lang==='pt'?'Mostrar pré-TRH no gráfico':'Show pre-HRT on chart'}"><input type="checkbox" ${showPreHrt?'checked':''} onclick="event.stopPropagation();document.getElementById('showPreHrtToggle').checked=this.checked;togglePreHrt()"><span class="toggle-slider"></span></label></div>`:`<button class="hist-btn hist-del" onclick="deleteLab(${lab.origIdx})">${t('deleteBtn')}</button>`;
+        const rightCell=lab.isBaseline?`<div style="display:flex;justify-content:center;align-items:center;min-width:55px"><label class="toggle-switch" title="${pick('Show pre-HRT on chart','Mostrar pré-TRH no gráfico','Mostra pre-THS al gràfic')}"><input type="checkbox" ${showPreHrt?'checked':''} onclick="event.stopPropagation();document.getElementById('showPreHrtToggle').checked=this.checked;togglePreHrt()"><span class="toggle-slider"></span></label></div>`:`<button class="hist-btn hist-del" onclick="deleteLab(${lab.origIdx})">${t('deleteBtn')}</button>`;
         html+=`<tr${lab.isBaseline?' style="background:var(--accent-dim)"':''}><td>${lab.isBaseline&&lab.day===-30?'—':daysToDate(lab.day)}</td><td>${lab.day}</td><td>${vals}${baselineTag}</td><td class="hist-actions"><button class="hist-btn" onclick="${editAction}">${t('edit')}</button>${rightCell}</td></tr>`;
       }}
     html+='</tbody></table>';c.innerHTML=html;
@@ -1478,13 +1634,18 @@ function deleteDose(medId,idx){pushUndo();doses[medId].splice(idx,1);editingDose
 function deleteLab(idx){pushUndo();labs.splice(idx,1);editingLab=null;syncToProfile();renderHistory();renderStats();redraw();toast(t('removed'));}
 
 // ═══ CHART ENGINE ═══
-const margin={left:55,right:50,top:55,bottom:105};
+const BASE_MARGIN={left:55,right:50,top:55,bottom:125};
 function niceStep(range,maxTicks){if(range<=0||maxTicks<=0)return 1;const raw=range/maxTicks;const mag=Math.pow(10,Math.floor(Math.log10(raw)));const n=raw/mag;let s;if(n<=1.5)s=1;else if(n<=3)s=2;else if(n<=7)s=5;else s=10;return s*mag;}
 function makeMonotone(xs,ys){const xs2=[],ys2=[];for(let i=0;i<xs.length;i++)if(i===0||xs[i]!==xs[i-1]){xs2.push(xs[i]);ys2.push(ys[i]);}const n=xs2.length;if(n<2)return()=>ys2[0]||0;const dx=new Array(n-1),dy=new Array(n-1),m=new Array(n);for(let i=0;i<n-1;i++){dx[i]=xs2[i+1]-xs2[i];dy[i]=(ys2[i+1]-ys2[i])/dx[i];}m[0]=dy[0];m[n-1]=dy[n-2];for(let i=1;i<n-1;i++){if(dy[i-1]*dy[i]<=0)m[i]=0;else{const w1=2*dx[i]+dx[i-1],w2=dx[i]+2*dx[i-1];m[i]=(w1+w2)/(w1/dy[i-1]+w2/dy[i]);}}return function(x){if(x<=xs2[0])return ys2[0];if(x>=xs2[n-1])return ys2[n-1];let i2=0;while(!(x>=xs2[i2]&&x<=xs2[i2+1]))i2++;const h2=dx[i2],tt=(x-xs2[i2])/h2,t2=tt*tt,t3=t2*tt;return(2*t3-3*t2+1)*ys2[i2]+(t3-2*t2+tt)*h2*m[i2]+(-2*t3+3*t2)*ys2[i2+1]+(t3-t2)*h2*m[i2+1];};}
 
 function drawChart(canvas,opts){
   const ctx=canvas.getContext('2d');
   const cssW=canvas.clientWidth;
+  // Responsive margins — tighter on narrow screens
+  const isMobile=cssW<600;
+  const margin=isMobile
+    ?{left:38,right:30,top:42,bottom:115}
+    :{...BASE_MARGIN};
   // If container has an explicit height set, use that; otherwise fall back to opts.height
   let cssH=opts.height||400;
   const parent=canvas.parentElement;
@@ -1565,6 +1726,35 @@ function drawChart(canvas,opts){
     // If there are no real labs to draw, skip — pre-HRT lines only show when they connect to real data
     if(!times.length)continue;
     const f=makeMonotone(xs2,ys2);const step2=Math.max(0.25,(xMax-tMin)/800);const drawFrom=(baseline==='none'||!showPreHrt)?times[0]:tMin;
+    // Error halo (soft fuzzy band around the curve) — only when toggle on and only between real labs
+    if(showError&&times.length){
+      const errPct=getHormoneErrorPct(hk)/100;
+      const startX=times[0],endX=times[times.length-1];
+      const r=parseInt(h.color.slice(1,3),16),g=parseInt(h.color.slice(3,5),16),b=parseInt(h.color.slice(5,7),16);
+      // Three-layer soft halo with minimum px width so it's visible even for hormones with tiny values vs maxScale
+      const minPx=8; // minimum halo half-height in px (per layer)
+      const stops=[[errPct,0.04,minPx],[errPct*0.66,0.06,minPx*0.66],[errPct*0.33,0.09,minPx*0.33]];
+      for(const[pct,alpha,minHalo]of stops){
+        ctx.fillStyle=`rgba(${r},${g},${b},${alpha})`;
+        ctx.beginPath();let started=false;
+        // Top edge (curve + error, with min px guarantee)
+        for(let x=startX;x<=endX;x+=step2){
+          const v=f(x);const Yc=yH(v);
+          const Yp=yH(v*(1+pct));
+          // Use whichever offset is bigger: percentage-based or minimum pixel
+          const Y=Math.min(Yp,Yc-minHalo);
+          if(!started){ctx.moveTo(xS(x),Y);started=true;}else ctx.lineTo(xS(x),Y);
+        }
+        // Bottom edge back (curve - error)
+        for(let x=endX;x>=startX;x-=step2){
+          const v=f(x);const Yc=yH(v);
+          const Ym=yH(Math.max(0,v*(1-pct)));
+          const Y=Math.max(Ym,Yc+minHalo);
+          ctx.lineTo(xS(x),Y);
+        }
+        ctx.closePath();ctx.fill();
+      }
+    }
     // Dashed pre-HRT curve from drawFrom to first real lab, then solid curves between real labs
     ctx.strokeStyle=h.color;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();let s=false;
     for(let x=drawFrom;x<=times[0];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();ctx.setLineDash([]);
@@ -1591,6 +1781,37 @@ function drawChart(canvas,opts){
     if(hasHormData){
       const ly=blY+legendRow*22;let lx2=margin.left;ctx.fillStyle=cDim;ctx.fillText(t('hormonesLabel'),lx2,ly);lx2+=ctx.measureText(t('hormonesLabel')).width+10;
       for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hasData=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!hasData)continue;ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(lx2+5,ly-4,5,0,Math.PI*2);ctx.fill();ctx.fillStyle=cMuted;const hl=`${h.name} (${h.unit})`;ctx.fillText(hl,lx2+14,ly);lx2+=ctx.measureText(hl).width+24;}
+      legendRow++;
+    }
+    // Explainer row: shaded ranges + error halo — labeled "bands"
+    if(showRanges||(showError&&hasHormData)){
+      const ly=blY+legendRow*22;let lx3=margin.left;
+      ctx.font='14px "DM Sans",sans-serif';ctx.fillStyle=cDim;
+      const prefix=pick('bands','faixas','intervals');
+      ctx.fillText(prefix,lx3,ly);
+      lx3+=ctx.measureText(prefix).width+10;
+      ctx.font='12px "DM Sans",sans-serif';
+      if(showRanges&&hasHormData){
+        // Faint band swatch
+        ctx.fillStyle='rgba(160,160,160,0.18)';ctx.fillRect(lx3,ly-9,18,11);
+        ctx.strokeStyle='rgba(160,160,160,0.35)';ctx.lineWidth=1;ctx.strokeRect(lx3+0.5,ly-8.5,17,10);
+        ctx.fillStyle=cDim;
+        const lbl=pick('Target range','Faixa-alvo','Interval objectiu');
+        ctx.fillText(lbl,lx3+24,ly);
+        lx3+=24+ctx.measureText(lbl).width+24;
+      }
+      if(showError&&hasHormData){
+        // Halo gradient swatch — three layers like the actual halo
+        const swStops=[[18,11,0.04],[14,7,0.06],[10,3,0.09]];
+        for(const[w,h2,a]of swStops){
+          ctx.fillStyle=`rgba(160,160,160,${a*5})`;
+          ctx.fillRect(lx3+(18-w)/2,ly-9+(11-h2)/2,w,h2);
+        }
+        ctx.fillStyle=cDim;
+        const lbl=pick('Lab error margin (~10–15%)','Margem de erro (~10–15%)','Marge d\'error del laboratori (~10–15%)');
+        ctx.fillText(lbl,lx3+24,ly);
+      }
+      ctx.font='14px "DM Sans",sans-serif';
     }
   }
 }
@@ -1613,10 +1834,12 @@ function redraw(){
     const horms=items.filter(i=>i.startsWith('h_')).map(i=>i.slice(2));
     const totalCharts=meds.length+horms.length;
     const perChartH=totalCharts===1?400:240;
+    const _pillIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M10.5 3.5a4.95 4.95 0 0 1 7 7l-7 7a4.95 4.95 0 0 1-7-7z"/><path d="M7 7l7 7"/></svg>`;
+    const _vialIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M9 3h6"/><path d="M10 3v9.5a3.5 3.5 0 1 0 4 0V3"/><path d="M10 13h4"/></svg>`;
     for(const medId of meds){const m=getMed(medId);const name=m?m.name:medId;const u=getMedUnit(medId);
-      html+=`<div style="font-size:16px;font-weight:600;color:${getMedColor(medId)};padding:10px 0 4px;margin-top:8px">💊 ${esc(name)} (${esc(u)})</div><canvas id="chart_med_${medId}"></canvas>`;}
+      html+=`<div style="font-size:16px;font-weight:600;color:${getMedColor(medId)};padding:10px 0 4px;margin-top:8px">${_pillIcon}${esc(name)} (${esc(u)})</div><canvas id="chart_med_${medId}"></canvas>`;}
     for(const hk of horms){const h=getHormone(hk);if(!h)continue;
-      html+=`<div style="font-size:16px;font-weight:600;color:${h.color};padding:10px 0 4px;margin-top:8px">🔬 ${esc(h.name)} (${esc(h.unit)})</div><canvas id="chart_h_${hk}"></canvas>`;}
+      html+=`<div style="font-size:16px;font-weight:600;color:${h.color};padding:10px 0 4px;margin-top:8px">${_vialIcon}${esc(h.name)} (${esc(h.unit)})</div><canvas id="chart_h_${hk}"></canvas>`;}
     container.innerHTML=html;
     for(const medId of meds){const cv=document.getElementById('chart_med_'+medId);if(cv)drawChart(cv,{meds:[medId],hormones:[],height:perChartH,noAutoHeight:true});}
     for(const hk of horms){const cv=document.getElementById('chart_h_'+hk);if(cv)drawChart(cv,{meds:[],hormones:[hk],height:perChartH,noAutoHeight:true});}
@@ -1705,7 +1928,7 @@ function printChart(){
   const gripR=document.getElementById('gripR');
   const gripT=document.getElementById('gripT');
   const gripB=document.getElementById('gripB');
-  let dragging=false,startX=0,startY=0,startW=0,startH=0,activeGrip=null,axis='';
+  let dragging=false,startX=0,startY=0,startW=0,startH=0,activeGrip=null,axis='',vRafPending=false;
   function getMaxW(){return resizer.parentElement.clientWidth-20;}
   function onDown(e){
     e.preventDefault();dragging=true;activeGrip=this;
@@ -1730,6 +1953,11 @@ function printChart(){
       const delta=isBottom?(startY-p.clientY):(p.clientY-startY);
       const newH=Math.max(250,Math.min(1400,startH-delta*2));
       container.style.height=newH+'px';
+    }
+    // Live preview — redraw so the canvas re-renders to the new size
+    if(!vRafPending){
+      vRafPending=true;
+      requestAnimationFrame(()=>{vRafPending=false;redraw();});
     }
   }
   function onUp(){
