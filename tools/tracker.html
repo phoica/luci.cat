@@ -1790,34 +1790,49 @@ function deleteProfile(name,ev){ev.stopPropagation();pushUndo();delete profiles[
 let openCtxMenu=null;
 function toggleCtxMenu(name,ev){
   ev.stopPropagation();
-  document.querySelectorAll('.ctx-menu').forEach(m=>{m.classList.remove('open');m.style.position='';m.style.top='';m.style.left='';});
+  // Close any open menus and restore them to their original parents
+  document.querySelectorAll('.ctx-menu.open').forEach(m=>{
+    m.classList.remove('open');
+    m.style.position='';m.style.top='';m.style.left='';m.style.zIndex='';
+    if(m._origParent){m._origParent.appendChild(m);m._origParent=null;}
+  });
   const id='ctx_'+name.replace(/[^a-zA-Z0-9]/g,'_');
   const menu=document.getElementById(id);
   if(menu&&openCtxMenu!==name){
-    // Position the menu using fixed coordinates so it escapes scrolling parents (which would clip it)
     const trigger=ev.currentTarget;
     const rect=trigger.getBoundingClientRect();
+    // Stash the original parent so we can put it back when closing
+    menu._origParent=menu.parentNode;
+    // Move the menu to <body> so NO ancestor can clip it (overflow, mask, transform, etc.)
+    document.body.appendChild(menu);
     menu.style.position='fixed';
     menu.style.top=(rect.bottom+4)+'px';
-    // Try to align the menu's left edge to the trigger's left edge, but keep it on-screen
-    const menuW=menu.offsetWidth||200;
-    let leftPos=rect.left;
-    if(leftPos+menuW>window.innerWidth-8)leftPos=window.innerWidth-menuW-8;
-    if(leftPos<8)leftPos=8;
-    menu.style.left=leftPos+'px';
+    menu.style.zIndex='9999';
     menu.classList.add('open');
-    // Re-measure after open in case width changed (display:none → block)
+    // Position horizontally — keep on screen
     requestAnimationFrame(()=>{
       const w=menu.offsetWidth;
       let lp=rect.left;
       if(lp+w>window.innerWidth-8)lp=window.innerWidth-w-8;
       if(lp<8)lp=8;
       menu.style.left=lp+'px';
+      // If menu would go off the bottom, place it ABOVE the trigger instead
+      const h=menu.offsetHeight;
+      if(rect.bottom+4+h>window.innerHeight-8){
+        menu.style.top=Math.max(8,rect.top-h-4)+'px';
+      }
     });
     openCtxMenu=name;
   }else openCtxMenu=null;
 }
-document.addEventListener('click',()=>{document.querySelectorAll('.ctx-menu').forEach(m=>{m.classList.remove('open');m.style.position='';m.style.top='';m.style.left='';});openCtxMenu=null;});
+document.addEventListener('click',()=>{
+  document.querySelectorAll('.ctx-menu.open').forEach(m=>{
+    m.classList.remove('open');
+    m.style.position='';m.style.top='';m.style.left='';m.style.zIndex='';
+    if(m._origParent){m._origParent.appendChild(m);m._origParent=null;}
+  });
+  openCtxMenu=null;
+});
 function startRename(name){
   openCtxMenu=null;document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));
   // Replace the tab's name span with an input
