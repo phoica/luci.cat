@@ -209,11 +209,13 @@ html:has(.modal-overlay.open),body:has(.modal-overlay.open),body.modal-open,html
 /* Action column hugs the right */
 .history-table th:last-child,.history-table td:last-child{width:1%;white-space:nowrap;text-align:right}
 .history-table tr:hover td{color:var(--text);background:var(--surface2)}
-.hist-actions{display:flex;gap:5px}
+.hist-actions{display:flex;gap:5px;align-items:center}
 .hist-btn{padding:5px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;box-sizing:border-box}
 .hist-btn svg{width:14px;height:14px;display:block}
 .hist-btn:hover{color:var(--text);border-color:var(--border-hover)}
 .hist-btn.hist-del:hover{color:var(--danger);border-color:var(--danger)}
+/* Toggle inside history row: matches button height for flush alignment */
+.hist-toggle{margin:0 4px;align-self:center;flex-shrink:0}
 /* Med-name in history: truncate long names, expand on tap/hover */
 .med-name{display:inline-block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;cursor:pointer;transition:max-width .25s ease}
 .med-name:hover,.med-name.expanded{max-width:300px}
@@ -448,7 +450,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
 
 /* Mobile: deliberate vertical layout — explicit pixel sizes, NOT vw */
 @media(max-width:640px){
-  body{padding:10px;font-size:14px}
+  body{padding:8px 6px;font-size:14px}
 
   /* ── Header: logo first, buttons fit around it ── */
   .header{gap:8px;margin-bottom:14px;align-items:center;position:relative;flex-wrap:nowrap;min-height:38px}
@@ -516,7 +518,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   /* ── Profile bar: tabs scroll, buttons wrap to next row ── */
   .profile-bar{padding:10px 12px;gap:8px;row-gap:8px;flex-wrap:wrap}
   .profile-bar-label{font-size:11px;flex-shrink:0}
-  #profileTabs,.profile-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;flex:1;min-width:0;scrollbar-width:thin;gap:6px;flex-wrap:nowrap!important}
+  #profileTabs,.profile-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;flex:1;min-width:0;scrollbar-width:thin;gap:6px;flex-wrap:nowrap!important;mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent)}
   #profileTabs::-webkit-scrollbar,.profile-tabs::-webkit-scrollbar{height:3px}
   #profileTabs::-webkit-scrollbar-thumb,.profile-tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
   .profile-tab{flex-shrink:0;font-size:13px;padding:3px 6px 3px 3px;border-radius:24px}
@@ -527,8 +529,9 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   .profile-actions .btn{flex:1;min-width:0;justify-content:center;font-size:12px;padding:7px 8px;min-height:34px}
   .profile-actions .btn[title*="Data"]{flex:0 0 auto;min-width:38px;width:38px;padding:7px}
 
-  /* ── Chart tabs: scroll horizontally, taller for taps ── */
-  .chart-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:thin;gap:5px}
+  /* ── Chart tabs: scroll horizontally, taller for taps, with fade affordance on right ── */
+  .chart-tabs-wrap{position:relative}
+  .chart-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:thin;gap:6px;mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
   .chart-tabs::-webkit-scrollbar{height:3px}
   .chart-tab{flex-shrink:0;padding:7px 14px;font-size:12px;min-height:34px;border-radius:18px}
 
@@ -556,11 +559,13 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   .panel-header .btn{font-size:12px;padding:7px 11px;min-height:34px}
   .catalog-gear{bottom:8px;right:8px;width:32px;height:32px}
 
-  /* ── Charts: hide L/R grips, keep top/bottom for vertical resize ── */
+  /* ── Charts: collapse the resize-grid on mobile so the chart spans full width ── */
   .chart-resizer{max-width:100%!important;margin:0!important}
-  .chart-grip{display:flex;opacity:.5}
-  .chart-grip.grip-h{display:none}/* Hide left/right horizontal-resize grips */
-  .chart-grip.grip-v{height:22px;cursor:row-resize;touch-action:none}
+  .chart-wrapper{margin-bottom:6px;display:block;grid-template-columns:none!important}
+  .chart-wrapper .grip-corner,
+  .chart-wrapper .chart-grip.grip-h{display:none}
+  .chart-wrapper .chart-container{grid-column:auto;grid-row:auto;width:100%;min-width:0}
+  .chart-grip.grip-v{display:flex;opacity:.5;height:22px;cursor:row-resize;touch-action:none;width:100%;grid-column:auto}
   .chart-grip.grip-v::before{width:50px;height:3px}
 
   /* ── History panel ── */
@@ -1783,8 +1788,36 @@ function finishWizard(){
 }
 function deleteProfile(name,ev){ev.stopPropagation();pushUndo();delete profiles[name];if(activeProfileName===name)activeProfileName=Object.keys(profiles)[0]||'';saveToStorage();fullRefresh();toast(t('removed'));}
 let openCtxMenu=null;
-function toggleCtxMenu(name,ev){ev.stopPropagation();document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));const id='ctx_'+name.replace(/[^a-zA-Z0-9]/g,'_');const menu=document.getElementById(id);if(menu&&openCtxMenu!==name){menu.classList.add('open');openCtxMenu=name;}else openCtxMenu=null;}
-document.addEventListener('click',()=>{document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));openCtxMenu=null;});
+function toggleCtxMenu(name,ev){
+  ev.stopPropagation();
+  document.querySelectorAll('.ctx-menu').forEach(m=>{m.classList.remove('open');m.style.position='';m.style.top='';m.style.left='';});
+  const id='ctx_'+name.replace(/[^a-zA-Z0-9]/g,'_');
+  const menu=document.getElementById(id);
+  if(menu&&openCtxMenu!==name){
+    // Position the menu using fixed coordinates so it escapes scrolling parents (which would clip it)
+    const trigger=ev.currentTarget;
+    const rect=trigger.getBoundingClientRect();
+    menu.style.position='fixed';
+    menu.style.top=(rect.bottom+4)+'px';
+    // Try to align the menu's left edge to the trigger's left edge, but keep it on-screen
+    const menuW=menu.offsetWidth||200;
+    let leftPos=rect.left;
+    if(leftPos+menuW>window.innerWidth-8)leftPos=window.innerWidth-menuW-8;
+    if(leftPos<8)leftPos=8;
+    menu.style.left=leftPos+'px';
+    menu.classList.add('open');
+    // Re-measure after open in case width changed (display:none → block)
+    requestAnimationFrame(()=>{
+      const w=menu.offsetWidth;
+      let lp=rect.left;
+      if(lp+w>window.innerWidth-8)lp=window.innerWidth-w-8;
+      if(lp<8)lp=8;
+      menu.style.left=lp+'px';
+    });
+    openCtxMenu=name;
+  }else openCtxMenu=null;
+}
+document.addEventListener('click',()=>{document.querySelectorAll('.ctx-menu').forEach(m=>{m.classList.remove('open');m.style.position='';m.style.top='';m.style.left='';});openCtxMenu=null;});
 function startRename(name){
   openCtxMenu=null;document.querySelectorAll('.ctx-menu').forEach(m=>m.classList.remove('open'));
   // Replace the tab's name span with an input
@@ -2136,7 +2169,7 @@ let showAxesMaster=false;
 let showPreHrt=true;
 let showRanges=true;
 let showError=false;
-function togglePreHrt(){showPreHrt=document.getElementById('showPreHrtToggle').checked;redraw();}
+function togglePreHrt(){showPreHrt=document.getElementById('showPreHrtToggle').checked;renderHistory();redraw();}
 function toggleRanges(){showRanges=document.getElementById('showRangesToggle').checked;redraw();}
 function toggleError(){showError=document.getElementById('showErrorToggle').checked;redraw();}
 function toggleShowAxes(){
@@ -2261,20 +2294,37 @@ function renderHistory(){
     html+='</tbody></table></div>';c.innerHTML=html;
     const di=document.getElementById('ed_d_date');if(di)di.addEventListener('input',()=>{const p=document.getElementById('ed_d_dayp');if(p&&di.value)p.textContent=dateToDays(di.value);});
   }else{
-    if(!labs.length){c.innerHTML=`<div class="history-empty">${t('noLabs')}</div>`;return;}
-    const sorted=[...labs].map((l,i)=>({...l,origIdx:i})).sort((a,b)=>{return histSortAsc?a.day-b.day:b.day-a.day;});
+    // Build the rows list: real labs + a synthetic baseline row from presets if pre-HRT is on
+    // but no actual baseline lab exists in the labs array
+    const hasBaselineLab=labs.some(l=>l.isBaseline);
+    const syntheticRows=[];
+    if(showPreHrt&&!hasBaselineLab&&trackedHormones.length){
+      // Build a synthetic baseline using each tracked hormone's preset typical value
+      const synthVals={};
+      for(const hk of trackedHormones){
+        const v=getHormoneVals(hk);
+        if(v&&Number.isFinite(v.typ)&&v.typ!==0)synthVals[hk]=v.typ;
+      }
+      if(Object.keys(synthVals).length){
+        syntheticRows.push({day:-30,values:synthVals,isBaseline:true,isSynthetic:true,origIdx:-1});
+      }
+    }
+    const allRows=[...labs.map((l,i)=>({...l,origIdx:i})),...syntheticRows];
+    if(!allRows.length){c.innerHTML=`<div class="history-empty">${t('noLabs')}</div>`;return;}
+    const sorted=allRows.sort((a,b)=>{return histSortAsc?a.day-b.day:b.day-a.day;});
     let html=`<div class="history-table-wrap"><table class="history-table"><thead><tr><th onclick="sortHistory('day')">${t('date')}${sortArrow('day')}</th><th onclick="sortHistory('day')">${t('day')}${sortArrow('day')}</th><th>${t('values')}</th><th></th></tr></thead><tbody>`;
-    for(const lab of sorted){const isEd=editingLab===lab.origIdx;
+    for(const lab of sorted){const isEd=!lab.isSynthetic&&editingLab===lab.origIdx;
       if(isEd){let vf='';for(const[k,v]of Object.entries(lab.values)){const h=getHormone(k);if(!h)continue;vf+=`<span style="margin-right:8px;white-space:nowrap"><span style="color:${h.color};font-size:12px">${h.name}:</span> <input type="number" step="0.01" value="${v}" id="ed_l_${k}" style="width:70px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px"></span>`;}
         html+=`<tr style="background:var(--surface2)"><td><input type="date" value="${daysToISO(lab.day)}" id="ed_l_date" style="width:150px;padding:6px 8px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:14px"></td><td id="ed_l_dayp">${lab.day}</td><td>${vf}</td><td class="hist-actions"><button class="hist-btn" style="color:var(--accent);border-color:var(--accent)" onclick="saveLabEdit(${lab.origIdx})">✓</button><button class="hist-btn" onclick="editingLab=null;renderHistory()">✕</button></td></tr>`;
       }else{
         // Order values by trackedHormones (consistent order across all rows)
         const orderedKeys=trackedHormones.filter(k=>lab.values[k]!=null).concat(Object.keys(lab.values).filter(k=>!trackedHormones.includes(k)));
         const vals=orderedKeys.map(k=>{const h=getHormone(k);const v=lab.values[k];return h?`<span style="color:${h.color};cursor:help" title="${esc(h.name)}">${v} ${h.unit}</span>`:''}).filter(Boolean).join(', ');
-        const baselineTag=lab.isBaseline?`<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-left:8px;vertical-align:middle">${pick('pre-HRT','pré-TRH','pre-THS')}</span>`:'';
+        const baselineTag=lab.isBaseline?`<span style="display:inline-block;padding:2px 7px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;vertical-align:middle">${pick('pre-HRT','pré-TRH','pre-THS')}</span>`:'';
         const editAction=lab.isBaseline?'openBaselineEditModal()':`editingLab=${lab.origIdx};renderHistory()`;
-        const rightCell=lab.isBaseline?`<div style="display:flex;justify-content:center;align-items:center;min-width:55px"><label class="toggle-switch" title="${pick('Show pre-HRT on chart','Mostrar pré-TRH no gráfico','Mostra pre-THS al gràfic')}"><input type="checkbox" ${showPreHrt?'checked':''} onclick="event.stopPropagation();document.getElementById('showPreHrtToggle').checked=this.checked;togglePreHrt()"><span class="toggle-slider"></span></label></div>`:`<button class="hist-btn hist-del" title="${t('deleteBtn')}" aria-label="${t('deleteBtn')}" onclick="deleteLab(${lab.origIdx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`;
-        html+=`<tr${lab.isBaseline?' style="background:var(--accent-dim)"':''}><td>${lab.isBaseline&&lab.day===-30?'—':daysToDateShort(lab.day)}</td><td>${lab.day}</td><td>${vals}${baselineTag}</td><td class="hist-actions"><button class="hist-btn" title="${t('edit')}" aria-label="${t('edit')}" onclick="${editAction}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>${rightCell}</td></tr>`;
+        const rightCell=lab.isBaseline?`<label class="toggle-switch hist-toggle" title="${pick('Show pre-HRT on chart','Mostrar pré-TRH no gráfico','Mostra pre-THS al gràfic')}"><input type="checkbox" ${showPreHrt?'checked':''} onclick="event.stopPropagation();document.getElementById('showPreHrtToggle').checked=this.checked;togglePreHrt()"><span class="toggle-slider"></span></label>`:`<button class="hist-btn hist-del" title="${t('deleteBtn')}" aria-label="${t('deleteBtn')}" onclick="deleteLab(${lab.origIdx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`;
+        const dateCell=lab.isBaseline?baselineTag:(lab.day===-30&&!lab.date?'—':daysToDateShort(lab.day));
+        html+=`<tr><td>${dateCell}</td><td>${lab.day}</td><td>${vals}</td><td class="hist-actions"><button class="hist-btn" title="${t('edit')}" aria-label="${t('edit')}" onclick="${editAction}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>${rightCell}</td></tr>`;
       }}
     html+='</tbody></table></div>';c.innerHTML=html;
     const di=document.getElementById('ed_l_date');if(di)di.addEventListener('input',()=>{const p=document.getElementById('ed_l_dayp');if(p&&di.value)p.textContent=dateToDays(di.value);});
@@ -2310,11 +2360,67 @@ function drawChart(canvas,opts){
   const fLg=`${pT(11,13,14)}px "DM Sans",sans-serif`;
   const dotR=pT(3.5,4.2,5);
   const margin={
-    left:pT(34,42,55),
-    right:pT(26,34,50),
+    left:pT(26,38,55),
+    right:pT(20,30,50),
     top:pT(38,46,55),
-    bottom:pT(100,112,125)
+    bottom:pT(95,108,120)
   };
+  // Pre-measure how many rows the legend will need so we can grow the bottom margin to fit.
+  // This avoids legend items getting cropped on narrow viewports where they wrap.
+  if(opts.showLegend!==false){
+    ctx.save();
+    const _meds=opts.meds||[],_horms=opts.hormones||[];
+    const _font=`${pT(11,13,14)}px "DM Sans",sans-serif`;
+    const _fontSm=`${pT(9,11,12)}px "DM Sans",sans-serif`;
+    ctx.font=_font;
+    const _itemGap=lerp(14,24);const _labelGap=lerp(11,14);const _showU=cssW>=720;
+    const _maxX=canvas.clientWidth-margin.right;
+    let _rows=0;
+    const _hasMed=_meds.some(mid=>doses[mid]&&doses[mid].length>0);
+    const _hasHorm=_horms.some(hk=>{for(const lab of labs)if(!lab.isBaseline&&lab.values[hk]!=null)return true;return false;});
+    function _walkRow(label,items,getLabel){
+      if(!items.length)return;
+      ctx.font=_font;
+      const startX=margin.left+ctx.measureText(label).width+lerp(7,10);
+      let lx=startX;let row=0;let any=false;
+      for(const it of items){
+        const lb=getLabel(it);if(lb===null)continue;
+        any=true;
+        const w=_labelGap+ctx.measureText(lb).width;
+        if(lx>startX&&lx+w>_maxX){row++;lx=startX;}
+        lx+=w+_itemGap;
+      }
+      if(any)_rows+=row+1;
+    }
+    if(_hasMed)_walkRow(t('doseMg'),_meds,mid=>{if(!doses[mid]||!doses[mid].length)return null;const sn=getMedShortName(mid);const u=getMedUnit(mid);return _showU?`${sn} (${u})`:sn;});
+    if(_hasHorm)_walkRow(t('hormonesLabel'),_horms,hk=>{const h=getHormone(hk);if(!h)return null;const has=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!has)return null;return _showU?`${h.name} (${h.unit})`:h.name;});
+    // Bands row
+    if(showRanges||(showError&&_hasHorm)){
+      ctx.font=_font;
+      const prefix=pick('bands','faixas','intervals');
+      const bandsStartX=margin.left+ctx.measureText(prefix).width+lerp(7,10);
+      ctx.font=_fontSm;
+      const bandSwatchW=lerp(13,18);
+      let lx=bandsStartX;let row=0;
+      if(showRanges&&_hasHorm){
+        const lbl=pick('Target range','Faixa-alvo','Interval objectiu');
+        const w=bandSwatchW+lerp(4,6)+ctx.measureText(lbl).width;
+        if(lx>bandsStartX&&lx+w>_maxX){row++;lx=bandsStartX;}
+        lx+=w+_itemGap;
+      }
+      if(showError&&_hasHorm){
+        const lbl=pick('Error %','Erro %','Error %');
+        const w=bandSwatchW+lerp(4,6)+ctx.measureText(lbl).width;
+        if(lx>bandsStartX&&lx+w>_maxX){row++;lx=bandsStartX;}
+      }
+      _rows+=row+1;
+    }
+    // Each extra wrapped row needs ~rowH px more bottom margin
+    const _rowH=lerp(15,22);const _baseRows=2;// margin.bottom comfortably fits ~2 single-line legend rows
+    const _extra=Math.max(0,_rows-_baseRows);
+    if(_extra>0)margin.bottom+=_extra*_rowH;
+    ctx.restore();
+  }
   // If container has an explicit height set, use that; otherwise fall back to opts.height
   let cssH=opts.height||400;
   const parent=canvas.parentElement;
@@ -2323,7 +2429,7 @@ function drawChart(canvas,opts){
   const W=cssW,H=cssH;const cw=W-margin.left-margin.right;
   const medsToShow=opts.meds||[];const hormonesToShow=opts.hormones||[];
   const rightAxes=showAxesMaster?hormonesToShow.filter(hk=>shownAxes.includes(hk)):[];
-  const _axisColW=lerp(38,50);
+  const _axisColW=pT(38,42,50);
   const mr=Math.max(margin.right,rightAxes.length*_axisColW+10);
 
   // Background
@@ -2359,7 +2465,15 @@ function drawChart(canvas,opts){
     const sorted=[...md].sort((a,b)=>a[0]-b[0]);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(xS(sorted[0][0]),yD(sorted[0][1]));let prev=sorted[0][1];
     for(let i=1;i<sorted.length;i++){const[x,y]=sorted[i];ctx.lineTo(xS(x),yD(prev));ctx.lineTo(xS(x),yD(y));prev=y;}ctx.stroke();
     if(getMedDots(medId)){for(const[x,y]of sorted){ctx.fillStyle=col;ctx.beginPath();ctx.arc(xS(x),yD(y),lerpF(2.8,3.5),0,Math.PI*2);ctx.fill();}}
-    if(showLabels){ctx.fillStyle=col;ctx.font=fMd;ctx.fillText(getMedShortName(medId),xS(sorted[0][0])+6,yD(sorted[0][1])-10);ctx.font=fSm;}
+    if(showLabels){
+      const mlx=xS(sorted[0][0])+6,mly=yD(sorted[0][1])-10;
+      const mtxt=getMedShortName(medId);
+      ctx.font=fMd;
+      ctx.lineWidth=parseFloat(pT(3.5,4,4.5));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;
+      ctx.strokeText(mtxt,mlx,mly);
+      ctx.fillStyle=col;ctx.fillText(mtxt,mlx,mly);
+      ctx.font=fSm;
+    }
   }
 
   // Right hormone axes — compact columns with clear separation
@@ -2401,7 +2515,10 @@ function drawChart(canvas,opts){
   ctx.font=fMd;
   const hasDoses2=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
   // Narrow-mode threshold: collapse two-line date+day labels into single "d76" form when chart is squeezed
-  const narrowGuides=cssW<700;
+  // Use compact single-line guides when canvas is narrow OR when the day range is long (>600 days),
+  // since dense labels overlap each other
+  const dayRange=xMax-tMin;
+  const narrowGuides=cssW<700||dayRange>600;
   if(showGuides&&tMin<0&&hasDoses2){const xx=xS(0);ctx.setLineDash([5,3]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(xx,margin.top);ctx.lineTo(xx,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cMuted;const t1=t('hrtStart'),t2=narrowGuides?'':daysToDate(0),tw1=ctx.measureText(t1).width,tw2=ctx.measureText(t2).width;ctx.fillText(t1,xx-tw1/2,margin.top-(narrowGuides?8:22));if(t2)ctx.fillText(t2,xx-tw2/2,margin.top-8);}
   if(showGuides){
     // Build list of guide x-positions and only render ones with enough space (collision avoidance)
@@ -2416,8 +2533,8 @@ function drawChart(canvas,opts){
       ctx.setLineDash([4,4]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(x,margin.top);ctx.lineTo(x,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);
       ctx.fillStyle=cMuted;
       if(narrowGuides){
-        // Narrow viewport: just the day number, single line
-        const d2=`d${lab.day}`;const tw2=ctx.measureText(d2).width;
+        // Narrow viewport / long range: just the day number on one line, no "d" prefix
+        const d2=`${lab.day}`;const tw2=ctx.measureText(d2).width;
         ctx.fillText(d2,x-tw2/2,margin.top-8);
       }else{
         const d1=daysToDate(lab.day),d2=`${t('day')} ${lab.day}`;
@@ -2478,9 +2595,24 @@ function drawChart(canvas,opts){
     // Solid curves between real lab points
     ctx.lineWidth=2.5;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}
     // Dots + value labels ONLY on real (non-baseline) lab points
-    for(let i=0;i<times.length;i++){const X=xS(times[i]),Y=yH(vals[i]);ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,parseFloat(dotR),0,Math.PI*2);ctx.fill();if(showValues){ctx.font=fLg;const curTheme=document.body.dataset.theme||'dark';const useShadow=curTheme!=='light'&&curTheme!=='cottage';if(useShadow){ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=4;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;}ctx.fillStyle=cText;ctx.fillText(`${vals[i]} ${h.unit}`,X+lerp(6,9),Y-lerp(5,7));ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetX=0;ctx.shadowOffsetY=0;}}
-    // Hormone name label at the FIRST real lab point only
-    if(showLabels&&times.length){const fx=xS(times[0]),fy=yH(vals[0]);ctx.fillStyle=h.color;ctx.font=fMd;const curTheme2=document.body.dataset.theme||'dark';if(curTheme2!=='light'&&curTheme2!=='cottage'){ctx.shadowColor='rgba(0,0,0,0.6)';ctx.shadowBlur=3;}ctx.fillText(h.name,fx+lerp(6,9),fy-lerp(16,22));ctx.shadowColor='transparent';ctx.shadowBlur=0;}
+    for(let i=0;i<times.length;i++){const X=xS(times[i]),Y=yH(vals[i]);ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,parseFloat(dotR),0,Math.PI*2);ctx.fill();if(showValues){ctx.font=fLg;const vlx=X+lerp(6,9),vly=Y-lerp(5,7);const vtxt=`${vals[i]} ${h.unit}`;ctx.lineWidth=parseFloat(pT(3,3.5,4));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;ctx.strokeText(vtxt,vlx,vly);ctx.fillStyle=cText;ctx.fillText(vtxt,vlx,vly);}}
+    // Hormone name label at the FIRST real lab point only.
+    // Draw a thick halo in the panel-surface color first so the colored text reads clearly
+    // even where it crosses the same-colored hormone curve.
+    if(showLabels&&times.length){
+      const fx=xS(times[0]),fy=yH(vals[0]);
+      const lx=fx+lerp(6,9),ly=fy-lerp(16,22);
+      ctx.font=fMd;
+      // Halo: stroke text with the surface color, wide enough to mask the line behind it
+      ctx.lineWidth=parseFloat(pT(3.5,4,4.5));
+      ctx.strokeStyle=bgColor;
+      ctx.lineJoin='round';
+      ctx.miterLimit=2;
+      ctx.strokeText(h.name,lx,ly);
+      // Now the colored fill on top of the halo
+      ctx.fillStyle=h.color;
+      ctx.fillText(h.name,lx,ly);
+    }
   }
 
   // Legend — only show categories that have data
@@ -2491,50 +2623,82 @@ function drawChart(canvas,opts){
     const swatchOff=-lerp(7,9);const swatchH=lerp(8,10);
     const lDotR=lerpF(3.5,5);const dotOff=-lerp(3,4);
     const swatchW=lerp(8,10);const labelGap=lerp(11,14);const itemGap=lerp(14,24);
-    const blY=H-margin.bottom+lerp(26,40);ctx.font=lFont;
+    const blY=H-margin.bottom+lerp(46,58);ctx.font=lFont;
     const hasMedData=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
     const hasHormData=hormonesToShow.some(hk=>{for(const lab of labs)if(!lab.isBaseline&&lab.values[hk]!=null)return true;return false;});
     // Drop "(unit)" suffix on narrower viewports to save space
     const showUnits=cssW>=720;
+    // Available horizontal space for legend items
+    const legendMaxX=W-margin.right;
     let legendRow=0;
     if(hasMedData){
-      const ly=blY+legendRow*rowH;ctx.fillStyle=cDim;ctx.fillText(t('doseMg'),margin.left,ly);
-      let lx=margin.left+ctx.measureText(t('doseMg')).width+lerp(7,10);
-      for(const medId of medsToShow){if(!doses[medId]||!doses[medId].length)continue;const col=getMedColor(medId);const sn=getMedShortName(medId);const u=getMedUnit(medId);ctx.fillStyle=col;ctx.fillRect(lx,ly+swatchOff,swatchW,swatchH);ctx.fillStyle=cMuted;const lb=showUnits?`${sn} (${u})`:sn;ctx.fillText(lb,lx+labelGap,ly);lx+=ctx.measureText(lb).width+itemGap;}
+      let ly=blY+legendRow*rowH;ctx.fillStyle=cDim;ctx.fillText(t('doseMg'),margin.left,ly);
+      const labelStartX=margin.left+ctx.measureText(t('doseMg')).width+lerp(7,10);
+      let lx=labelStartX;
+      for(const medId of medsToShow){
+        if(!doses[medId]||!doses[medId].length)continue;
+        const col=getMedColor(medId);const sn=getMedShortName(medId);const u=getMedUnit(medId);
+        const lb=showUnits?`${sn} (${u})`:sn;
+        const itemW=labelGap+ctx.measureText(lb).width;
+        // Wrap to next row if this item would exceed available width
+        if(lx>labelStartX&&lx+itemW>legendMaxX){
+          legendRow++;ly=blY+legendRow*rowH;lx=labelStartX;
+        }
+        ctx.fillStyle=col;ctx.fillRect(lx,ly+swatchOff,swatchW,swatchH);
+        ctx.fillStyle=cMuted;ctx.fillText(lb,lx+labelGap,ly);
+        lx+=itemW+itemGap;
+      }
       legendRow++;
     }
     if(hasHormData){
-      const ly=blY+legendRow*rowH;let lx2=margin.left;ctx.fillStyle=cDim;ctx.fillText(t('hormonesLabel'),lx2,ly);lx2+=ctx.measureText(t('hormonesLabel')).width+lerp(7,10);
-      for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hasData=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!hasData)continue;ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(lx2+parseFloat(lDotR),ly+dotOff,parseFloat(lDotR),0,Math.PI*2);ctx.fill();ctx.fillStyle=cMuted;const hl=showUnits?`${h.name} (${h.unit})`:h.name;ctx.fillText(hl,lx2+labelGap,ly);lx2+=ctx.measureText(hl).width+itemGap;}
+      let ly=blY+legendRow*rowH;ctx.fillStyle=cDim;ctx.fillText(t('hormonesLabel'),margin.left,ly);
+      const labelStartX2=margin.left+ctx.measureText(t('hormonesLabel')).width+lerp(7,10);
+      let lx2=labelStartX2;
+      for(const hk of hormonesToShow){
+        const h=getHormone(hk);if(!h)continue;
+        const hasData=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!hasData)continue;
+        const hl=showUnits?`${h.name} (${h.unit})`:h.name;
+        const itemW=labelGap+ctx.measureText(hl).width;
+        if(lx2>labelStartX2&&lx2+itemW>legendMaxX){
+          legendRow++;ly=blY+legendRow*rowH;lx2=labelStartX2;
+        }
+        ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(lx2+parseFloat(lDotR),ly+dotOff,parseFloat(lDotR),0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=cMuted;ctx.fillText(hl,lx2+labelGap,ly);
+        lx2+=itemW+itemGap;
+      }
       legendRow++;
     }
     // Explainer row: shaded ranges + error halo — labeled "bands"
     if(showRanges||(showError&&hasHormData)){
-      const ly=blY+legendRow*rowH;let lx3=margin.left;
-      ctx.font=lFont;ctx.fillStyle=cDim;
+      let ly=blY+legendRow*rowH;
       const prefix=pick('bands','faixas','intervals');
-      ctx.fillText(prefix,lx3,ly);
-      lx3+=ctx.measureText(prefix).width+lerp(7,10);
+      ctx.font=lFont;ctx.fillStyle=cDim;
+      ctx.fillText(prefix,margin.left,ly);
+      const bandsStartX=margin.left+ctx.measureText(prefix).width+lerp(7,10);
+      let lx3=bandsStartX;
       ctx.font=lFontSm;
       const bandSwatchW=lerp(13,18);
       if(showRanges&&hasHormData){
+        const lbl=pick('Target range','Faixa-alvo','Interval objectiu');
+        const itemW=bandSwatchW+lerp(4,6)+ctx.measureText(lbl).width;
+        if(lx3>bandsStartX&&lx3+itemW>legendMaxX){legendRow++;ly=blY+legendRow*rowH;lx3=bandsStartX;}
         ctx.fillStyle='rgba(160,160,160,0.18)';ctx.fillRect(lx3,ly+swatchOff,bandSwatchW,swatchH+1);
         ctx.strokeStyle='rgba(160,160,160,0.35)';ctx.lineWidth=1;ctx.strokeRect(lx3+0.5,ly+swatchOff+.5,bandSwatchW-1,swatchH);
         ctx.fillStyle=cDim;
-        const lbl=pick('Target range','Faixa-alvo','Interval objectiu');
         ctx.fillText(lbl,lx3+bandSwatchW+lerp(4,6),ly);
-        lx3+=bandSwatchW+lerp(4,6)+ctx.measureText(lbl).width+itemGap;
+        lx3+=itemW+itemGap;
       }
       if(showError&&hasHormData){
         const stop1=Math.round(bandSwatchW),stop2=Math.round(bandSwatchW*0.78),stop3=Math.round(bandSwatchW*0.55);
+        const lbl=pick('Error %','Erro %','Error %');
+        const itemW=stop1+lerp(4,6)+ctx.measureText(lbl).width;
+        if(lx3>bandsStartX&&lx3+itemW>legendMaxX){legendRow++;ly=blY+legendRow*rowH;lx3=bandsStartX;}
         const swStops=[[stop1,swatchH+1,0.04],[stop2,Math.max(5,swatchH-3),0.06],[stop3,Math.max(3,swatchH-7),0.09]];
         for(const[w,h2,a]of swStops){
           ctx.fillStyle=`rgba(160,160,160,${a*5})`;
           ctx.fillRect(lx3+(stop1-w)/2,ly+swatchOff+((swatchH+1)-h2)/2,w,h2);
         }
         ctx.fillStyle=cDim;
-        const compact=cssW<700;
-        const lbl=pick('Error %','Erro %','Error %');
         ctx.fillText(lbl,lx3+stop1+lerp(4,6),ly);
       }
       ctx.font=lFont;
