@@ -4,7 +4,7 @@
 <meta charset='UTF-8'>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101216">
-<title>HRT Tracker</title>
+<title>HRT Visualizer</title>
 <link rel="icon" type="image/png" href="websyteicon.png">
 <link rel="apple-touch-icon" href="websyteicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -726,7 +726,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
 <body>
 
 <div class="header">
-  <h1>HRT Tracker</h1>
+  <h1>HRT Visualizer</h1>
   <span class="by">by Luci</span>
   <div class="header-spacer"></div>
   <div class="header-controls">
@@ -742,7 +742,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
       <option value="pt">Português (BR)</option>
       <option value="ca">Català</option>
     </select>
-    <a href="mailto:bugport.helpline266@passmail.net?subject=HRT%20Tracker%20Feedback" class="btn btn-sm header-btn feedback-btn" style="text-decoration:none;line-height:1.2;padding:6px 14px;text-align:center;display:inline-flex;flex-direction:column;align-items:center;gap:0;white-space:nowrap">Report Bug<span style="font-size:10px;opacity:.75;margin-top:1px">Give Feedback</span></a>
+    <a href="mailto:bugport.helpline266@passmail.net?subject=HRT%20Visualizer%20Feedback" class="btn btn-sm header-btn feedback-btn" style="text-decoration:none;line-height:1.2;padding:6px 14px;text-align:center;display:inline-flex;flex-direction:column;align-items:center;gap:0;white-space:nowrap">Report Bug<span style="font-size:10px;opacity:.75;margin-top:1px">Give Feedback</span></a>
   </div>
   <div class="undo-redo-pair">
     <button class="undo-redo-btn" id="undoBtn" onclick="undo()" title="Undo" aria-label="Undo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-4"/></svg></button>
@@ -873,7 +873,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
 <!-- About / License / Disclaimer Modal -->
 <div class="modal-overlay" id="infoModal">
   <div class="modal" style="max-width:640px;max-height:85vh;overflow-y:auto">
-    <h3 id="infoTitle">HRT Tracker</h3>
+    <h3 id="infoTitle">HRT Visualizer</h3>
     <div id="infoBody" style="font-size:14px;line-height:1.7;color:var(--text-muted)"></div>
     <div class="modal-buttons">
       <button class="btn btn-accent" onclick="closeModal('infoModal')">OK</button>
@@ -1181,7 +1181,7 @@ function fitHeaderLogo(){
     const cs=getComputedStyle(logo);
     const fontFamily=cs.fontFamily;
     const fontSize=cs.fontSize;
-    document.fonts.load(`${fontSize} ${fontFamily}`,'HRT Tracker').then(()=>{
+    document.fonts.load(`${fontSize} ${fontFamily}`,'HRT Visualizer').then(()=>{
       requestAnimationFrame(measure);
     }).catch(()=>requestAnimationFrame(measure));
   }else{
@@ -2789,7 +2789,7 @@ function printChart(){
   setTimeout(()=>{
     const win=window.open('','_blank');
     if(!win){document.body.dataset.theme=origTheme;redraw();return toast('Popup blocked');}
-    win.document.write(`<html><head><title>HRT Tracker - ${esc(activeProfileName)}</title><style>
+    win.document.write(`<html><head><title>HRT Visualizer - ${esc(activeProfileName)}</title><style>
       body{margin:0;padding:20mm;background:#fff;font-family:'DM Sans',sans-serif;color:#333}
       img{max-width:100%;height:auto;display:block;margin-bottom:12px;border:1px solid #ddd}
       h2{margin-bottom:16px;font-size:22px;color:#222}
@@ -2797,7 +2797,7 @@ function printChart(){
       .chart-block{page-break-inside:avoid;margin-bottom:18px}
       @media print{body{padding:10mm}.chart-block{page-break-inside:avoid}}
     </style></head><body>`);
-    win.document.write('<h2>HRT Tracker · '+esc(activeProfileName)+'</h2>');
+    win.document.write('<h2>HRT Visualizer · '+esc(activeProfileName)+'</h2>');
     // Walk children: titles are DIVs with text, canvases are either direct or inside .chart-resizer
     const kids=Array.from(container.children);
     let pendingTitle=null;
