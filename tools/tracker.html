@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&family=Metamorphous&family=Cabin+Sketch:wght@400;700&family=Silkscreen:wght@400;700&family=Fascinate&display=swap" rel="stylesheet">
 <style>
-:root,body[data-theme="dark"]{--bg:#08090c;--surface:#15181e;--surface2:#1e2229;--surface3:#2c3038;--border:#3d424c;--border-hover:#5a606d;--text:#f0f2f6;--text-muted:#a8afbc;--text-dim:#6f7684;--accent:#f5a05f;--accent-dim:rgba(245,160,95,.16);--accent-glow:rgba(245,160,95,.4);--danger:#e57878;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.7);--chart-bg:#15181e}
+:root,body[data-theme="dark"]{--bg:#000000;--surface:#0c0f15;--surface2:#181d27;--surface3:#2a3142;--border:#525a6c;--border-hover:#7a8294;--text:#ffffff;--text-muted:#c4ccd8;--text-dim:#8a92a0;--accent:#ffb070;--accent-dim:rgba(255,176,112,.18);--accent-glow:rgba(255,176,112,.55);--danger:#ff8a8a;--radius:12px;--radius-sm:8px;--shadow:0 4px 28px rgba(0,0,0,.85);--chart-bg:#0c0f15}
 body[data-theme="dim"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#e89854;--accent-dim:rgba(232,152,84,.13);--accent-glow:rgba(232,152,84,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5);--chart-bg:#181b20}
 body[data-theme="light"]{--bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08);--chart-bg:#ffffff}
 body[data-theme="cottage"]{--bg:#f3eadb;--surface:#fbf6ec;--surface2:#ebe0cd;--surface3:#dfd2bb;--border:#c9b896;--border-hover:#a89377;--text:#3d2f22;--text-muted:#7a6450;--text-dim:#a89377;--accent:#c79090;--accent-dim:rgba(199,144,144,.14);--accent-glow:rgba(199,144,144,.28);--accent2:#9caf88;--danger:#b56b5a;--radius:16px;--radius-sm:12px;--shadow:0 4px 20px rgba(120,85,45,.1),0 1px 3px rgba(120,85,45,.06);--chart-bg:#fbf6ec}
@@ -34,7 +34,7 @@ body[data-theme="light"] .header h1{background:linear-gradient(135deg,#e89854,#f
 body[data-theme="cottage"] .header h1{background:linear-gradient(135deg,#c79090 0%,#b87290 35%,#9caf88 70%,#d4a574 100%);-webkit-background-clip:text}
 body[data-theme="evil"] .header h1{background:linear-gradient(135deg,#dc2040,#880020);-webkit-background-clip:text}
 body[data-theme="nonchalant"] .header h1{background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text;font-family:'Fascinate',cursive;letter-spacing:0;font-weight:400;font-size:42px}
-body[data-theme="dark"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#f5a05f,#fac480);-webkit-background-clip:text}
+body[data-theme="dark"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#ffb070,#ffd29c);-webkit-background-clip:text}
 body[data-theme="dim"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
 :root .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
 body[data-theme="cottage"] .header h1{font-family:'Cabin Sketch',cursive;font-weight:700;letter-spacing:0;font-size:46px}
@@ -214,7 +214,7 @@ html:has(.modal-overlay.open),body:has(.modal-overlay.open),body.modal-open,html
 /* Action column hugs the right */
 .history-table th:last-child,.history-table td:last-child{width:1%;white-space:nowrap;text-align:right}
 .history-table tr:hover td{color:var(--text);background:var(--surface2)}
-.hist-actions{display:flex;gap:5px;align-items:center}
+.hist-actions{display:inline-flex;gap:5px;align-items:center;vertical-align:middle}
 .hist-btn{padding:5px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;box-sizing:border-box}
 .hist-btn svg{width:14px;height:14px;display:block}
 .hist-btn:hover{color:var(--text);border-color:var(--border-hover)}
@@ -2555,10 +2555,14 @@ function renderHistory(){
     for(const lab of sorted){const isEd=!lab.isSynthetic&&editingLab===lab.origIdx;
       if(isEd){
           const editKeys=trackedHormones.filter(k=>lab.values[k]!=null).concat(Object.keys(lab.values).filter(k=>!trackedHormones.includes(k)));
+          const ALL_UNITS=['pg/mL','ng/mL','ng/dL','ng/L','µg/L','µg/dL','mIU/mL','IU/L','nmol/L','pmol/L','U/L','mg/dL','µmol/L','mmol/L','mEq/L','%'];
           const editItems=editKeys.map(k=>{const h=getHormone(k);if(!h)return'';
             const editU=readLabUnit(lab,k)||h.unit;
             const editV=readLabValue(lab,k,editU);
-            return`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:1px 0"><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><span style="display:inline-flex;align-items:center;gap:6px"><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" style="width:80px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px;text-align:right"><span style="color:var(--text-dim);font-size:.92em;min-width:40px">${esc(editU)}</span></span></div>`;
+            const knownU=UNIT_CONV[k]?Object.keys(UNIT_CONV[k]).filter(u=>u!=='canonical'):[h.unit];
+            const optsU=Array.from(new Set([editU,h.unit,...knownU,...ALL_UNITS]));
+            const unitOpts=optsU.map(u=>`<option value="${esc(u)}"${u===editU?' selected':''}>${esc(u)}</option>`).join('');
+            return`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:1px 0"><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><span style="display:inline-flex;align-items:center;gap:6px"><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" style="width:80px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px;text-align:right"><select id="ed_lu_${k}" style="padding:3px 4px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:11px;font-family:inherit;max-width:90px">${unitOpts}</select></span></div>`;
           }).filter(Boolean);
           const vf=`<div style="display:flex;flex-direction:column;min-width:220px;max-width:340px">${editItems.join('')}</div>`;
         html+=`<tr style="background:var(--surface2)"><td><div class="date-selects" id="ed_l_dateSelects"></div></td><td id="ed_l_dayp">${lab.day}</td><td>${vf}</td><td class="hist-actions"><button class="hist-btn" style="color:var(--accent);border-color:var(--accent)" onclick="saveLabEdit(${lab.origIdx})">✓</button><button class="hist-btn" onclick="editingLab=null;renderHistory()">✕</button></td></tr>`;
@@ -2591,9 +2595,9 @@ function saveLabEdit(idx){pushUndo();const lab=labs[idx];const dateStr=getDateFr
     if(!inp)continue;
     const pv=parseFloat(inp.value);
     if(!Number.isFinite(pv))continue;
-    // Preserve the lab's own unit; never silently rewrite to whatever unit the
-    // hormone is currently displayed in. Each lab is independent across the board.
-    const u=readLabUnit(lab,k)||(getHormone(k)?.unit)||'';
+    // The unit comes from the per-row select; fall back to the previously stored unit.
+    const usel=document.getElementById('ed_lu_'+k);
+    const u=(usel&&usel.value)||readLabUnit(lab,k)||(getHormone(k)?.unit)||'';
     lab.values[k]={v:pv,u};
   }
   editingLab=null;syncToProfile();renderHistory();renderStats();redraw();}
