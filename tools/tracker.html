@@ -2519,6 +2519,36 @@ function renderStats(){
 // ═══ HISTORY ═══
 function switchHistoryTab(tab2,el){historyTab=tab2;histSortKey='day';histSortAsc=false;editingDose=null;editingLab=null;editingLabExtra=new Set();document.querySelectorAll('.history-tab').forEach(btn=>btn.classList.remove('active'));el.classList.add('active');renderHistory();}
 function addLabEditHormone(hk){if(!hk)return;editingLabExtra.add(hk);renderHistory();}
+function captureLabEditInputs(idx){
+  const lab=labs[idx];if(!lab)return;
+  const allKeys=Array.from(new Set([...trackedHormones,...Object.keys(lab.values),...editingLabExtra]));
+  for(const k of allKeys){
+    const inp=document.getElementById('ed_l_'+k);
+    if(!inp)continue;
+    if(inp.value===''){delete lab.values[k];continue;}
+    const pv=parseFloat(inp.value);
+    if(!Number.isFinite(pv)){delete lab.values[k];continue;}
+    const usel=document.getElementById('ed_lu_'+k);
+    const u=(usel&&usel.value)||readLabUnit(lab,k)||(getHormone(k)?.unit)||'';
+    lab.values[k]={v:pv,u};
+  }
+}
+function deleteLabEditHormone(idx,hk){
+  captureLabEditInputs(idx);
+  const lab=labs[idx];if(!lab)return;
+  delete lab.values[hk];
+  editingLabExtra.delete(hk);
+  renderHistory();
+}
+function switchLabEditHormone(idx,oldHk,newHk){
+  if(!newHk||oldHk===newHk)return;
+  captureLabEditInputs(idx);
+  const lab=labs[idx];if(!lab)return;
+  if(lab.values[oldHk]!=null){lab.values[newHk]=lab.values[oldHk];delete lab.values[oldHk];}
+  editingLabExtra.delete(oldHk);
+  if(!trackedHormones.includes(newHk))editingLabExtra.add(newHk);
+  renderHistory();
+}
 function sortHistory(key){if(histSortKey===key)histSortAsc=!histSortAsc;else{histSortKey=key;histSortAsc=true;}renderHistory();}
 function sortArrow(key){return histSortKey===key?`<span style="font-size:10px;margin-left:3px;opacity:.5">${histSortAsc?'▲':'▼'}</span>`:''}
 function renderHistory(){
@@ -2568,7 +2598,12 @@ function renderHistory(){
             const knownU=UNIT_CONV[k]?Object.keys(UNIT_CONV[k]).filter(u=>u!=='canonical'):[h.unit];
             const optsU=Array.from(new Set([editU,h.unit,...knownU,...ALL_UNITS]));
             const unitOpts=optsU.map(u=>`<option value="${esc(u)}"${u===editU?' selected':''}>${esc(u)}</option>`).join('');
-            return`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:1px 0"><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><span style="display:inline-flex;align-items:center;gap:6px"><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" placeholder="—" style="width:80px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px;text-align:right"><select id="ed_lu_${k}" style="padding:3px 4px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:11px;font-family:inherit;max-width:90px">${unitOpts}</select></span></div>`;
+            // Hormone select: lets the user switch this row to a different hormone (built-in or custom)
+            // that isn't already in the edit list. The current hormone stays first/selected.
+            const allHIds=[...Object.keys(BUILTIN_HORMONES),...customHormones.map(ch=>ch.id)];
+            const switchTargets=allHIds.filter(x=>x===k||!editKeys.includes(x));
+            const hOpts=switchTargets.map(x=>{const hh=getHormone(x);return hh?`<option value="${esc(x)}"${x===k?' selected':''}>${esc(hh.name)}</option>`:'';}).join('');
+            return`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 0"><select onchange="switchLabEditHormone(${lab.origIdx},'${k}',this.value)" style="color:${h.color};font-weight:500;background:transparent;border:1px solid transparent;padding:2px 4px;border-radius:4px;font-family:inherit;font-size:13px;cursor:pointer;max-width:130px;text-overflow:ellipsis;overflow:hidden" title="${pick('Switch hormone','Trocar hormônio','Canvia hormona')}">${hOpts}</select><span style="display:inline-flex;align-items:center;gap:5px"><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" placeholder="—" style="width:70px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px;text-align:right"><select id="ed_lu_${k}" style="padding:3px 4px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:11px;font-family:inherit;max-width:78px">${unitOpts}</select><button class="hist-btn hist-del" style="width:24px;height:24px;padding:0" title="${pick('Remove from this lab','Remover deste exame','Treu d&#39;aquesta anàlisi')}" onclick="deleteLabEditHormone(${lab.origIdx},'${k}')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 5l14 14M19 5l-14 14"/></svg></button></span></div>`;
           }).filter(Boolean);
           // "+ Add hormone" dropdown: lists every hormone (built-in + custom) not yet shown.
           const allHormoneIds=[...Object.keys(BUILTIN_HORMONES),...customHormones.map(h=>h.id)];
