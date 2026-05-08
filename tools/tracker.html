@@ -214,7 +214,9 @@ html:has(.modal-overlay.open),body:has(.modal-overlay.open),body.modal-open,html
 /* Action column hugs the right */
 .history-table th:last-child,.history-table td:last-child{width:1%;white-space:nowrap;text-align:right}
 .history-table tr:hover td{color:var(--text);background:var(--surface2)}
-.hist-actions{display:inline-flex;gap:5px;align-items:center;vertical-align:middle}
+.hist-actions{text-align:right;white-space:nowrap;vertical-align:middle}
+.hist-actions > *{vertical-align:middle}
+.hist-actions > *+*{margin-left:5px}
 .hist-btn{padding:5px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;box-sizing:border-box}
 .hist-btn svg{width:14px;height:14px;display:block}
 .hist-btn:hover{color:var(--text);border-color:var(--border-hover)}
@@ -546,8 +548,8 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   .range-input-pair label{font-size:12px;color:var(--text-muted);flex-shrink:0}
   /* Action buttons (Start Date / Export PNG / Print) — give them enough flex-basis that the
      text+icon never clip; the row wraps to a second line on narrow iPhones rather than truncating. */
-  .range-bar > .btn{padding:7px 10px;font-size:11px;min-height:34px;flex:1 1 calc(50% - 6px);min-width:0;max-width:100%;justify-content:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .range-bar > .btn:nth-of-type(3){flex:1 1 100%}
+  .range-bar > .btn{padding:7px 10px;font-size:11px;min-height:34px;flex:1 1 calc(50% - 6px);min-width:0;max-width:calc(50% - 6px);justify-content:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .range-bar > .btn:last-child{flex:1 1 100%;max-width:100%}
   .range-bar > .btn svg{width:13px;height:13px;flex-shrink:0}
   .range-bar > .btn span{overflow:hidden;text-overflow:ellipsis;min-width:0}
   .range-bar > div[style*="flex:1"]{flex-basis:100%;width:0;height:0;margin:0;display:block!important}
@@ -1003,7 +1005,7 @@ const DEFAULT_PROFILE={startDate:'2024-11-11',baseline:'tprehrtm',profilePic:'',
 // ═══ STATE ═══
 let profiles={},activeProfileName='',startDate,baseline,doses,labs,trackedHormones,medications,shownAxes,medCustom,profilePic,customMeds,customHormones,preHrtPerHormone;
 let selectedMedId='',tMin=-20,xMax=350;
-let historyTab='doses',histSortKey='day',histSortAsc=false,editingDose=null,editingLab=null;
+let historyTab='doses',histSortKey='day',histSortAsc=false,editingDose=null,editingLab=null,editingLabExtra=new Set();
 let undoStack=[],recurOpen=false,showLabels=true,showLegend=true,showValues=true,showGuides=true;
 let chartView='multi'; // 'multi' = combined, 'all' or 'individual' = split selected
 let dpr=1;
@@ -2515,7 +2517,8 @@ function renderStats(){
 }
 
 // ═══ HISTORY ═══
-function switchHistoryTab(tab2,el){historyTab=tab2;histSortKey='day';histSortAsc=false;editingDose=null;editingLab=null;document.querySelectorAll('.history-tab').forEach(btn=>btn.classList.remove('active'));el.classList.add('active');renderHistory();}
+function switchHistoryTab(tab2,el){historyTab=tab2;histSortKey='day';histSortAsc=false;editingDose=null;editingLab=null;editingLabExtra=new Set();document.querySelectorAll('.history-tab').forEach(btn=>btn.classList.remove('active'));el.classList.add('active');renderHistory();}
+function addLabEditHormone(hk){if(!hk)return;editingLabExtra.add(hk);renderHistory();}
 function sortHistory(key){if(histSortKey===key)histSortAsc=!histSortAsc;else{histSortKey=key;histSortAsc=true;}renderHistory();}
 function sortArrow(key){return histSortKey===key?`<span style="font-size:10px;margin-left:3px;opacity:.5">${histSortAsc?'▲':'▼'}</span>`:''}
 function renderHistory(){
@@ -2554,18 +2557,29 @@ function renderHistory(){
     let html=`<div class="history-table-wrap"><table class="history-table"><thead><tr><th onclick="sortHistory('day')">${t('date')}${sortArrow('day')}</th><th onclick="sortHistory('day')">${t('day')}${sortArrow('day')}</th><th>${t('values')}</th><th></th></tr></thead><tbody>`;
     for(const lab of sorted){const isEd=!lab.isSynthetic&&editingLab===lab.origIdx;
       if(isEd){
-          const editKeys=trackedHormones.filter(k=>lab.values[k]!=null).concat(Object.keys(lab.values).filter(k=>!trackedHormones.includes(k)));
+          // Show every tracked hormone (with empty value if not yet measured) + any non-tracked hormones
+          // already in this lab + any extras the user has added via the "+ add hormone" dropdown.
+          const editKeys=Array.from(new Set([...trackedHormones,...Object.keys(lab.values),...editingLabExtra]));
           const ALL_UNITS=['pg/mL','ng/mL','ng/dL','ng/L','µg/L','µg/dL','mIU/mL','IU/L','nmol/L','pmol/L','U/L','mg/dL','µmol/L','mmol/L','mEq/L','%'];
           const editItems=editKeys.map(k=>{const h=getHormone(k);if(!h)return'';
+            const inLab=lab.values[k]!=null;
             const editU=readLabUnit(lab,k)||h.unit;
-            const editV=readLabValue(lab,k,editU);
+            const editV=inLab?readLabValue(lab,k,editU):'';
             const knownU=UNIT_CONV[k]?Object.keys(UNIT_CONV[k]).filter(u=>u!=='canonical'):[h.unit];
             const optsU=Array.from(new Set([editU,h.unit,...knownU,...ALL_UNITS]));
             const unitOpts=optsU.map(u=>`<option value="${esc(u)}"${u===editU?' selected':''}>${esc(u)}</option>`).join('');
-            return`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:1px 0"><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><span style="display:inline-flex;align-items:center;gap:6px"><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" style="width:80px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px;text-align:right"><select id="ed_lu_${k}" style="padding:3px 4px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:11px;font-family:inherit;max-width:90px">${unitOpts}</select></span></div>`;
+            return`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:1px 0"><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><span style="display:inline-flex;align-items:center;gap:6px"><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" placeholder="—" style="width:80px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px;text-align:right"><select id="ed_lu_${k}" style="padding:3px 4px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:11px;font-family:inherit;max-width:90px">${unitOpts}</select></span></div>`;
           }).filter(Boolean);
-          const vf=`<div style="display:flex;flex-direction:column;min-width:220px;max-width:340px">${editItems.join('')}</div>`;
-        html+=`<tr style="background:var(--surface2)"><td><div class="date-selects" id="ed_l_dateSelects"></div></td><td id="ed_l_dayp">${lab.day}</td><td>${vf}</td><td class="hist-actions"><button class="hist-btn" style="color:var(--accent);border-color:var(--accent)" onclick="saveLabEdit(${lab.origIdx})">✓</button><button class="hist-btn" onclick="editingLab=null;renderHistory()">✕</button></td></tr>`;
+          // "+ Add hormone" dropdown: lists every hormone (built-in + custom) not yet shown.
+          const allHormoneIds=[...Object.keys(BUILTIN_HORMONES),...customHormones.map(h=>h.id)];
+          const availableToAdd=allHormoneIds.filter(k=>!editKeys.includes(k));
+          let addRow='';
+          if(availableToAdd.length){
+            const addOpts=availableToAdd.map(k=>{const h=getHormone(k);return h?`<option value="${esc(k)}">${esc(h.name)}</option>`:'';}).join('');
+            addRow=`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border)"><select id="ed_l_addHormone" onchange="addLabEditHormone(this.value)" style="width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text-muted);font-size:12px;font-family:inherit"><option value="">+ ${pick('Add hormone','Adicionar hormônio','Afegeix hormona')}…</option>${addOpts}</select></div>`;
+          }
+          const vf=`<div style="display:flex;flex-direction:column;min-width:240px;max-width:360px">${editItems.join('')}${addRow}</div>`;
+        html+=`<tr style="background:var(--surface2)"><td><div class="date-selects" id="ed_l_dateSelects"></div></td><td id="ed_l_dayp">${lab.day}</td><td>${vf}</td><td class="hist-actions"><button class="hist-btn" style="color:var(--accent);border-color:var(--accent)" onclick="saveLabEdit(${lab.origIdx})">✓</button><button class="hist-btn" onclick="editingLab=null;editingLabExtra=new Set();renderHistory()">✕</button></td></tr>`;
       }else{
         // Order values by trackedHormones (consistent order across all rows)
         const orderedKeys=trackedHormones.filter(k=>lab.values[k]!=null).concat(Object.keys(lab.values).filter(k=>!trackedHormones.includes(k)));
@@ -2579,7 +2593,7 @@ function renderHistory(){
         }).filter(Boolean);
         const vals=valItems.length?`<div style="display:flex;flex-direction:column;min-width:180px;max-width:340px">${valItems.join('')}</div>`:'';
         const baselineTag=lab.isBaseline?`<span style="display:inline-block;padding:2px 7px;border-radius:10px;background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent);font-size:10px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;vertical-align:middle">${pick('pre-HRT','pré-TRH','pre-THS')}</span>`:'';
-        const editAction=lab.isBaseline?'openBaselineEditModal()':`editingLab=${lab.origIdx};renderHistory()`;
+        const editAction=lab.isBaseline?'openBaselineEditModal()':`editingLab=${lab.origIdx};editingLabExtra=new Set();renderHistory()`;
         const rightCell=lab.isBaseline?`<label class="toggle-switch hist-toggle" title="${pick('Show pre-HRT on chart','Mostrar pré-TRH no gráfico','Mostra pre-THS al gràfic')}"><input type="checkbox" ${showPreHrt?'checked':''} onclick="event.stopPropagation();document.getElementById('showPreHrtToggle').checked=this.checked;togglePreHrt()"><span class="toggle-slider"></span></label>`:`<button class="hist-btn hist-del" title="${t('deleteBtn')}" aria-label="${t('deleteBtn')}" onclick="deleteLab(${lab.origIdx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></button>`;
         const dateCell=lab.isBaseline?baselineTag:(lab.day===-30&&!lab.date?'—':daysToDateShort(lab.day));
         html+=`<tr><td>${dateCell}</td><td>${lab.day}</td><td>${vals}</td><td class="hist-actions"><button class="hist-btn" title="${t('edit')}" aria-label="${t('edit')}" onclick="${editAction}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>${rightCell}</td></tr>`;
@@ -2590,17 +2604,21 @@ function renderHistory(){
 }
 function saveDoseEdit(oldMedId,idx){pushUndo();const ai=document.getElementById('ed_d_amt'),mi=document.getElementById('ed_d_med');const newMedId=mi?mi.value:oldMedId;const dateStr=getDateFromSelects('ed_d_dateSelects');const newDay=dateStr?dateToDays(dateStr):doses[oldMedId][idx][0];const newAmt=ai?parseFloat(ai.value):doses[oldMedId][idx][1];if(newMedId!==oldMedId){doses[oldMedId].splice(idx,1);if(!doses[newMedId])doses[newMedId]=[];doses[newMedId].push([newDay,Number.isFinite(newAmt)?newAmt:0]);}else{if(Number.isFinite(newDay))doses[oldMedId][idx][0]=newDay;if(Number.isFinite(newAmt))doses[oldMedId][idx][1]=newAmt;}editingDose=null;syncToProfile();renderHistory();renderStats();redraw();}
 function saveLabEdit(idx){pushUndo();const lab=labs[idx];const dateStr=getDateFromSelects('ed_l_dateSelects');if(dateStr){lab.day=dateToDays(dateStr);lab.date=dateStr;}
-  for(const k of Object.keys(lab.values)){
+  // Walk every input rendered in the edit row (tracked + previously stored + extras added via dropdown)
+  // so the user can both ADD new hormones to a saved lab and CLEAR ones by blanking the input.
+  const allKeys=Array.from(new Set([...trackedHormones,...Object.keys(lab.values),...editingLabExtra]));
+  for(const k of allKeys){
     const inp=document.getElementById('ed_l_'+k);
     if(!inp)continue;
+    if(inp.value===''||inp.value==null){delete lab.values[k];continue;}
     const pv=parseFloat(inp.value);
-    if(!Number.isFinite(pv))continue;
+    if(!Number.isFinite(pv)){delete lab.values[k];continue;}
     // The unit comes from the per-row select; fall back to the previously stored unit.
     const usel=document.getElementById('ed_lu_'+k);
     const u=(usel&&usel.value)||readLabUnit(lab,k)||(getHormone(k)?.unit)||'';
     lab.values[k]={v:pv,u};
   }
-  editingLab=null;syncToProfile();renderHistory();renderStats();redraw();}
+  editingLab=null;editingLabExtra=new Set();syncToProfile();renderHistory();renderStats();redraw();}
 function deleteDose(medId,idx){pushUndo();doses[medId].splice(idx,1);editingDose=null;syncToProfile();renderHistory();renderStats();redraw();toast(t('removed'));}
 function deleteLab(idx){pushUndo();labs.splice(idx,1);editingLab=null;syncToProfile();renderHistory();renderStats();redraw();toast(t('removed'));}
 
