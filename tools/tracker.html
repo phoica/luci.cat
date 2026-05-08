@@ -265,6 +265,10 @@ html:has(.modal-overlay.open),body:has(.modal-overlay.open),body.modal-open,html
 .catalog-swatch{width:22px;height:22px;border-radius:4px;flex-shrink:0;cursor:pointer;padding:0;border:1px solid var(--border)}
 .catalog-name{color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
 .catalog-tag{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;text-align:center;padding:0;background:none;border:none}
+.cat-prehrt-btn{flex-shrink:0;width:28px;height:18px;padding:0;margin-right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer;transition:all .15s}
+.cat-prehrt-btn:hover{border-color:var(--accent);color:var(--text)}
+.cat-prehrt-btn.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.cat-prehrt-btn svg{display:block}
 .catalog-unit-select{padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;width:100%}
 .catalog-range-input{padding:4px 5px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:11px;font-family:'JetBrains Mono',monospace;width:100%;box-sizing:border-box;min-width:0;-moz-appearance:textfield}
 .catalog-range-input::-webkit-outer-spin-button,.catalog-range-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
@@ -992,7 +996,7 @@ const BUILTIN_MEDS=[{id:'een',name:'Estradiol Enanthate (EEn)',color:'#b07cd8',u
 const DEFAULT_PROFILE={startDate:'2024-11-11',baseline:'tprehrtm',profilePic:'',medications:['een'],medCustom:{een:{showDots:true}},customMeds:[],customHormones:[],doses:{een:[[0,10],[6,10],[13,10],[20,10],[27,10],[34,10],[41,10],[48,10],[55,10],[62,10],[70,7.5],[76,7.5],[83,7.5],[90,7.5],[97,7.5],[104,7.5],[111,10],[118,10],[125,10],[132,10],[139,10],[146,10],[153,10],[160,10],[167,10],[179,12.5],[188,10],[195,10],[202,10],[216,4],[223,4],[230,5],[237,5],[246,5],[253,5],[261,5],[268,5],[276,5],[285,5],[293,5],[300,5],[308,4],[316,4]]},trackedHormones:['E2','PRL','T'],shownAxes:['E2','PRL','T'],labs:[{day:76,date:'2025-01-26',values:{E2:343,PRL:31.6,T:0.14}},{day:257,date:'2025-07-26',values:{E2:446,PRL:19.7,T:0.30}}]};
 
 // ═══ STATE ═══
-let profiles={},activeProfileName='',startDate,baseline,doses,labs,trackedHormones,medications,shownAxes,medCustom,profilePic,customMeds,customHormones;
+let profiles={},activeProfileName='',startDate,baseline,doses,labs,trackedHormones,medications,shownAxes,medCustom,profilePic,customMeds,customHormones,preHrtPerHormone;
 let selectedMedId='',tMin=-20,xMax=350;
 let historyTab='doses',histSortKey='day',histSortAsc=false,editingDose=null,editingLab=null;
 let undoStack=[],recurOpen=false,showLabels=true,showLegend=true,showValues=true,showGuides=true;
@@ -1339,14 +1343,14 @@ function loadFromStorage(){
   // Migrate from v4 if v5 is empty
   if(!Object.keys(profiles).length){try{const s=localStorage.getItem('hrt_profiles_v4');if(s){const d=JSON.parse(s);if(d.profiles){for(const[n,p]of Object.entries(d.profiles)){p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];p.medCustom=p.medCustom||{};profiles[n]=p;}activeProfileName=d.active||Object.keys(profiles)[0]||'';}}}catch(e){}}
   // Migrate lab values to {v, u} format so each measurement carries its unit
-  for(const p of Object.values(profiles))migrateLabValues(p);
+  for(const p of Object.values(profiles)){p.preHrtPerHormone=p.preHrtPerHormone||{};migrateLabValues(p);}
   saveToStorage();
 }
 function saveToStorage(){try{localStorage.setItem('hrt_profiles_v5',JSON.stringify({profiles,active:activeProfileName}));}catch(e){}}
 function getActive(){if(!activeProfileName||!profiles[activeProfileName])return null;return profiles[activeProfileName];}
 function syncFromProfile(){const p=getActive();
-  if(!p){startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);medications=[];medCustom={};customMeds=[];customHormones=[];doses={};trackedHormones=[];shownAxes=[];labs=[];profilePic='';baseline='none';tMin=-20;xMax=200;selectedMedId='';document.getElementById('xMaxInput').value='200';document.getElementById('xMinInput').value='-20';return;}
-  if(p.startDate){startDate=new Date(p.startDate.includes('.')?p.startDate.split('.').reverse().join('-'):p.startDate);startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}else{startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}baseline=p.baseline||'tprehrtm';medications=[...(p.medications||[])];medCustom=JSON.parse(JSON.stringify(p.medCustom||{}));customMeds=[...(p.customMeds||[])];customHormones=[...(p.customHormones||[])];doses=JSON.parse(JSON.stringify(p.doses||{}));trackedHormones=[...(p.trackedHormones||[])];shownAxes=[...(p.shownAxes||[])];labs=JSON.parse(JSON.stringify(p.labs||[]));profilePic=p.profilePic||'';
+  if(!p){startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);medications=[];medCustom={};customMeds=[];customHormones=[];doses={};trackedHormones=[];shownAxes=[];labs=[];profilePic='';preHrtPerHormone={};baseline='none';tMin=-20;xMax=200;selectedMedId='';document.getElementById('xMaxInput').value='200';document.getElementById('xMinInput').value='-20';return;}
+  if(p.startDate){startDate=new Date(p.startDate.includes('.')?p.startDate.split('.').reverse().join('-'):p.startDate);startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}else{startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}baseline=p.baseline||'tprehrtm';medications=[...(p.medications||[])];medCustom=JSON.parse(JSON.stringify(p.medCustom||{}));customMeds=[...(p.customMeds||[])];customHormones=[...(p.customHormones||[])];doses=JSON.parse(JSON.stringify(p.doses||{}));trackedHormones=[...(p.trackedHormones||[])];shownAxes=[...(p.shownAxes||[])];labs=JSON.parse(JSON.stringify(p.labs||[]));profilePic=p.profilePic||'';preHrtPerHormone=JSON.parse(JSON.stringify(p.preHrtPerHormone||{}));
   // Use stored range if present, otherwise auto-compute from data
   if(Number.isFinite(p.tMin)&&Number.isFinite(p.xMax)){
     tMin=p.tMin;xMax=p.xMax;
@@ -1358,7 +1362,10 @@ function syncFromProfile(){const p=getActive();
     xMax=hasAnyData?maxDay+30:200;
   }
   document.getElementById('xMaxInput').value=Math.round(xMax);document.getElementById('xMinInput').value=Math.round(tMin);selectedMedId=medications.length?medications[0]:'';}
-function syncToProfile(){const p=getActive();if(!p)return;p.baseline=baseline;p.medications=[...medications];p.medCustom=JSON.parse(JSON.stringify(medCustom));p.customMeds=[...customMeds];p.customHormones=[...customHormones];p.doses=JSON.parse(JSON.stringify(doses));p.trackedHormones=[...trackedHormones];p.shownAxes=[...shownAxes];p.labs=JSON.parse(JSON.stringify(labs));p.profilePic=profilePic;p.tMin=tMin;p.xMax=xMax;saveToStorage();}
+function syncToProfile(){const p=getActive();if(!p)return;p.baseline=baseline;p.medications=[...medications];p.medCustom=JSON.parse(JSON.stringify(medCustom));p.customMeds=[...customMeds];p.customHormones=[...customHormones];p.doses=JSON.parse(JSON.stringify(doses));p.trackedHormones=[...trackedHormones];p.shownAxes=[...shownAxes];p.labs=JSON.parse(JSON.stringify(labs));p.profilePic=profilePic;p.tMin=tMin;p.xMax=xMax;p.preHrtPerHormone=JSON.parse(JSON.stringify(preHrtPerHormone||{}));saveToStorage();}
+function getFirstLabHormoneSet(){const real=labs.filter(l=>!l.isBaseline);if(!real.length)return new Set(trackedHormones);const sorted=[...real].sort((a,b)=>a.day-b.day);return new Set(Object.keys(sorted[0].values||{}));}
+function isPreHrtShownFor(hk){if(!showPreHrt)return false;if(preHrtPerHormone&&hk in preHrtPerHormone)return !!preHrtPerHormone[hk];return getFirstLabHormoneSet().has(hk);}
+function catalogTogglePreHrtForHormone(hk,on){if(!preHrtPerHormone)preHrtPerHormone={};preHrtPerHormone[hk]=!!on;renderCatalog();redraw();renderHistory();}
 
 // ═══ PROFILE PIC & MANAGEMENT ═══
 function setProfilePic(event){
@@ -1975,7 +1982,7 @@ function triggerPfp(){openCtxMenu=null;document.getElementById('pfpInput').click
 function removePfp(){pushUndo();profilePic='';syncToProfile();renderProfileTabs();openCtxMenu=null;}
 function renderProfileTabs(){const c=document.getElementById('profileTabs');c.innerHTML='';for(const name of Object.keys(profiles)){const isA=name===activeProfileName;const p=profiles[name];const safeId=name.replace(/[^a-zA-Z0-9]/g,'_');const tab=document.createElement('button');tab.className='profile-tab'+(isA?' active':'');const picHtml=p.profilePic?`<img class="tab-pic" src="${p.profilePic}">`:'<span class="tab-dot"></span>';const delLabel=t('deleteBtn');const capDel=delLabel.charAt(0).toUpperCase()+delLabel.slice(1);const dotsIcon='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';tab.innerHTML=`${picHtml}<span>${esc(name)}</span><button class="tab-menu-btn" aria-label="Profile menu" onclick="toggleCtxMenu('${esc(name)}',event)">${dotsIcon}</button><div class="ctx-menu" id="ctx_${safeId}"><button class="ctx-menu-item" onclick="startRename('${esc(name)}')">${t('rename')}</button><button class="ctx-menu-item" onclick="triggerPfp()">${t('setPicture')}</button><button class="ctx-menu-item" onclick="openQuickEmoji()">${pick('Set emoji','Definir emoji','Posa emoji')}</button>${p.profilePic?`<button class="ctx-menu-item" onclick="removePfp()">${t('deletePfp')}</button>`:''}<button class="ctx-menu-item" onclick="openSetupWizardForActive()">${pick('Setup wizard','Configuração inicial','Configuració inicial')}</button><button class="ctx-menu-item" style="color:var(--danger)" onclick="deleteProfile('${esc(name)}',event)">${capDel}</button></div>`;tab.addEventListener('click',(e)=>{if(!e.target.closest('.tab-menu-btn')&&!e.target.closest('.ctx-menu'))switchProfile(name);});c.appendChild(tab);}}
 function exportProfiles(){syncToProfile();const blob=new Blob([JSON.stringify({version:5,profiles,active:activeProfileName},null,2)],{type:'application/json'});const a=document.createElement('a');a.download=`HRT_${activeProfileName.replace(/[^a-zA-Z0-9]/g,'_')}.json`;a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);toast(t('exported'));}
-function importProfiles(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.profiles){toast(t('invalidFile'));return;}pushUndo();for(const[n,p]of Object.entries(data.profiles)){p.medCustom=p.medCustom||{};p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];migrateLabValues(p);profiles[n]=p;}if(data.active&&profiles[data.active])activeProfileName=data.active;saveToStorage();fullRefresh();}catch(err){toast(t('parseError'));}};reader.readAsText(file);event.target.value='';}
+function importProfiles(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.profiles){toast(t('invalidFile'));return;}pushUndo();for(const[n,p]of Object.entries(data.profiles)){p.medCustom=p.medCustom||{};p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];p.preHrtPerHormone=p.preHrtPerHormone||{};migrateLabValues(p);profiles[n]=p;}if(data.active&&profiles[data.active])activeProfileName=data.active;saveToStorage();fullRefresh();}catch(err){toast(t('parseError'));}};reader.readAsText(file);event.target.value='';}
 
 // ═══ ADD MEDICATION MODAL ═══
 let catalogSnapshot=null,catalogKind=null;
@@ -2054,7 +2061,9 @@ function renderCatalog(){
       const aliasList=(actual.aliases||h.aliases||[]).filter(a=>a&&a!==actual.name);
       const aliasLine=aliasList.length?`<div style="font-size:10px;color:var(--text-dim);font-weight:400;letter-spacing:.2px;margin-top:1px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(aliasList.join(' · '))}">${esc(aliasList.join(' · '))}</div>`:'';
       const trackToggle=`<label class="toggle-switch" style="margin-right:6px;flex-shrink:0" title="${pick('Track','Rastrear','Segueix')}"><input type="checkbox" ${isTracked?'checked':''} onchange="catalogToggleHormoneTracked('${h.id}',this.checked)"><span class="toggle-slider"></span></label>`;
-      return`<div class="catalog-row${isTracked?' tracked':''}"><input type="color" class="catalog-swatch" value="${actual.color}" onchange="catalogSetHormoneColor('${h.id}',this.value)"><div class="catalog-name" title="${esc(actual.name)}" style="display:flex;align-items:center;gap:4px;min-width:0">${trackToggle}<div style="display:flex;flex-direction:column;min-width:0;flex:1"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(actual.name)}${delBtn}</span>${aliasLine}</div></div>${tagHtml}<select class="catalog-unit-select" onchange="catalogSetHormoneUnit('${h.id}',this.value)">${unitOpts}</select><span></span><input type="number" step="0.01" value="${vals.tLo||0}" class="catalog-range-input" placeholder="min" title="${pick('Target min','Faixa alvo mínima','Mínim objectiu')}" onchange="catalogSetHormoneRange('${h.id}','tLo',this.value)"><span class="catalog-range-dash">–</span><input type="number" step="0.01" value="${vals.tHi||0}" class="catalog-range-input" placeholder="max" title="${pick('Target max','Faixa alvo máxima','Màxim objectiu')}" onchange="catalogSetHormoneRange('${h.id}','tHi',this.value)"><span></span><input type="number" step="1" min="0" max="50" value="${errPct}" class="catalog-range-input" title="${pick('Lab error margin (%)','Margem de erro do laboratório (%)','Marge d\'error del laboratori (%)')}" onchange="catalogSetHormoneError('${h.id}',this.value)"></div>`;
+      const preOn=isPreHrtShownFor(h.id);
+      const preBtn=isTracked?`<button class="cat-prehrt-btn${preOn?' on':''}" title="${pick('Show pre-HRT dotted line','Mostrar linha pontilhada pré-TRH','Mostra línia puntejada pre-THS')}" onclick="catalogTogglePreHrtForHormone('${h.id}',${!preOn})"><svg viewBox="0 0 24 14" width="22" height="11" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M2 7 H6 M10 7 H14 M18 7 H22" stroke-dasharray="0"/></svg></button>`:'';
+      return`<div class="catalog-row${isTracked?' tracked':''}"><input type="color" class="catalog-swatch" value="${actual.color}" onchange="catalogSetHormoneColor('${h.id}',this.value)"><div class="catalog-name" title="${esc(actual.name)}" style="display:flex;align-items:center;gap:4px;min-width:0">${trackToggle}${preBtn}<div style="display:flex;flex-direction:column;min-width:0;flex:1"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(actual.name)}${delBtn}</span>${aliasLine}</div></div>${tagHtml}<select class="catalog-unit-select" onchange="catalogSetHormoneUnit('${h.id}',this.value)">${unitOpts}</select><span></span><input type="number" step="0.01" value="${vals.tLo||0}" class="catalog-range-input" placeholder="min" title="${pick('Target min','Faixa alvo mínima','Mínim objectiu')}" onchange="catalogSetHormoneRange('${h.id}','tLo',this.value)"><span class="catalog-range-dash">–</span><input type="number" step="0.01" value="${vals.tHi||0}" class="catalog-range-input" placeholder="max" title="${pick('Target max','Faixa alvo máxima','Màxim objectiu')}" onchange="catalogSetHormoneRange('${h.id}','tHi',this.value)"><span></span><input type="number" step="1" min="0" max="50" value="${errPct}" class="catalog-range-input" title="${pick('Lab error margin (%)','Margem de erro do laboratório (%)','Marge d\'error del laboratori (%)')}" onchange="catalogSetHormoneError('${h.id}',this.value)"></div>`;
     }).join('');
     addBtn.onclick=()=>catalogAddCustom('hormone');
   }
@@ -2092,8 +2101,9 @@ function catalogSetHormoneError(hk,v){
 function catalogAddCustom(type){
   const list=document.getElementById('catalogList');
   const rowId='newRow_'+Date.now();
-  const row=document.createElement('div');row.className='catalog-row';row.id=rowId;row.style.background='var(--surface3)';
-  row.innerHTML=`<input type="color" class="catalog-swatch" value="#a48bcf"><input type="text" placeholder="${pick('Name','Nome','Nom')}" style="flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:13px"><select class="catalog-unit-select"><option value="mg">mg</option><option value="ml">ml</option><option value="pg/mL">pg/mL</option><option value="ng/mL">ng/mL</option><option value="ng/dL">ng/dL</option><option value="nmol/L">nmol/L</option><option value="IU">IU</option><option value="g">g</option></select><button class="btn btn-accent btn-sm" style="padding:3px 10px">${pick('OK','OK','OK')}</button><button class="btn btn-sm" style="padding:3px 10px">×</button>`;
+  const row=document.createElement('div');row.id=rowId;
+  row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border-bottom:1px solid var(--border);background:var(--surface3)';
+  row.innerHTML=`<input type="color" class="catalog-swatch" value="#a48bcf" style="flex:0 0 auto"><input type="text" placeholder="${pick('Name','Nome','Nom')}" style="flex:1 1 auto;min-width:0;padding:6px 10px;height:30px;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit"><select class="catalog-unit-select" style="flex:0 0 70px;height:30px;box-sizing:border-box;width:auto"><option value="mg">mg</option><option value="ml">ml</option><option value="pg/mL">pg/mL</option><option value="ng/mL">ng/mL</option><option value="ng/dL">ng/dL</option><option value="nmol/L">nmol/L</option><option value="IU">IU</option><option value="g">g</option></select><button class="btn btn-accent btn-sm" style="flex:0 0 auto;padding:0 14px;height:30px;box-sizing:border-box">${pick('OK','OK','OK')}</button><button class="btn btn-sm" style="flex:0 0 auto;padding:0;width:30px;height:30px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;font-size:16px;line-height:1">×</button>`;
   list.appendChild(row);
   const [colorInp,nameInp,unitSel,okBtn,cancelBtn]=row.querySelectorAll('input,select,button');
   nameInp.focus();
@@ -2484,6 +2494,7 @@ function renderHistory(){
       // Build a synthetic baseline using each tracked hormone's preset typical value
       const synthVals={};
       for(const hk of trackedHormones){
+        if(!isPreHrtShownFor(hk))continue;
         const v=getHormoneVals(hk);
         if(v&&Number.isFinite(v.typ)&&v.typ!==0)synthVals[hk]=v.typ;
       }
@@ -2496,10 +2507,14 @@ function renderHistory(){
     const sorted=allRows.sort((a,b)=>{return histSortAsc?a.day-b.day:b.day-a.day;});
     let html=`<div class="history-table-wrap"><table class="history-table"><thead><tr><th onclick="sortHistory('day')">${t('date')}${sortArrow('day')}</th><th onclick="sortHistory('day')">${t('day')}${sortArrow('day')}</th><th>${t('values')}</th><th></th></tr></thead><tbody>`;
     for(const lab of sorted){const isEd=!lab.isSynthetic&&editingLab===lab.origIdx;
-      if(isEd){let vf='';for(const k of Object.keys(lab.values)){const h=getHormone(k);if(!h)continue;
-          const editU=readLabUnit(lab,k)||h.unit;
-          const editV=readLabValue(lab,k,editU);
-          vf+=`<span style="display:inline-flex;align-items:center;gap:4px;margin:2px 6px 2px 0;white-space:nowrap"><span style="color:${h.color};font-size:12px;font-weight:600">${esc(h.name)}:</span><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" style="width:80px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px"><span style="color:var(--text-dim);font-size:11px">${esc(editU)}</span></span>`;}
+      if(isEd){
+          const editKeys=trackedHormones.filter(k=>lab.values[k]!=null).concat(Object.keys(lab.values).filter(k=>!trackedHormones.includes(k)));
+          const editItems=editKeys.map(k=>{const h=getHormone(k);if(!h)return'';
+            const editU=readLabUnit(lab,k)||h.unit;
+            const editV=readLabValue(lab,k,editU);
+            return`<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:1px 0"><span style="color:${h.color};font-weight:500">${esc(h.name)}</span><span style="display:inline-flex;align-items:center;gap:6px"><input type="number" step="0.01" value="${editV??''}" id="ed_l_${k}" data-hk="${k}" style="width:80px;padding:4px 6px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:13px;text-align:right"><span style="color:var(--text-dim);font-size:.92em;min-width:40px">${esc(editU)}</span></span></div>`;
+          }).filter(Boolean);
+          const vf=`<div style="display:flex;flex-direction:column;min-width:220px;max-width:340px">${editItems.join('')}</div>`;
         html+=`<tr style="background:var(--surface2)"><td><input type="date" value="${daysToISO(lab.day)}" id="ed_l_date" style="width:150px;padding:6px 8px;border:1px solid var(--accent);border-radius:6px;background:var(--surface3);color:var(--text);font-size:14px"></td><td id="ed_l_dayp">${lab.day}</td><td>${vf}</td><td class="hist-actions"><button class="hist-btn" style="color:var(--accent);border-color:var(--accent)" onclick="saveLabEdit(${lab.origIdx})">✓</button><button class="hist-btn" onclick="editingLab=null;renderHistory()">✕</button></td></tr>`;
       }else{
         // Order values by trackedHormones (consistent order across all rows)
@@ -2768,7 +2783,8 @@ function drawChart(canvas,opts){
     function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}
     // Separate baseline lab (day -30) from regular labs.
     // Read every value in the hormone's CURRENT display unit so plotting is consistent.
-    const baselineLab=showPreHrt?labs.find(l=>l.isBaseline&&l.values[hk]!=null):null;
+    const showPreHrtH=isPreHrtShownFor(hk);
+    const baselineLab=showPreHrtH?labs.find(l=>l.isBaseline&&l.values[hk]!=null):null;
     const times=[],vals=[];
     for(const lab of labs){
       if(lab.isBaseline)continue;
@@ -2785,7 +2801,7 @@ function drawChart(canvas,opts){
     // by epsilon prevents the monotone-cubic algorithm from forcing a horizontal tangent
     // there, which was causing the abrupt-then-spike transition.
     let xs2,ys2;
-    if(baseline==='none'||!showPreHrt){xs2=[...times];ys2=[...vals];}
+    if(baseline==='none'||!showPreHrtH){xs2=[...times];ys2=[...vals];}
     else{
       // Anchor pre-HRT: flat at tMin, flat at day -1 (just before HRT), then transition starts at day 0.
       // The two pre-HRT anchors keep the curve flat up to day 0; the first-lab measurement provides the upward end.
@@ -2793,7 +2809,7 @@ function drawChart(canvas,opts){
     }
     // If there are no real labs to draw, skip — pre-HRT lines only show when they connect to real data
     if(!times.length)continue;
-    const f=makeMonotone(xs2,ys2);const step2=Math.max(0.25,(xMax-tMin)/800);const drawFrom=(baseline==='none'||!showPreHrt)?times[0]:tMin;
+    const f=makeMonotone(xs2,ys2);const step2=Math.max(0.25,(xMax-tMin)/800);const drawFrom=(baseline==='none'||!showPreHrtH)?times[0]:tMin;
     // Error halo (soft fuzzy band around the curve) — only when toggle on and only between real labs
     if(showError&&times.length){
       const errPct=getHormoneErrorPct(hk)/100;
