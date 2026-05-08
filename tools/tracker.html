@@ -166,6 +166,7 @@ body[data-theme="evil"] .panel-watermark{opacity:.035;color:var(--accent)}
 .range-input-pair{display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
 .recur-group{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
 .range-bar+.toggle-bar{border-top:1px dashed var(--border)}
+.range-bar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
 .range-bar:has(+.toggle-bar){border-radius:var(--radius) var(--radius) 0 0}
 .toggle-bar-title{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-right:4px}
 .range-bar label{font-size:15px;color:var(--text-dim);font-weight:500}
@@ -548,10 +549,12 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   .range-input-pair label{font-size:12px;color:var(--text-muted);flex-shrink:0}
   /* Action buttons (Start Date / Export PNG / Print) — give them enough flex-basis that the
      text+icon never clip; the row wraps to a second line on narrow iPhones rather than truncating. */
-  .range-bar > .btn{padding:7px 10px;font-size:11px;min-height:34px;width:calc(50% - 5px);flex:0 0 calc(50% - 5px);min-width:0;max-width:calc(50% - 5px);justify-content:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box}
-  .range-bar > .btn:last-child{width:100%;flex:0 0 100%;max-width:100%}
-  .range-bar > .btn svg{width:13px;height:13px;flex-shrink:0}
-  .range-bar > .btn span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .range-bar > .btn{padding:7px 10px;font-size:11px;min-height:34px;justify-content:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .range-bar-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+  .range-bar-actions .btn{padding:8px 8px;font-size:12px;min-height:38px;display:flex;align-items:center;justify-content:center;gap:5px;width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .range-bar-actions .btn:last-child{grid-column:1 / -1}
+  .range-bar-actions .btn svg{width:14px;height:14px;flex-shrink:0}
+  .range-bar-actions .btn span{overflow:hidden;text-overflow:ellipsis;min-width:0}
   .range-bar > div[style*="flex:1"]{flex-basis:100%;width:0;height:0;margin:0;display:block!important}
   /* Steppers smaller & more compact for the day pickers */
   .range-bar .stepper{height:32px}
@@ -819,9 +822,11 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
     </div>
   </div>
   <div style="flex:1"></div>
-  <button class="btn" onclick="openStartDateModal()" style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-i18n="hrtStartDate">Set Start Date</span></button>
-  <button class="btn" onclick='exportPNG()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> <span data-i18n="exportPng">Export PNG</span></button>
-  <button class="btn" onclick='printChart()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print</button>
+  <div class="range-bar-actions">
+    <button class="btn" onclick="openStartDateModal()" style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span data-i18n="hrtStartDate">Set Start Date</span></button>
+    <button class="btn" onclick='exportPNG()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> <span data-i18n="exportPng">Export PNG</span></button>
+    <button class="btn" onclick='printChart()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print</button>
+  </div>
 </div>
 <div class="toggle-bar">
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showLabelsToggle" checked onchange="toggleLabels()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showLabels">Labels</span></div>
