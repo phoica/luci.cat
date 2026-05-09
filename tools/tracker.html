@@ -963,13 +963,13 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
     <div id="addMedBody" style="overflow-y:auto;flex:1;padding-right:4px"></div>
     <div id="customMedForm" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius-sm)">
       <div style="display:grid;grid-template-columns:1fr 80px 42px;gap:8px;align-items:center;margin-bottom:8px">
-        <input id="customMedName" type="text" placeholder="Medication name" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
+        <input id="customMedName" type="text" data-i18n-placeholder="medicationName" placeholder="Medication name" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
         <select id="customMedUnit" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px"><option value="mg">mg</option><option value="mL">mL</option><option value="IU">IU</option><option value="mcg">mcg</option><option value="g">g</option></select>
         <input id="customMedColor" type="color" value="#b07cd8" style="width:42px;height:32px;padding:1px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
       </div>
       <div style="display:flex;gap:6px;justify-content:flex-end">
-        <button class="btn btn-sm" onclick="document.getElementById('customMedForm').style.display='none'">Cancel</button>
-        <button class="btn btn-sm btn-accent" onclick="confirmAddCustomMedFromModal()">Add</button>
+        <button class="btn btn-sm" data-i18n="cancel" onclick="document.getElementById('customMedForm').style.display='none'">Cancel</button>
+        <button class="btn btn-sm btn-accent" data-i18n="addBtn" onclick="confirmAddCustomMedFromModal()">Add</button>
       </div>
     </div>
     <div class="modal-buttons">
@@ -985,13 +985,13 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
     <div id="addHormoneBody" style="overflow-y:auto;flex:1;padding-right:4px"></div>
     <div id="customHormoneForm" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius-sm)">
       <div style="display:grid;grid-template-columns:1fr 90px 42px;gap:8px;align-items:center;margin-bottom:8px">
-        <input id="customHormoneName" type="text" placeholder="Hormone/marker name" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
-        <input id="customHormoneUnit" type="text" value="ng/mL" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
+        <input id="customHormoneName" type="text" data-i18n-placeholder="hormoneMarkerName" placeholder="Hormone/marker name" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit">
+        <select id="customHormoneUnit" style="padding:6px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;font-family:inherit"></select>
         <input id="customHormoneColor" type="color" value="#dd88aa" style="width:42px;height:32px;padding:1px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
       </div>
       <div style="display:flex;gap:6px;justify-content:flex-end">
-        <button class="btn btn-sm" onclick="document.getElementById('customHormoneForm').style.display='none'">Cancel</button>
-        <button class="btn btn-sm btn-accent" onclick="confirmAddCustomHormoneFromModal()">Add</button>
+        <button class="btn btn-sm" data-i18n="cancel" onclick="document.getElementById('customHormoneForm').style.display='none'">Cancel</button>
+        <button class="btn btn-sm btn-accent" data-i18n="addBtn" onclick="confirmAddCustomHormoneFromModal()">Add</button>
       </div>
     </div>
     <div class="modal-buttons">
@@ -1072,16 +1072,47 @@ const UNIT_CONV={
   HCT:{canonical:'%','%':1,'L/L':100,'fraction':100},
   K:{canonical:'mEq/L','mEq/L':1,'mmol/L':1}
 };
+// Universal unit conversion table — handles any same-dimension pair (mass↔mass, mole↔mole,
+// IU↔IU, U↔U) without needing a per-hormone entry. Cross-dimension conversions (e.g. mass↔mole)
+// require molecular weight and stay in UNIT_CONV. Think: 1 km = 1000 m, regardless of substance.
+const _UNIT_PREFIX={pg:1e-12,ng:1e-9,'µg':1e-6,ug:1e-6,mcg:1e-6,mg:1e-3,g:1,kg:1e3,
+  pmol:1e-12,nmol:1e-9,'µmol':1e-6,umol:1e-6,mmol:1e-3,mol:1,
+  IU:1,mIU:1e-3,U:1};
+const _UNIT_VOLUME={mL:1e-3,dL:0.1,cL:0.01,L:1,ml:1e-3,l:1};
+const _UNIT_FAMILY={pg:'mass',ng:'mass','µg':'mass',ug:'mass',mcg:'mass',mg:'mass',g:'mass',kg:'mass',
+  pmol:'mole',nmol:'mole','µmol':'mole',umol:'mole',mmol:'mole',mol:'mole',
+  IU:'iu',mIU:'iu',U:'u'};
+function _parseUnit(u){if(!u)return null;const s=String(u).trim();const m=s.match(/^([A-Za-zµ%]+)(?:\/([A-Za-z]+))?$/);if(!m)return null;return{numer:m[1],denom:m[2]||null};}
+function universalConvert(value,fromU,toU){
+  if(!Number.isFinite(value))return null;
+  if(fromU===toU)return value;
+  const f=_parseUnit(fromU),t=_parseUnit(toU);if(!f||!t)return null;
+  const fFam=_UNIT_FAMILY[f.numer],tFam=_UNIT_FAMILY[t.numer];
+  if(!fFam||!tFam||fFam!==tFam)return null;
+  // Convert value to the family's base unit (g for mass, mol for mole, etc.) per liter
+  const fNumF=_UNIT_PREFIX[f.numer],tNumF=_UNIT_PREFIX[t.numer];
+  const fVolF=f.denom?(_UNIT_VOLUME[f.denom]||null):1;
+  const tVolF=t.denom?(_UNIT_VOLUME[t.denom]||null):1;
+  if(fVolF==null||tVolF==null)return null;
+  // value [fNumer/fDenom] -> base/L = value * fNumF / fVolF
+  const basePerL=value*fNumF/fVolF;
+  // base/L -> [tNumer/tDenom] = basePerL * tVolF / tNumF
+  return basePerL*tVolF/tNumF;
+}
 // Convert value from `fromUnit` to `toUnit` for a given hormone key.
-// Returns the numeric value in toUnit, or the original if no conversion known.
+// Falls back to universalConvert when the per-hormone table doesn't cover the pair.
 function convertUnit(hk,value,fromUnit,toUnit){
   if(!Number.isFinite(value))return value;
   if(!fromUnit||!toUnit||fromUnit===toUnit)return value;
-  const tbl=UNIT_CONV[hk];if(!tbl)return value;
-  const fFrom=tbl[fromUnit],fTo=tbl[toUnit];
-  if(!Number.isFinite(fFrom)||!Number.isFinite(fTo))return value;
-  // value * fFrom = value in canonical unit; then / fTo = value in toUnit
-  return(value*fFrom)/fTo;
+  const tbl=UNIT_CONV[hk];
+  if(tbl){
+    const fFrom=tbl[fromUnit],fTo=tbl[toUnit];
+    if(Number.isFinite(fFrom)&&Number.isFinite(fTo))return(value*fFrom)/fTo;
+  }
+  // Per-hormone table doesn't cover this pair; try the universal converter.
+  const u=universalConvert(value,fromUnit,toUnit);
+  if(u!=null&&Number.isFinite(u))return u;
+  return value;
 }
 // Read a lab measurement value in a target unit. Handles both legacy (number) and
 // new {v,u} formats. Falls back gracefully if conversion is unknown.
@@ -1127,9 +1158,9 @@ function setHormoneRange(hk,lo,hi){const p=getActive();if(!p)return;if(!p.hormon
 
 // ═══ i18n ═══
 let lang='en';
-const I18N={en:{profiles:'Profiles',newBtn:'New',exportBtn:'Export',importBtn:'Import',showFromDay:'From day:',showUpToDay:'to day:',showLabels:'Labels',showLegend:'Legend',showValues:'Values',showGuides:'Guides',showPreHrt:'Pre-HRT',showRanges:'Ranges',showCurves:'Curves',showError:'Error %',exportPng:'Export PNG',addDosage:'Add Dosage',addLabTest:'Add Lab Test',date:'Date',amount:'Amount',addBtn:'Add',addDoseBtn:'Add Dose',addLabBtn:'Add Lab Result',addAllDosesBtn:'Add All Doses',addMedication:'Add Medication',trackHormone:'Track Hormone',history:'History',doses:'Doses',labTests:'Lab Tests',day:'Day',medication:'Medication',values:'Values',edit:'edit',deleteBtn:'delete',noDoses:'No doses recorded yet.',noLabs:'No lab tests recorded yet.',settingsFor:'Settings for',color:'Color',unit:'Unit',createProfile:'Create Profile',profileName:'Profile name...',baseline:'Baseline',noBaseline:'No baseline',preHrtMale:'Pre-HRT "male"',preHrtFemale:'Pre-HRT "female"',typMaleLevels:'Typical pre-HRT "male" levels',typFemaleLevels:'Typical pre-HRT "female" levels',cancel:'Cancel',create:'Create',doseUpdated:'Updated',confirmDeleteDose:'Delete this dose?',confirmDeleteLab:'Delete this lab?',daysLabel:'days since start',doseMg:'dose',hrtStart:'HRT Start',selectMedFirst:'Select a medication first.',fillDateAmount:'Fill in date and amount.',enterValidAmount:'Enter a valid amount.',enterDate:'Enter a date.',enterOneValue:'Enter at least one value.',alreadyExists:'Already exists',cantDeleteOnly:"Can't delete only profile",profilePicSet:'Photo set',exported:'Exported',removed:'Removed',rename:'Rename',setPicture:'Set picture',deletePfp:'Remove picture',recurring:'Recurring dose',every:'Every',days2:'days',forDuration:'for',weeks:'weeks',months:'months',years:'year(s)',addAll:'Add all',dosesAdded:'doses added',dosesTaken:'doses taken',daysSinceLab:'days since last lab',daySinceStart:'days since start',undone:'Undone',hormonesLabel:'hormones',hrtStartDate:'HRT Start Date',chooseOrCustom:'Choose from list or create custom',custom:'Custom...',showDoseDots:'Dose dots',viewAll:'All',viewSplit:'Multi-view',addProfileBtn:'Add Profile',showAxesFor:'Show axes for:',showAxesLabel:'Axes',targetRanges:'Target Ranges',nextBtn:'Next →',backBtn:'← Back',applyBtn:'Apply',parseError:'Parse error',invalidFile:'Invalid file'},
-pt:{profiles:'Perfis',newBtn:'Novo',exportBtn:'Exportar',importBtn:'Importar',showFromDay:'Do dia:',showUpToDay:'até o dia:',showLabels:'Rótulos',showLegend:'Legenda',showValues:'Valores',showGuides:'Guias',showPreHrt:'Pré-TRH',showRanges:'Faixas',showCurves:'Curvas',showError:'Erro %',exportPng:'Exportar PNG',addDosage:'Adicionar Dosagem',addLabTest:'Adicionar Exame',date:'Data',amount:'Quantidade',addBtn:'Adicionar',addDoseBtn:'Adicionar Dose',addLabBtn:'Adicionar Exame',addAllDosesBtn:'Adicionar Todas as Doses',addMedication:'Adicionar Medicação',trackHormone:'Rastrear Hormônio',history:'Histórico',doses:'Doses',labTests:'Exames',day:'Dia',medication:'Medicação',values:'Valores',edit:'editar',deleteBtn:'excluir',noDoses:'Nenhuma dose registrada.',noLabs:'Nenhum exame registrado.',settingsFor:'Configurações de',color:'Cor',unit:'Unidade',createProfile:'Criar Perfil',profileName:'Nome do perfil...',baseline:'Linha de base',noBaseline:'Sem linha de base',preHrtMale:'Pré-TRH "masculino"',preHrtFemale:'Pré-TRH "feminino"',typMaleLevels:'Níveis pré-TRH "masculinos" típicos',typFemaleLevels:'Níveis pré-TRH "femininos" típicos',cancel:'Cancelar',create:'Criar',doseUpdated:'Atualizado',confirmDeleteDose:'Excluir esta dose?',confirmDeleteLab:'Excluir este exame?',daysLabel:'dias desde o início',doseMg:'dose',hrtStart:'Início TRH',selectMedFirst:'Selecione uma medicação.',fillDateAmount:'Preencha data e quantidade.',enterValidAmount:'Valor inválido.',enterDate:'Insira uma data.',enterOneValue:'Insira pelo menos um valor.',alreadyExists:'Já existe',cantDeleteOnly:'Impossível excluir o único perfil',profilePicSet:'Foto definida',exported:'Exportado',removed:'Removido',rename:'Renomear',setPicture:'Definir foto',deletePfp:'Remover foto',recurring:'Dose recorrente',every:'A cada',days2:'dias',forDuration:'por',weeks:'semanas',months:'meses',years:'ano(s)',addAll:'Adicionar tudo',dosesAdded:'doses adicionadas',dosesTaken:'doses tomadas',daysSinceLab:'dias desde último exame',daySinceStart:'dias desde o início',undone:'Desfeito',hormonesLabel:'hormônios',hrtStartDate:'Data de Início TRH',chooseOrCustom:'Escolha da lista ou crie personalizado',custom:'Personalizado...',showDoseDots:'Pontos de dose',viewAll:'Todos',viewSplit:'Multi-visão',addProfileBtn:'Adicionar Perfil',showAxesFor:'Mostrar eixos para:',showAxesLabel:'Eixos',targetRanges:'Faixas Alvo',nextBtn:'Próximo →',backBtn:'← Voltar',applyBtn:'Aplicar',parseError:'Erro',invalidFile:'Arquivo inválido'},
-ca:{profiles:'Perfils',newBtn:'Nou',exportBtn:'Exporta',importBtn:'Importa',showFromDay:'Del dia:',showUpToDay:"fins al dia:",showLabels:'Etiquetes',showLegend:'Llegenda',showValues:'Valors',showGuides:'Guies',showPreHrt:'Pre-THS',showRanges:'Intervals',showCurves:'Corbes',showError:'Error %',exportPng:'Exporta PNG',addDosage:'Afegeix Dosi',addLabTest:'Afegeix Anàlisi',date:'Data',amount:'Quantitat',addBtn:'Afegeix',addDoseBtn:'Afegeix Dosi',addLabBtn:'Afegeix Resultat',addAllDosesBtn:'Afegeix Totes les Dosis',addMedication:'Afegeix Medicació',trackHormone:'Segueix Hormona',history:'Historial',doses:'Dosis',labTests:'Anàlisis',day:'Dia',medication:'Medicació',values:'Valors',edit:'edita',deleteBtn:'elimina',noDoses:'Encara no hi ha dosis registrades.',noLabs:'Encara no hi ha anàlisis registrades.',settingsFor:'Configuració de',color:'Color',unit:'Unitat',createProfile:'Crea Perfil',profileName:'Nom del perfil...',baseline:'Línia base',noBaseline:'Sense línia base',preHrtMale:'Pre-THS "masculí"',preHrtFemale:'Pre-THS "femení"',typMaleLevels:'Nivells pre-THS "masculins" típics',typFemaleLevels:'Nivells pre-THS "femenins" típics',cancel:'Cancel·la',create:'Crea',doseUpdated:'Actualitzat',confirmDeleteDose:'Vols eliminar aquesta dosi?',confirmDeleteLab:'Vols eliminar aquesta anàlisi?',daysLabel:'dies des de l\'inici',doseMg:'dosi',hrtStart:'Inici THS',selectMedFirst:'Selecciona primer una medicació.',fillDateAmount:'Omple data i quantitat.',enterValidAmount:'Introdueix un valor vàlid.',enterDate:'Introdueix una data.',enterOneValue:'Introdueix com a mínim un valor.',alreadyExists:'Ja existeix',cantDeleteOnly:"No es pot eliminar l'únic perfil",profilePicSet:'Foto desada',exported:'Exportat',removed:'Eliminat',rename:'Canvia el nom',setPicture:'Posa foto',deletePfp:'Treu foto',recurring:'Dosi recurrent',every:'Cada',days2:'dies',forDuration:'durant',weeks:'setmanes',months:'mesos',years:'any(s)',addAll:'Afegeix-ho tot',dosesAdded:'dosis afegides',dosesTaken:'dosis preses',daysSinceLab:"dies des de l'última anàlisi",daySinceStart:"dies des de l'inici",undone:'Desfet',hormonesLabel:'hormones',hrtStartDate:"Data d'Inici THS",chooseOrCustom:'Tria de la llista o crea personalitzat',custom:'Personalitzat...',showDoseDots:'Punts de dosi',viewAll:'Totes',viewSplit:'Multi-vista',addProfileBtn:'Afegeix Perfil',showAxesFor:'Mostra eixos per a:',showAxesLabel:'Eixos',targetRanges:'Intervals Objectiu',nextBtn:'Següent →',backBtn:'← Enrere',applyBtn:'Aplica',parseError:'Error de lectura',invalidFile:'Fitxer no vàlid'}};
+const I18N={en:{profiles:'Profiles',newBtn:'New',exportBtn:'Export',importBtn:'Import',showFromDay:'From day:',showUpToDay:'to day:',showLabels:'Labels',showLegend:'Legend',showValues:'Values',showGuides:'Guides',showPreHrt:'Pre-HRT',showRanges:'Ranges',showCurves:'Curves',showError:'Error %',exportPng:'Export PNG',addDosage:'Add Dosage',addLabTest:'Add Lab Test',date:'Date',amount:'Amount',addBtn:'Add',addDoseBtn:'Add Dose',addLabBtn:'Add Lab Result',addAllDosesBtn:'Add All Doses',addMedication:'Add Medication',trackHormone:'Track Hormone',history:'History',doses:'Doses',labTests:'Lab Tests',day:'Day',medication:'Medication',values:'Values',edit:'edit',deleteBtn:'delete',noDoses:'No doses recorded yet.',noLabs:'No lab tests recorded yet.',settingsFor:'Settings for',color:'Color',unit:'Unit',createProfile:'Create Profile',profileName:'Profile name...',baseline:'Baseline',noBaseline:'No baseline',preHrtMale:'Pre-HRT "male"',preHrtFemale:'Pre-HRT "female"',typMaleLevels:'Typical pre-HRT "male" levels',typFemaleLevels:'Typical pre-HRT "female" levels',cancel:'Cancel',create:'Create',doseUpdated:'Updated',confirmDeleteDose:'Delete this dose?',confirmDeleteLab:'Delete this lab?',daysLabel:'days since start',doseMg:'dose',hrtStart:'HRT Start',selectMedFirst:'Select a medication first.',fillDateAmount:'Fill in date and amount.',enterValidAmount:'Enter a valid amount.',enterDate:'Enter a date.',enterOneValue:'Enter at least one value.',alreadyExists:'Already exists',cantDeleteOnly:"Can't delete only profile",profilePicSet:'Photo set',exported:'Exported',removed:'Removed',rename:'Rename',setPicture:'Set picture',deletePfp:'Remove picture',recurring:'Recurring dose',every:'Every',days2:'days',forDuration:'for',weeks:'weeks',months:'months',years:'year(s)',addAll:'Add all',dosesAdded:'doses added',dosesTaken:'doses taken',daysSinceLab:'days since last lab',daySinceStart:'days since start',undone:'Undone',hormonesLabel:'hormones',hrtStartDate:'HRT Start Date',chooseOrCustom:'Choose from list or create custom',custom:'Custom...',showDoseDots:'Dose dots',viewAll:'All',viewSplit:'Multi-view',addProfileBtn:'Add Profile',showAxesFor:'Show axes for:',showAxesLabel:'Axes',targetRanges:'Target Ranges',nextBtn:'Next →',backBtn:'← Back',applyBtn:'Apply',parseError:'Parse error',invalidFile:'Invalid file',hormoneMarkerName:'Hormone/marker name',medicationName:'Medication name'},
+pt:{profiles:'Perfis',newBtn:'Novo',exportBtn:'Exportar',importBtn:'Importar',showFromDay:'Do dia:',showUpToDay:'até o dia:',showLabels:'Rótulos',showLegend:'Legenda',showValues:'Valores',showGuides:'Guias',showPreHrt:'Pré-TRH',showRanges:'Faixas',showCurves:'Curvas',showError:'Erro %',exportPng:'Exportar PNG',addDosage:'Adicionar Dosagem',addLabTest:'Adicionar Exame',date:'Data',amount:'Quantidade',addBtn:'Adicionar',addDoseBtn:'Adicionar Dose',addLabBtn:'Adicionar Exame',addAllDosesBtn:'Adicionar Todas as Doses',addMedication:'Adicionar Medicação',trackHormone:'Rastrear Hormônio',history:'Histórico',doses:'Doses',labTests:'Exames',day:'Dia',medication:'Medicação',values:'Valores',edit:'editar',deleteBtn:'excluir',noDoses:'Nenhuma dose registrada.',noLabs:'Nenhum exame registrado.',settingsFor:'Configurações de',color:'Cor',unit:'Unidade',createProfile:'Criar Perfil',profileName:'Nome do perfil...',baseline:'Linha de base',noBaseline:'Sem linha de base',preHrtMale:'Pré-TRH "masculino"',preHrtFemale:'Pré-TRH "feminino"',typMaleLevels:'Níveis pré-TRH "masculinos" típicos',typFemaleLevels:'Níveis pré-TRH "femininos" típicos',cancel:'Cancelar',create:'Criar',doseUpdated:'Atualizado',confirmDeleteDose:'Excluir esta dose?',confirmDeleteLab:'Excluir este exame?',daysLabel:'dias desde o início',doseMg:'dose',hrtStart:'Início TRH',selectMedFirst:'Selecione uma medicação.',fillDateAmount:'Preencha data e quantidade.',enterValidAmount:'Valor inválido.',enterDate:'Insira uma data.',enterOneValue:'Insira pelo menos um valor.',alreadyExists:'Já existe',cantDeleteOnly:'Impossível excluir o único perfil',profilePicSet:'Foto definida',exported:'Exportado',removed:'Removido',rename:'Renomear',setPicture:'Definir foto',deletePfp:'Remover foto',recurring:'Dose recorrente',every:'A cada',days2:'dias',forDuration:'por',weeks:'semanas',months:'meses',years:'ano(s)',addAll:'Adicionar tudo',dosesAdded:'doses adicionadas',dosesTaken:'doses tomadas',daysSinceLab:'dias desde último exame',daySinceStart:'dias desde o início',undone:'Desfeito',hormonesLabel:'hormônios',hrtStartDate:'Data de Início TRH',chooseOrCustom:'Escolha da lista ou crie personalizado',custom:'Personalizado...',showDoseDots:'Pontos de dose',viewAll:'Todos',viewSplit:'Multi-visão',addProfileBtn:'Adicionar Perfil',showAxesFor:'Mostrar eixos para:',showAxesLabel:'Eixos',targetRanges:'Faixas Alvo',nextBtn:'Próximo →',backBtn:'← Voltar',applyBtn:'Aplicar',parseError:'Erro',invalidFile:'Arquivo inválido',hormoneMarkerName:'Nome do hormônio/marcador',medicationName:'Nome da medicação'},
+ca:{profiles:'Perfils',newBtn:'Nou',exportBtn:'Exporta',importBtn:'Importa',showFromDay:'Del dia:',showUpToDay:"fins al dia:",showLabels:'Etiquetes',showLegend:'Llegenda',showValues:'Valors',showGuides:'Guies',showPreHrt:'Pre-THS',showRanges:'Intervals',showCurves:'Corbes',showError:'Error %',exportPng:'Exporta PNG',addDosage:'Afegeix Dosi',addLabTest:'Afegeix Anàlisi',date:'Data',amount:'Quantitat',addBtn:'Afegeix',addDoseBtn:'Afegeix Dosi',addLabBtn:'Afegeix Resultat',addAllDosesBtn:'Afegeix Totes les Dosis',addMedication:'Afegeix Medicació',trackHormone:'Segueix Hormona',history:'Historial',doses:'Dosis',labTests:'Anàlisis',day:'Dia',medication:'Medicació',values:'Valors',edit:'edita',deleteBtn:'elimina',noDoses:'Encara no hi ha dosis registrades.',noLabs:'Encara no hi ha anàlisis registrades.',settingsFor:'Configuració de',color:'Color',unit:'Unitat',createProfile:'Crea Perfil',profileName:'Nom del perfil...',baseline:'Línia base',noBaseline:'Sense línia base',preHrtMale:'Pre-THS "masculí"',preHrtFemale:'Pre-THS "femení"',typMaleLevels:'Nivells pre-THS "masculins" típics',typFemaleLevels:'Nivells pre-THS "femenins" típics',cancel:'Cancel·la',create:'Crea',doseUpdated:'Actualitzat',confirmDeleteDose:'Vols eliminar aquesta dosi?',confirmDeleteLab:'Vols eliminar aquesta anàlisi?',daysLabel:'dies des de l\'inici',doseMg:'dosi',hrtStart:'Inici THS',selectMedFirst:'Selecciona primer una medicació.',fillDateAmount:'Omple data i quantitat.',enterValidAmount:'Introdueix un valor vàlid.',enterDate:'Introdueix una data.',enterOneValue:'Introdueix com a mínim un valor.',alreadyExists:'Ja existeix',cantDeleteOnly:"No es pot eliminar l'únic perfil",profilePicSet:'Foto desada',exported:'Exportat',removed:'Eliminat',rename:'Canvia el nom',setPicture:'Posa foto',deletePfp:'Treu foto',recurring:'Dosi recurrent',every:'Cada',days2:'dies',forDuration:'durant',weeks:'setmanes',months:'mesos',years:'any(s)',addAll:'Afegeix-ho tot',dosesAdded:'dosis afegides',dosesTaken:'dosis preses',daysSinceLab:"dies des de l'última anàlisi",daySinceStart:"dies des de l'inici",undone:'Desfet',hormonesLabel:'hormones',hrtStartDate:"Data d'Inici THS",chooseOrCustom:'Tria de la llista o crea personalitzat',custom:'Personalitzat...',showDoseDots:'Punts de dosi',viewAll:'Totes',viewSplit:'Multi-vista',addProfileBtn:'Afegeix Perfil',showAxesFor:'Mostra eixos per a:',showAxesLabel:'Eixos',targetRanges:'Intervals Objectiu',nextBtn:'Següent →',backBtn:'← Enrere',applyBtn:'Aplica',parseError:'Error de lectura',invalidFile:'Fitxer no vàlid',hormoneMarkerName:'Nom de l\'hormona/marcador',medicationName:'Nom de la medicació'}};
 function t(key){return I18N[lang]?.[key]||I18N.en[key]||key;}
 function pick(en,pt,ca){if(lang==='pt')return pt;if(lang==='ca')return ca;return en;}
 function setLang(l){lang=l;try{localStorage.setItem('hrt_lang',l);}catch(e){}updateStaticLabels();renderInfoModal();renderProfileTabs();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();renderHistory();renderStats();redraw();fitHeaderLogo();}
@@ -2225,13 +2256,19 @@ function confirmAddMed(){pickMedFromModal(document.getElementById('medModalSelec
 function openAddHormoneModal(){
   renderAddHormoneModal();
   document.getElementById('customHormoneForm').style.display='none';
+  // Populate the unit dropdown with every common lab unit; user picks from a list, no typos.
+  const unitSel=document.getElementById('customHormoneUnit');
+  if(unitSel&&!unitSel.options.length){
+    const UNITS=['pg/mL','ng/mL','ng/dL','ng/L','µg/L','µg/dL','mg/dL','mg/L','g/L','mIU/mL','IU/L','mIU/L','nmol/L','pmol/L','µmol/L','mmol/L','U/L','mEq/L','%'];
+    for(const u of UNITS){const o=document.createElement('option');o.value=u;o.textContent=u;if(u==='ng/mL')o.selected=true;unitSel.appendChild(o);}
+  }
   document.getElementById('addHormoneModal').classList.add('open');
 }
 function renderAddHormoneModal(){
   const body=document.getElementById('addHormoneBody');
-  const sexHorm=['E2','T','DHT','PROG','SHBG'];
+  const sexHorm=['E2','T','FT','DHT','PROG','SHBG'];
   const pituitary=['PRL','LH','FSH','IGF1','CORT'];
-  const liverKidney=['ALT','AST','CREAT'];
+  const liverKidney=['ALT','AST','GGT','CREAT'];
   const nutrients=['VITD','FE','B12'];
   const blood=['HCT','K'];
   const customIds=customHormones.map(h=>h.id);
