@@ -2840,6 +2840,9 @@ function drawChart(canvas,opts){
 
   // Dose axes (left, per-med) — only draw numbers when master axes toggle is on AND this med is selected
   ctx.font=fSm;
+  // Shared label-rect tracker so hormone names, hormone values, and medication names all
+  // arbitrate placement against each other instead of stacking when they cluster.
+  const _placedLabels=[];
   for(const medId of medsToShow){const md=doses[medId];if(!md||!md.length)continue;let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;const dMax=Math.max(1,mx*1.4);const dStep2=niceStep(dMax,6);const col=getMedColor(medId);ctx.fillStyle=col;
     function yD(y){return H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);}
     const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
@@ -2849,12 +2852,30 @@ function drawChart(canvas,opts){
     for(let i=1;i<sorted.length;i++){const[x,y]=sorted[i];ctx.lineTo(xS(x),yD(prev));ctx.lineTo(xS(x),yD(y));prev=y;}ctx.stroke();
     if(getMedDots(medId)){for(const[x,y]of sorted){ctx.fillStyle=col;ctx.beginPath();ctx.arc(xS(x),yD(y),lerpF(2.8,3.5),0,Math.PI*2);ctx.fill();}}
     if(showLabels){
-      const mlx=xS(sorted[0][0])+6,mly=yD(sorted[0][1])-10;
+      const fx=xS(sorted[0][0]),fy=yD(sorted[0][1]);
       const mtxt=getMedShortName(medId);
       ctx.font=fMd;
+      const mtw=ctx.measureText(mtxt).width;
+      const mth=parseFloat(fMd);
+      const candidates=[
+        {lx:fx+6,ly:fy-10},
+        {lx:fx-mtw-6,ly:fy-10},
+        {lx:fx+6,ly:fy+mth+10},
+        {lx:fx-mtw-6,ly:fy+mth+10}
+      ];
+      let chosen=candidates[0];
+      for(const c of candidates){
+        const r1={x:c.lx,y:c.ly-mth,w:mtw,h:mth};
+        let hit=false;
+        for(const r2 of _placedLabels){
+          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
+        }
+        if(!hit){chosen=c;break;}
+      }
+      _placedLabels.push({x:chosen.lx,y:chosen.ly-mth,w:mtw,h:mth});
       ctx.lineWidth=parseFloat(pT(3.5,4,4.5));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;
-      ctx.strokeText(mtxt,mlx,mly);
-      ctx.fillStyle=col;ctx.fillText(mtxt,mlx,mly);
+      ctx.strokeText(mtxt,chosen.lx,chosen.ly);
+      ctx.fillStyle=col;ctx.fillText(mtxt,chosen.lx,chosen.ly);
       ctx.font=fSm;
     }
   }
@@ -2942,9 +2963,6 @@ function drawChart(canvas,opts){
     }
   }
 
-  // Tracks all value-label rectangles placed in this redraw so subsequent labels can avoid collisions
-  // (alternating right-of-point / left-of-point, then above/below) instead of stacking on top.
-  const _placedLabels=[];
   // Hormone curves
   for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hv=getHormoneVals(hk);
     function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}
@@ -3048,7 +3066,8 @@ function drawChart(canvas,opts){
         _placedLabels.push({x:chosen.lx,y:chosen.ly-th,w:tw,h:th});
         ctx.lineWidth=parseFloat(pT(3,3.5,4));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;
         ctx.strokeText(vtxt,chosen.lx,chosen.ly);
-        ctx.fillStyle=cText;ctx.fillText(vtxt,chosen.lx,chosen.ly);
+        // Color the value label by the hormone — makes "what is what" obvious at a glance even when labels cluster.
+        ctx.fillStyle=h.color;ctx.fillText(vtxt,chosen.lx,chosen.ly);
       }
     }
     // Hormone name label at the FIRST real lab point only.
@@ -3056,17 +3075,35 @@ function drawChart(canvas,opts){
     // even where it crosses the same-colored hormone curve.
     if(showLabels&&times.length){
       const fx=xS(times[0]),fy=yH(vals[0]);
-      const lx=fx+lerp(6,9),ly=fy-lerp(16,22);
       ctx.font=fMd;
-      // Halo: stroke text with the surface color, wide enough to mask the line behind it
+      const ntw=ctx.measureText(h.name).width;
+      const nth=parseFloat(fMd);
+      // Try the same 4-corner placement as value labels, but a bit further from the dot
+      // because the name is meant to anchor the curve, not the data point.
+      const offX=lerp(6,9),offY=lerp(16,22);
+      const candidates=[
+        {lx:fx+offX,ly:fy-offY},
+        {lx:fx-ntw-offX,ly:fy-offY},
+        {lx:fx+offX,ly:fy+nth+offY},
+        {lx:fx-ntw-offX,ly:fy+nth+offY}
+      ];
+      let chosen=candidates[0];
+      for(const c of candidates){
+        const r1={x:c.lx,y:c.ly-nth,w:ntw,h:nth};
+        let hit=false;
+        for(const r2 of _placedLabels){
+          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
+        }
+        if(!hit){chosen=c;break;}
+      }
+      _placedLabels.push({x:chosen.lx,y:chosen.ly-nth,w:ntw,h:nth});
       ctx.lineWidth=parseFloat(pT(3.5,4,4.5));
       ctx.strokeStyle=bgColor;
       ctx.lineJoin='round';
       ctx.miterLimit=2;
-      ctx.strokeText(h.name,lx,ly);
-      // Now the colored fill on top of the halo
+      ctx.strokeText(h.name,chosen.lx,chosen.ly);
       ctx.fillStyle=h.color;
-      ctx.fillText(h.name,lx,ly);
+      ctx.fillText(h.name,chosen.lx,chosen.ly);
     }
   }
 
