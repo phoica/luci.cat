@@ -2666,6 +2666,14 @@ function deleteLab(idx){pushUndo();labs.splice(idx,1);editingLab=null;syncToProf
 const BASE_MARGIN={left:55,right:50,top:55,bottom:125};
 function niceStep(range,maxTicks){if(range<=0||maxTicks<=0)return 1;const raw=range/maxTicks;const mag=Math.pow(10,Math.floor(Math.log10(raw)));const n=raw/mag;let s;if(n<=1.5)s=1;else if(n<=3)s=2;else if(n<=7)s=5;else s=10;return s*mag;}
 function makeMonotone(xs,ys){const xs2=[],ys2=[];for(let i=0;i<xs.length;i++)if(i===0||xs[i]!==xs[i-1]){xs2.push(xs[i]);ys2.push(ys[i]);}const n=xs2.length;if(n<2)return()=>ys2[0]||0;const dx=new Array(n-1),dy=new Array(n-1),m=new Array(n);for(let i=0;i<n-1;i++){dx[i]=xs2[i+1]-xs2[i];dy[i]=(ys2[i+1]-ys2[i])/dx[i];}m[0]=dy[0];m[n-1]=dy[n-2];for(let i=1;i<n-1;i++){if(dy[i-1]*dy[i]<=0)m[i]=0;else{const w1=2*dx[i]+dx[i-1],w2=dx[i]+2*dx[i-1];m[i]=(w1+w2)/(w1/dy[i-1]+w2/dy[i]);}}return function(x){if(x<=xs2[0])return ys2[0];if(x>=xs2[n-1])return ys2[n-1];let i2=0;while(!(x>=xs2[i2]&&x<=xs2[i2+1]))i2++;const h2=dx[i2],tt=(x-xs2[i2])/h2,t2=tt*tt,t3=t2*tt;return(2*t3-3*t2+1)*ys2[i2]+(t3-2*t2+tt)*h2*m[i2]+(-2*t3+3*t2)*ys2[i2+1]+(t3-t2)*h2*m[i2+1];};}
+// Catmull-Rom Hermite spline with tension. Smoother and curvier than monotone-cubic for sparse
+// medical data; tension 0.5 = standard Catmull-Rom. Output is clamped to >= 0 to prevent
+// any small overshoot from showing as a (medically impossible) negative value.
+function makeSpline(xs,ys,tension){const t=tension!=null?tension:0.5;const xs2=[],ys2=[];for(let i=0;i<xs.length;i++)if(i===0||xs[i]!==xs[i-1]){xs2.push(xs[i]);ys2.push(ys[i]);}const n=xs2.length;if(n<2)return()=>ys2[0]||0;if(n===2){const dx=xs2[1]-xs2[0];return x=>Math.max(0,ys2[0]+(ys2[1]-ys2[0])*(x-xs2[0])/dx);}const m=new Array(n);m[0]=(ys2[1]-ys2[0])/(xs2[1]-xs2[0]);m[n-1]=(ys2[n-1]-ys2[n-2])/(xs2[n-1]-xs2[n-2]);for(let i=1;i<n-1;i++)m[i]=t*(ys2[i+1]-ys2[i-1])/(xs2[i+1]-xs2[i-1]);return function(x){if(x<=xs2[0])return ys2[0];if(x>=xs2[n-1])return ys2[n-1];let i=0;while(!(x>=xs2[i]&&x<=xs2[i+1]))i++;const h=xs2[i+1]-xs2[i],tt=(x-xs2[i])/h,t2=tt*tt,t3=t2*tt;const v=(2*t3-3*t2+1)*ys2[i]+(t3-2*t2+tt)*h*m[i]+(-2*t3+3*t2)*ys2[i+1]+(t3-t2)*h*m[i+1];return Math.max(0,v);};}
+// Hermite cubic bridge for the pre-HRT to first-lab segment. Slope is 0 at day 0 (flat pre-HRT
+// baseline) and matches `slopeAtEnd` at firstLabDay (so it joins the lab curve smoothly,
+// no kink). Before day 0 it stays flat at preHrtVal.
+function makePreHrtBridge(preHrtVal,firstLabDay,firstLabVal,slopeAtEnd){return function(x){if(x<=0)return preHrtVal;if(x>=firstLabDay)return firstLabVal;const h=firstLabDay;const t=x/h,t2=t*t,t3=t2*t;return(2*t3-3*t2+1)*preHrtVal+(-2*t3+3*t2)*firstLabVal+(t3-t2)*h*slopeAtEnd;};}
 
 function drawChart(canvas,opts){
   const ctx=canvas.getContext('2d');
@@ -2902,22 +2910,23 @@ function drawChart(canvas,opts){
     if(!times.length&&!baselineLab)continue;
     // Determine the "pre-HRT" value: use baseline lab value if present (converted), else the preset typ
     const preHrtVal=baselineLab?readLabValue(baselineLab,hk,h.unit):hv.typ;
-    // Build interpolation control points. The pre-HRT to first-lab transition is medically
-    // gradual (medications take days to build up to peak), so we anchor the pre-HRT level as
-    // a flat line strictly BEFORE day 0, then let the spline smoothly ramp from preHrtVal at
-    // day 0 to the first real lab measurement. The slight nudge of the day-0 control point
-    // by epsilon prevents the monotone-cubic algorithm from forcing a horizontal tangent
-    // there, which was causing the abrupt-then-spike transition.
-    let xs2,ys2;
-    if(baseline==='none'||!showPreHrtH){xs2=[...times];ys2=[...vals];}
-    else{
-      // Anchor pre-HRT: flat at tMin, flat at day -1 (just before HRT), then transition starts at day 0.
-      // The two pre-HRT anchors keep the curve flat up to day 0; the first-lab measurement provides the upward end.
-      xs2=[tMin,-1,...times];ys2=[preHrtVal,preHrtVal,...vals];
-    }
     // If there are no real labs to draw, skip — pre-HRT lines only show when they connect to real data
     if(!times.length)continue;
-    const f=makeMonotone(xs2,ys2);const step2=Math.max(0.25,(xMax-tMin)/800);const drawFrom=(baseline==='none'||!showPreHrtH)?times[0]:tMin;
+    // Lab-to-lab curve: Catmull-Rom spline (smoother than monotone-cubic for sparse data).
+    const labCurve=makeSpline([...times],[...vals]);
+    // Pre-HRT bridge: Hermite cubic that's flat at day 0 and joins the lab curve at firstLab
+    // with matching slope. This kills the kink/lag artifact at the start of HRT.
+    let preBridge=null;
+    if(!(baseline==='none'||!showPreHrtH)){
+      const firstLabDay=times[0];
+      const firstLabVal=vals[0];
+      // Slope of the lab curve at the very first lab (one-sided difference).
+      const slopeAtFirstLab=times.length>=2?(vals[1]-vals[0])/(times[1]-times[0]):0;
+      preBridge=makePreHrtBridge(preHrtVal,firstLabDay,firstLabVal,slopeAtFirstLab);
+    }
+    // f(x): pre-HRT bridge for x < firstLab, lab spline for x >= firstLab. Used by error halo and dots.
+    const f=preBridge?(x=>x<times[0]?preBridge(x):labCurve(x)):labCurve;
+    const step2=Math.max(0.25,(xMax-tMin)/800);const drawFrom=(baseline==='none'||!showPreHrtH)?times[0]:tMin;
     // Error halo (soft fuzzy band around the curve) — only when toggle on and only between real labs
     if(showError&&times.length){
       const errPct=getHormoneErrorPct(hk)/100;
