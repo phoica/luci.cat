@@ -3130,8 +3130,8 @@ function drawChart(canvas,opts){
   // Flush deferred labels last so they always render ON TOP of every curve and dot.
   // Pass A: micro leader lines (a tiny grey stub from each labeled dot toward its block).
   ctx.save();
-  ctx.strokeStyle='rgba(140,140,140,0.5)';
-  ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(170,170,170,0.85)';
+  ctx.lineWidth=1.5;
   for(const lbl of _pendingLabels){
     if(!lbl.leader)continue;
     const L=lbl.leader;
