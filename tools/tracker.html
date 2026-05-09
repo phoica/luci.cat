@@ -2930,7 +2930,9 @@ function drawChart(canvas,opts){
 
   // Guides
   ctx.font=fMd;
-  const hasDoses2=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
+  // HRT Start guide is profile-level — show it whenever ANY tracked medication has doses,
+  // not just the ones currently visible. (Hiding all meds shouldn't hide the start marker.)
+  const hasDoses2=medications.some(mid=>doses[mid]&&doses[mid].length>0);
   // Narrow-mode threshold: collapse two-line date+day labels into single "d76" form when chart is squeezed
   // Use compact single-line guides when canvas is narrow OR when the day range is long (>600 days),
   // since dense labels overlap each other
