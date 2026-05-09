@@ -3069,70 +3069,88 @@ function drawChart(canvas,opts){
     }
     // Solid curves between real lab points
     if(showLines){let s=false;ctx.lineWidth=2.5;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}}
-    // Dots + value labels ONLY on real (non-baseline) lab points
+    // Dots + value/name labels. The first dot of each hormone gets a stacked block
+    // [name, value] so the two pieces of information stay visually paired; subsequent
+    // dots get just the value. Each block is collision-tested as a single rect.
+    const _dotR=parseFloat(dotR);
     for(let i=0;i<times.length;i++){
       const X=xS(times[i]),Y=yH(vals[i]);
-      ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,parseFloat(dotR),0,Math.PI*2);ctx.fill();
-      if(showValues){
+      ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,_dotR,0,Math.PI*2);ctx.fill();
+      const isFirst=i===0;
+      const wantsName=isFirst&&showLabels;
+      const wantsValue=showValues;
+      if(!wantsName&&!wantsValue)continue;
+      // Build the block of lines this dot needs (1 or 2).
+      const lines=[];
+      if(wantsName){
+        ctx.font=fMd;
+        lines.push({text:h.name,font:fMd,w:ctx.measureText(h.name).width,haloW:parseFloat(pT(3.5,4,4.5))});
+      }
+      if(wantsValue){
         ctx.font=fLg;
         const vtxt=`${vals[i]} ${h.unit}`;
-        const tw=ctx.measureText(vtxt).width;
-        const th=parseFloat(fLg);
-        // Candidate placements (in order of preference): upper-right, upper-left, lower-right, lower-left.
-        // First non-colliding wins. If all collide, stick with the upper-right default.
-        const offX=lerp(6,9),offY=lerp(5,7);
-        const candidates=[
-          {lx:X+offX,ly:Y-offY},
-          {lx:X-tw-offX,ly:Y-offY},
-          {lx:X+offX,ly:Y+th+offY},
-          {lx:X-tw-offX,ly:Y+th+offY}
-        ];
-        let chosen=candidates[0];
-        for(const c of candidates){
-          const r1={x:c.lx,y:c.ly-th,w:tw,h:th};
-          let hit=false;
-          for(const r2 of _placedLabels){
-            if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
-          }
-          if(!hit){chosen=c;break;}
-        }
-        _placedLabels.push({x:chosen.lx,y:chosen.ly-th,w:tw,h:th});
-        // Color the value label by the hormone — makes "what is what" obvious at a glance even when labels cluster.
-        _pendingLabels.push({text:vtxt,lx:chosen.lx,ly:chosen.ly,color:h.color,font:fLg,haloW:parseFloat(pT(3,3.5,4))});
+        lines.push({text:vtxt,font:fLg,w:ctx.measureText(vtxt).width,haloW:parseFloat(pT(3,3.5,4))});
       }
-    }
-    // Hormone name label at the FIRST real lab point only.
-    // Draw a thick halo in the panel-surface color first so the colored text reads clearly
-    // even where it crosses the same-colored hormone curve.
-    if(showLabels&&times.length){
-      const fx=xS(times[0]),fy=yH(vals[0]);
-      ctx.font=fMd;
-      const ntw=ctx.measureText(h.name).width;
-      const nth=parseFloat(fMd);
-      // Try the same 4-corner placement as value labels, but a bit further from the dot
-      // because the name is meant to anchor the curve, not the data point.
-      const offX=lerp(6,9),offY=lerp(16,22);
+      const lineH=Math.max(parseFloat(fMd),parseFloat(fLg))*1.05;
+      const blockW=Math.max(...lines.map(l=>l.w));
+      const N=lines.length;
+      const offX=lerp(6,9),offY=lerp(5,7);
+      // Each candidate is the BASELINE Y of the first line. The block extends N*lineH downward.
       const candidates=[
-        {lx:fx+offX,ly:fy-offY},
-        {lx:fx-ntw-offX,ly:fy-offY},
-        {lx:fx+offX,ly:fy+nth+offY},
-        {lx:fx-ntw-offX,ly:fy+nth+offY}
+        {lx:X+offX,ly1:Y-offY-(N-1)*lineH},     // upper-right (block sits above dot)
+        {lx:X-blockW-offX,ly1:Y-offY-(N-1)*lineH}, // upper-left
+        {lx:X+offX,ly1:Y+offY+lineH},           // lower-right (block sits below dot)
+        {lx:X-blockW-offX,ly1:Y+offY+lineH}     // lower-left
       ];
       let chosen=candidates[0];
       for(const c of candidates){
-        const r1={x:c.lx,y:c.ly-nth,w:ntw,h:nth};
+        const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
+        const r1={x:c.lx,y:top,w:blockW,h:bottom-top};
         let hit=false;
         for(const r2 of _placedLabels){
           if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
         }
         if(!hit){chosen=c;break;}
       }
-      _placedLabels.push({x:chosen.lx,y:chosen.ly-nth,w:ntw,h:nth});
-      _pendingLabels.push({text:h.name,lx:chosen.lx,ly:chosen.ly,color:h.color,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
+      const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
+      _placedLabels.push({x:chosen.lx,y:blockTop,w:blockW,h:blockBottom-blockTop});
+      // Push each line. Attach leader info (dot anchor + block bounds) to the FIRST line so
+      // the deferred pass draws one micro stub per block (not per line).
+      let curLy=chosen.ly1;
+      for(let li=0;li<lines.length;li++){
+        const L=lines[li];
+        const entry={text:L.text,lx:chosen.lx,ly:curLy,color:h.color,font:L.font,haloW:L.haloW};
+        if(li===0){entry.leader={X,Y,dotR:_dotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};}
+        _pendingLabels.push(entry);
+        curLy+=lineH;
+      }
     }
   }
 
   // Flush deferred labels last so they always render ON TOP of every curve and dot.
+  // Pass A: micro leader lines (a tiny grey stub from each labeled dot toward its block).
+  ctx.save();
+  ctx.strokeStyle='rgba(140,140,140,0.5)';
+  ctx.lineWidth=1;
+  for(const lbl of _pendingLabels){
+    if(!lbl.leader)continue;
+    const L=lbl.leader;
+    // Find the block-rect point closest to the dot center.
+    const nx=Math.max(L.blockX,Math.min(L.X,L.blockX+L.blockW));
+    const ny=Math.max(L.blockY,Math.min(L.Y,L.blockY+L.blockH));
+    const dx=nx-L.X,dy=ny-L.Y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<L.dotR+1)continue; // label sits on top of dot — no stub needed
+    // Start at dot edge, end somewhere short of (or at) the nearest block edge — capped at 5px past the dot.
+    const sx=L.X+(dx/dist)*L.dotR;
+    const sy=L.Y+(dy/dist)*L.dotR;
+    const stub=Math.min(dist-L.dotR,5);
+    const ex=L.X+(dx/dist)*(L.dotR+stub);
+    const ey=L.Y+(dy/dist)*(L.dotR+stub);
+    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+  }
+  ctx.restore();
+  // Pass B: text halos + colored fills.
   for(const lbl of _pendingLabels){
     ctx.font=lbl.font;
     ctx.lineWidth=lbl.haloW;
