@@ -2239,7 +2239,9 @@ function renderAddHormoneModal(){
     const h=getHormone(hk)||BUILTIN_HORMONES[hk];if(!h)return'';
     const on=trackedHormones.includes(hk);
     const activeTag=on?`<span style="margin-left:6px;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;font-weight:600">${pick('active','ativo','actiu')}</span>`:'';
-    return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?h.color:'var(--border)'};background:${on?'rgba(255,255,255,0.05)':'var(--surface2)'}" onclick="toggleHormoneFromModal('${hk}')"><span class="tag-dot" style="background:${h.color}"></span>${esc(h.name)}${activeTag}</div>`;
+    // Selected highlighting follows the theme accent so the modal stays visually consistent across themes;
+    // the per-hormone color stays on the dot only as a quick identifier.
+    return`<div class="tag${on?' selected':''}" style="cursor:pointer;border:1px solid ${on?'var(--accent)':'var(--border)'};background:${on?'var(--accent-dim)':'var(--surface2)'};color:${on?'var(--text)':'var(--text-muted)'}" onclick="toggleHormoneFromModal('${hk}')"><span class="tag-dot" style="background:${h.color}"></span>${esc(h.name)}${activeTag}</div>`;
   }
   function group(titleEn,titlePt,ids,titleCa){
     if(!ids.length)return'';
