@@ -2789,8 +2789,8 @@ function drawChart(canvas,opts){
     }
     if(_hasMed)_walkRow(t('doseMg'),_meds,mid=>{if(!doses[mid]||!doses[mid].length)return null;const sn=getMedShortName(mid);const u=getMedUnit(mid);return _showU?`${sn} (${u})`:sn;});
     if(_hasHorm)_walkRow(t('hormonesLabel'),_horms,hk=>{const h=getHormone(hk);if(!h)return null;const has=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!has)return null;return _showU?`${h.name} (${h.unit})`:h.name;});
-    // Bands row
-    if(showRanges||(showError&&_hasHorm)){
+    // Bands row — only shown when hormone data is on the chart
+    if(_hasHorm&&(showRanges||showError)){
       ctx.font=_font;
       const prefix=pick('bands','faixas','intervals');
       const bandsStartX=margin.left+ctx.measureText(prefix).width+lerp(7,10);
@@ -2855,6 +2855,10 @@ function drawChart(canvas,opts){
   // Shared label-rect tracker so hormone names, hormone values, and medication names all
   // arbitrate placement against each other instead of stacking when they cluster.
   const _placedLabels=[];
+  // Deferred label render queue. Curves are drawn first; everything pushed here renders in a
+  // final pass at the end of drawChart so labels always sit on top of the lines, regardless
+  // of which order hormones/meds were drawn in.
+  const _pendingLabels=[];
   for(const medId of medsToShow){const md=doses[medId];if(!md||!md.length)continue;let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;const dMax=Math.max(1,mx*1.4);const dStep2=niceStep(dMax,6);const col=getMedColor(medId);ctx.fillStyle=col;
     function yD(y){return H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);}
     const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
@@ -2885,9 +2889,7 @@ function drawChart(canvas,opts){
         if(!hit){chosen=c;break;}
       }
       _placedLabels.push({x:chosen.lx,y:chosen.ly-mth,w:mtw,h:mth});
-      ctx.lineWidth=parseFloat(pT(3.5,4,4.5));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;
-      ctx.strokeText(mtxt,chosen.lx,chosen.ly);
-      ctx.fillStyle=col;ctx.fillText(mtxt,chosen.lx,chosen.ly);
+      _pendingLabels.push({text:mtxt,lx:chosen.lx,ly:chosen.ly,color:col,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
       ctx.font=fSm;
     }
   }
@@ -2925,12 +2927,14 @@ function drawChart(canvas,opts){
   }
   ctx.font=fLg;
 
-  // Target bands
-  if(showRanges){for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const vals=getHormoneVals(hk);if(!vals.tLo&&!vals.tHi)continue;function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}const yLo=yH(vals.tLo),yHi=yH(vals.tHi);const top2=Math.min(yLo,yHi),ht=Math.abs(yLo-yHi);const r=parseInt(h.color.slice(1,3),16),g=parseInt(h.color.slice(3,5),16),b=parseInt(h.color.slice(5,7),16);ctx.fillStyle=`rgba(${r},${g},${b},0.045)`;ctx.fillRect(margin.left,top2,W-margin.left-mr,ht);}}
+  // Target ranges live on the right-axis columns (drawn above) only — no full-width band fill in
+  // the plot area, since it muddied the data and competed with the curves visually.
 
   // Guides
   ctx.font=fMd;
-  const hasDoses2=medsToShow.some(mid=>doses[mid]&&doses[mid].length>0);
+  // HRT Start guide is profile-level — show it whenever ANY tracked medication has doses,
+  // not just the ones currently visible. (Hiding all meds shouldn't hide the start marker.)
+  const hasDoses2=medications.some(mid=>doses[mid]&&doses[mid].length>0);
   // Narrow-mode threshold: collapse two-line date+day labels into single "d76" form when chart is squeezed
   // Use compact single-line guides when canvas is narrow OR when the day range is long (>600 days),
   // since dense labels overlap each other
@@ -3076,10 +3080,8 @@ function drawChart(canvas,opts){
           if(!hit){chosen=c;break;}
         }
         _placedLabels.push({x:chosen.lx,y:chosen.ly-th,w:tw,h:th});
-        ctx.lineWidth=parseFloat(pT(3,3.5,4));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;
-        ctx.strokeText(vtxt,chosen.lx,chosen.ly);
         // Color the value label by the hormone — makes "what is what" obvious at a glance even when labels cluster.
-        ctx.fillStyle=h.color;ctx.fillText(vtxt,chosen.lx,chosen.ly);
+        _pendingLabels.push({text:vtxt,lx:chosen.lx,ly:chosen.ly,color:h.color,font:fLg,haloW:parseFloat(pT(3,3.5,4))});
       }
     }
     // Hormone name label at the FIRST real lab point only.
@@ -3109,14 +3111,20 @@ function drawChart(canvas,opts){
         if(!hit){chosen=c;break;}
       }
       _placedLabels.push({x:chosen.lx,y:chosen.ly-nth,w:ntw,h:nth});
-      ctx.lineWidth=parseFloat(pT(3.5,4,4.5));
-      ctx.strokeStyle=bgColor;
-      ctx.lineJoin='round';
-      ctx.miterLimit=2;
-      ctx.strokeText(h.name,chosen.lx,chosen.ly);
-      ctx.fillStyle=h.color;
-      ctx.fillText(h.name,chosen.lx,chosen.ly);
+      _pendingLabels.push({text:h.name,lx:chosen.lx,ly:chosen.ly,color:h.color,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
     }
+  }
+
+  // Flush deferred labels last so they always render ON TOP of every curve and dot.
+  for(const lbl of _pendingLabels){
+    ctx.font=lbl.font;
+    ctx.lineWidth=lbl.haloW;
+    ctx.strokeStyle=bgColor;
+    ctx.lineJoin='round';
+    ctx.miterLimit=2;
+    ctx.strokeText(lbl.text,lbl.lx,lbl.ly);
+    ctx.fillStyle=lbl.color;
+    ctx.fillText(lbl.text,lbl.lx,lbl.ly);
   }
 
   // Legend — only show categories that have data
@@ -3172,8 +3180,9 @@ function drawChart(canvas,opts){
       }
       legendRow++;
     }
-    // Explainer row: shaded ranges + error halo — labeled "bands"
-    if(showRanges||(showError&&hasHormData)){
+    // Explainer row: shaded ranges + error halo — labeled "bands". Only relevant when there's
+    // actually hormone data on the chart (meds-only views shouldn't see this row at all).
+    if(hasHormData&&(showRanges||showError)){
       let ly=blY+legendRow*rowH;
       const prefix=pick('bands','faixas','intervals');
       ctx.font=lFont;ctx.fillStyle=cDim;
@@ -3213,12 +3222,11 @@ function drawChart(canvas,opts){
 function redraw(){
   const container=document.getElementById('chartContainer');
   if(!Object.keys(profiles).length){container.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-dim)">No profiles yet</div>';return;}
-  // Hide vertical grips when showing multiple charts — per-chart heights are auto-distributed
+  // Vertical grips work in both modes now. In Individual mode, dragging changes the total
+  // container height and per-chart slices grow together.
   const gripTEl=document.getElementById('gripT');const gripBEl=document.getElementById('gripB');
-  const isMulti=chartView==='multi';
-  if(gripTEl)gripTEl.style.visibility=isMulti?'visible':'hidden';
-  if(gripBEl)gripBEl.style.visibility=isMulti?'visible':'hidden';
-  if(!isMulti&&container.style.height){container.style.height='';}
+  if(gripTEl)gripTEl.style.visibility='visible';
+  if(gripBEl)gripBEl.style.visibility='visible';
   // Responsive default heights: phones get shorter charts that don't need landscape rotation to view
   const vpW=window.innerWidth;
   const defH=vpW<480?340:vpW<768?420:620;
@@ -3233,10 +3241,17 @@ function redraw(){
     drawChart(document.getElementById('chart'),{meds:selMeds,hormones:selHorms,height:defH});
   }else{
     if(!selMeds.length&&!selHorms.length){container.innerHTML='<canvas id="chart"></canvas>';drawChart(document.getElementById('chart'),{meds:[],hormones:[],height:defH});return;}
-    let html='';const meds=selMeds;
+    const meds=selMeds;
     const horms=selHorms;
     const totalCharts=meds.length+horms.length;
-    const perChartH=totalCharts===1?splitSingleH:splitMultiH;
+    // Each item gets a header (~38px including padding+margin). Total available canvas height
+    // = (container drag-height OR fallback default) - sum of headers, then divided across N charts.
+    const headerH=38;
+    const fallbackTotalH=totalCharts===1?splitSingleH:Math.max(splitMultiH,defH/Math.max(1,totalCharts));
+    const containerCustomH=parseInt(container.style.height,10);
+    const totalH=Number.isFinite(containerCustomH)&&containerCustomH>50?containerCustomH:(fallbackTotalH*totalCharts+headerH*totalCharts);
+    const perChartH=Math.max(140,Math.floor((totalH-headerH*totalCharts)/Math.max(1,totalCharts)));
+    let html='';
     const _pillIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M10.5 3.5a4.95 4.95 0 0 1 7 7l-7 7a4.95 4.95 0 0 1-7-7z"/><path d="M7 7l7 7"/></svg>`;
     const _vialIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M9 3h6"/><path d="M10 3v9.5a3.5 3.5 0 1 0 4 0V3"/><path d="M10 13h4"/></svg>`;
     for(const medId of meds){const m=getMed(medId);const name=m?m.name:medId;const u=getMedUnit(medId);
