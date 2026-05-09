@@ -3254,30 +3254,41 @@ function redraw(){
   const selMeds=selItems.filter(i=>i.startsWith('med_')).map(i=>i.slice(4)).filter(m=>medications.includes(m));
   const selHorms=selItems.filter(i=>i.startsWith('h_')).map(i=>i.slice(2)).filter(h=>trackedHormones.includes(h));
   if(chartView==='multi'){
+    container.style.display='';container.style.flexDirection='';
     container.innerHTML='<canvas id="chart"></canvas>';
     drawChart(document.getElementById('chart'),{meds:selMeds,hormones:selHorms,height:defH});
   }else{
-    if(!selMeds.length&&!selHorms.length){container.innerHTML='<canvas id="chart"></canvas>';drawChart(document.getElementById('chart'),{meds:[],hormones:[],height:defH});return;}
+    if(!selMeds.length&&!selHorms.length){container.style.display='';container.style.flexDirection='';container.innerHTML='<canvas id="chart"></canvas>';drawChart(document.getElementById('chart'),{meds:[],hormones:[],height:defH});return;}
     const meds=selMeds;
     const horms=selHorms;
     const totalCharts=meds.length+horms.length;
-    // Each item gets a header (~38px including padding+margin). Total available canvas height
-    // = (container drag-height OR fallback default) - sum of headers, then divided across N charts.
-    const headerH=38;
-    const fallbackTotalH=totalCharts===1?splitSingleH:Math.max(splitMultiH,defH/Math.max(1,totalCharts));
+    // Container becomes a flex column. Each item is a flex:1 child whose canvas fills its
+    // remaining vertical space after its header — so heights distribute exactly with no
+    // overflow or empty gap at the bottom, regardless of header line-height/font/margins.
+    const fallbackTotalH=totalCharts===1?splitSingleH:Math.max(splitMultiH*totalCharts,defH);
     const containerCustomH=parseInt(container.style.height,10);
-    const totalH=Number.isFinite(containerCustomH)&&containerCustomH>50?containerCustomH:(fallbackTotalH*totalCharts+headerH*totalCharts);
-    const perChartH=Math.max(140,Math.floor((totalH-headerH*totalCharts)/Math.max(1,totalCharts)));
+    const haveCustom=Number.isFinite(containerCustomH)&&containerCustomH>50;
+    if(!haveCustom)container.style.height=fallbackTotalH+'px';
+    container.style.display='flex';
+    container.style.flexDirection='column';
     let html='';
     const _pillIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M10.5 3.5a4.95 4.95 0 0 1 7 7l-7 7a4.95 4.95 0 0 1-7-7z"/><path d="M7 7l7 7"/></svg>`;
     const _vialIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M9 3h6"/><path d="M10 3v9.5a3.5 3.5 0 1 0 4 0V3"/><path d="M10 13h4"/></svg>`;
+    const itemStyle='display:flex;flex-direction:column;flex:1 1 0;min-height:0;min-width:0;overflow:hidden';
+    const headerStyle='font-size:16px;font-weight:600;padding:6px 0 4px;flex-shrink:0;line-height:1.3';
+    const canvasStyle='flex:1 1 auto;min-height:0;width:100%;display:block;margin:0';
     for(const medId of meds){const m=getMed(medId);const name=m?m.name:medId;const u=getMedUnit(medId);
-      html+=`<div style="font-size:16px;font-weight:600;color:${getMedColor(medId)};padding:10px 0 4px;margin-top:8px">${_pillIcon}${esc(name)} (${esc(u)})</div><canvas id="chart_med_${medId}"></canvas>`;}
+      html+=`<div style="${itemStyle}"><div style="${headerStyle};color:${getMedColor(medId)}">${_pillIcon}${esc(name)} (${esc(u)})</div><canvas id="chart_med_${medId}" style="${canvasStyle}"></canvas></div>`;}
     for(const hk of horms){const h=getHormone(hk);if(!h)continue;
-      html+=`<div style="font-size:16px;font-weight:600;color:${h.color};padding:10px 0 4px;margin-top:8px">${_vialIcon}${esc(h.name)} (${esc(h.unit)})</div><canvas id="chart_h_${hk}"></canvas>`;}
+      html+=`<div style="${itemStyle}"><div style="${headerStyle};color:${h.color}">${_vialIcon}${esc(h.name)} (${esc(h.unit)})</div><canvas id="chart_h_${hk}" style="${canvasStyle}"></canvas></div>`;}
     container.innerHTML=html;
-    for(const medId of meds){const cv=document.getElementById('chart_med_'+medId);if(cv)drawChart(cv,{meds:[medId],hormones:[],height:perChartH,noAutoHeight:true});}
-    for(const hk of horms){const cv=document.getElementById('chart_h_'+hk);if(cv)drawChart(cv,{meds:[],hormones:[hk],height:perChartH,noAutoHeight:true});}
+    // Two-pass: measure ALL canvases first (flex layout is stable), THEN draw them. If we
+    // measured-then-drew one at a time, drawing canvas #1 would set its style.height and
+    // perturb the flex distribution for canvas #2's measurement.
+    const _toDraw=[];
+    for(const medId of meds){const cv=document.getElementById('chart_med_'+medId);if(cv)_toDraw.push({cv,opts:{meds:[medId],hormones:[],noAutoHeight:true},h:Math.max(120,cv.clientHeight)});}
+    for(const hk of horms){const cv=document.getElementById('chart_h_'+hk);if(cv)_toDraw.push({cv,opts:{meds:[],hormones:[hk],noAutoHeight:true},h:Math.max(120,cv.clientHeight)});}
+    for(const d of _toDraw){drawChart(d.cv,Object.assign({height:d.h},d.opts));}
   }
 }
 function updateRange(){const v=parseFloat(document.getElementById('xMaxInput').value);const v2=parseFloat(document.getElementById('xMinInput').value);if(Number.isFinite(v)&&v>0)xMax=v;if(Number.isFinite(v2))tMin=v2;syncToProfile();redraw();}
