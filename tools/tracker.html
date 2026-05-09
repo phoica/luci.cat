@@ -2855,6 +2855,10 @@ function drawChart(canvas,opts){
   // Shared label-rect tracker so hormone names, hormone values, and medication names all
   // arbitrate placement against each other instead of stacking when they cluster.
   const _placedLabels=[];
+  // Deferred label render queue. Curves are drawn first; everything pushed here renders in a
+  // final pass at the end of drawChart so labels always sit on top of the lines, regardless
+  // of which order hormones/meds were drawn in.
+  const _pendingLabels=[];
   for(const medId of medsToShow){const md=doses[medId];if(!md||!md.length)continue;let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;const dMax=Math.max(1,mx*1.4);const dStep2=niceStep(dMax,6);const col=getMedColor(medId);ctx.fillStyle=col;
     function yD(y){return H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);}
     const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
@@ -2885,9 +2889,7 @@ function drawChart(canvas,opts){
         if(!hit){chosen=c;break;}
       }
       _placedLabels.push({x:chosen.lx,y:chosen.ly-mth,w:mtw,h:mth});
-      ctx.lineWidth=parseFloat(pT(3.5,4,4.5));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;
-      ctx.strokeText(mtxt,chosen.lx,chosen.ly);
-      ctx.fillStyle=col;ctx.fillText(mtxt,chosen.lx,chosen.ly);
+      _pendingLabels.push({text:mtxt,lx:chosen.lx,ly:chosen.ly,color:col,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
       ctx.font=fSm;
     }
   }
@@ -3078,10 +3080,8 @@ function drawChart(canvas,opts){
           if(!hit){chosen=c;break;}
         }
         _placedLabels.push({x:chosen.lx,y:chosen.ly-th,w:tw,h:th});
-        ctx.lineWidth=parseFloat(pT(3,3.5,4));ctx.strokeStyle=bgColor;ctx.lineJoin='round';ctx.miterLimit=2;
-        ctx.strokeText(vtxt,chosen.lx,chosen.ly);
         // Color the value label by the hormone — makes "what is what" obvious at a glance even when labels cluster.
-        ctx.fillStyle=h.color;ctx.fillText(vtxt,chosen.lx,chosen.ly);
+        _pendingLabels.push({text:vtxt,lx:chosen.lx,ly:chosen.ly,color:h.color,font:fLg,haloW:parseFloat(pT(3,3.5,4))});
       }
     }
     // Hormone name label at the FIRST real lab point only.
@@ -3111,14 +3111,20 @@ function drawChart(canvas,opts){
         if(!hit){chosen=c;break;}
       }
       _placedLabels.push({x:chosen.lx,y:chosen.ly-nth,w:ntw,h:nth});
-      ctx.lineWidth=parseFloat(pT(3.5,4,4.5));
-      ctx.strokeStyle=bgColor;
-      ctx.lineJoin='round';
-      ctx.miterLimit=2;
-      ctx.strokeText(h.name,chosen.lx,chosen.ly);
-      ctx.fillStyle=h.color;
-      ctx.fillText(h.name,chosen.lx,chosen.ly);
+      _pendingLabels.push({text:h.name,lx:chosen.lx,ly:chosen.ly,color:h.color,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
     }
+  }
+
+  // Flush deferred labels last so they always render ON TOP of every curve and dot.
+  for(const lbl of _pendingLabels){
+    ctx.font=lbl.font;
+    ctx.lineWidth=lbl.haloW;
+    ctx.strokeStyle=bgColor;
+    ctx.lineJoin='round';
+    ctx.miterLimit=2;
+    ctx.strokeText(lbl.text,lbl.lx,lbl.ly);
+    ctx.fillStyle=lbl.color;
+    ctx.fillText(lbl.text,lbl.lx,lbl.ly);
   }
 
   // Legend — only show categories that have data
