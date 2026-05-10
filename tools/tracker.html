@@ -790,7 +790,6 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
 <!-- Chart container with 4-way resize handles -->
 <div class="chart-wrapper" id="chartResizer">
   <div class="grip-corner"></div>
-  <div class="chart-grip grip-v chart-grip-t" id="gripT"></div>
   <div class="grip-corner"></div>
   <div class="chart-grip grip-h chart-grip-l" id="gripL"></div>
   <div class="chart-container" id="chartContainer">
@@ -3570,7 +3569,7 @@ function printChart(){
     document.querySelectorAll('.chart-grip').forEach(g=>g.classList.remove('active'));
     redraw();
   }
-  [gripL,gripR,gripT,gripB].forEach(g=>{
+  [gripL,gripR,gripT,gripB].filter(Boolean).forEach(g=>{
     g.addEventListener('mousedown',onDown);
     g.addEventListener('touchstart',onDown,{passive:false});
     g.addEventListener('dblclick',()=>{resizer.style.maxWidth='';resizer.style.margin='';container.style.height='';redraw();});
