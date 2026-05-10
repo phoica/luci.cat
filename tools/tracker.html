@@ -1029,7 +1029,10 @@ const WEEKDAYS_EN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const WEEKDAYS_PT=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const WEEKDAYS_CA=['Diu','Dll','Dmt','Dmc','Dij','Div','Dis'];
 function getWeekdays(){if(lang==='pt')return WEEKDAYS_PT;if(lang==='ca')return WEEKDAYS_CA;return WEEKDAYS_EN;}
-function daysToDateShort(day){const d=daysToDateObj(day);const ms=getMonthsShort();const ws=getWeekdays();return`${d.getDate()} <span class="dow-tag">(${ws[d.getDay()]})</span> ${ms[d.getMonth()]} ${d.getFullYear()}`;}
+// Day is left-padded with a non-breaking space so 1-digit days (`_1 Jan`) align with 2-digit
+// days (`12 Jan`) in the history table, without resorting to a leading zero. The weekday
+// goes at the end in the same font size as the rest.
+function daysToDateShort(day){const d=daysToDateObj(day);const ms=getMonthsShort();const ws=getWeekdays();const dayStr=String(d.getDate()).padStart(2,' ');return`${dayStr} ${ms[d.getMonth()]} ${d.getFullYear()} (${ws[d.getDay()]})`;}
 
 // ═══ HELPERS ═══
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
@@ -2878,6 +2881,10 @@ function drawChart(canvas,opts){
     _scaleMult[hk]=chosen;
   }
   const _effScale=(hk,h)=>h.maxScale*(_scaleMult[hk]||1);
+  // Non-sex hormones render visually de-emphasized (20% smaller dots, thinner lines, smaller
+  // labels) so the main sex hormones stand out as the focus of the chart.
+  const _hormSize=(hk)=>SEX_HORMONES_SET.has(hk)?1:0.8;
+  const _scaledFont=(font,mult)=>{const m=String(font).match(/^(\d+(?:\.\d+)?)px\s+(.*)$/);if(!m||mult===1)return font;return`${parseFloat(m[1])*mult}px ${m[2]}`;};
   const rightAxes=showAxesMaster?hormonesToShow.filter(hk=>shownAxes.includes(hk)):[];
   const _axisColW=pT(38,42,50);
   const mr=Math.max(margin.right,rightAxes.length*_axisColW+10);
@@ -3065,11 +3072,23 @@ function drawChart(canvas,opts){
   // HRT Start guide is profile-level — show it whenever ANY tracked medication has doses,
   // not just the ones currently visible. (Hiding all meds shouldn't hide the start marker.)
   const hasDoses2=medications.some(mid=>doses[mid]&&doses[mid].length>0);
-  // Narrow-mode threshold: collapse two-line date+day labels into single "d76" form when chart is squeezed
-  // Use compact single-line guides when canvas is narrow OR when the day range is long (>600 days),
-  // since dense labels overlap each other
-  const dayRange=xMax-tMin;
-  const narrowGuides=cssW<700||dayRange>600;
+  // Narrow guides only when we actually need to. Density check: look at the lab days that
+  // would be drawn as guides and find the smallest pixel gap between adjacent ones. If two
+  // labels would overlap at full size (~95px wide), drop to the compact "day N" form.
+  let _useNarrow=cssW<360;
+  if(!_useNarrow){
+    const visLabs=labs.filter(l=>!l.isBaseline&&l.day>=tMin&&l.day<=xMax);
+    if(visLabs.length>1){
+      const sortedLabs=[...visLabs].sort((a,b)=>a.day-b.day);
+      let minGapPx=Infinity;
+      for(let i=1;i<sortedLabs.length;i++){
+        const gap=xS(sortedLabs[i].day)-xS(sortedLabs[i-1].day);
+        if(gap<minGapPx)minGapPx=gap;
+      }
+      if(minGapPx<95)_useNarrow=true;
+    }
+  }
+  const narrowGuides=_useNarrow;
   if(showGuides&&tMin<0&&hasDoses2){const xx=xS(0);ctx.setLineDash([5,3]);ctx.strokeStyle=cBorder;ctx.beginPath();ctx.moveTo(xx,margin.top);ctx.lineTo(xx,H-margin.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=cMuted;const t1=t('hrtStart'),t2=narrowGuides?'':daysToDate(0),tw1=ctx.measureText(t1).width,tw2=ctx.measureText(t2).width;ctx.fillText(t1,xx-tw1/2,margin.top-(narrowGuides?8:22));if(t2)ctx.fillText(t2,xx-tw2/2,margin.top-8);}
   if(showGuides){
     // Build list of guide x-positions and only render ones with enough space (collision avoidance)
@@ -3180,13 +3199,15 @@ function drawChart(canvas,opts){
         ctx.closePath();ctx.fill();
       }
     }
-    // Dashed pre-HRT curve from drawFrom to first real lab, then solid curves between real labs
+    // Dashed pre-HRT curve from drawFrom to first real lab, then solid curves between real labs.
+    // Line width is shrunk for non-sex hormones to match their visual de-emphasis.
+    const _hsm=_hormSize(hk);
     if(showLines){
-    ctx.strokeStyle=h.color;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.beginPath();let s=false;
+    ctx.strokeStyle=h.color;ctx.lineWidth=2*_hsm;ctx.setLineDash([6,4]);ctx.beginPath();let s=false;
     for(let x=drawFrom;x<=times[0];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();ctx.setLineDash([]);
     }
     // Solid curves between real lab points
-    if(showLines){let s=false;ctx.lineWidth=2.5;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}}
+    if(showLines){let s=false;ctx.lineWidth=2.5*_hsm;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}}
     _allCurves.push({hk,h,hv,yH,times,vals,f,drawFrom});
   }
   // Phase 2: dots + labels with full curve info. Each dot-block can avoid collisions with
@@ -3211,9 +3232,13 @@ function drawChart(canvas,opts){
       }
       return false;
     }
+    const _hsm=_hormSize(hk);
+    const _hDotR=_dotR*_hsm;
+    const _fMd=_scaledFont(fMd,_hsm);
+    const _fLg=_scaledFont(fLg,_hsm);
     for(let i=0;i<times.length;i++){
       const X=xS(times[i]),Y=yH(vals[i]);
-      ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,_dotR,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,_hDotR,0,Math.PI*2);ctx.fill();
       const isFirst=i===0;
       const wantsName=isFirst&&showLabels;
       const wantsValue=showValues;
@@ -3224,15 +3249,15 @@ function drawChart(canvas,opts){
       const _chartName=String(h.name).replace(/\s*\([^)]*\)\s*$/,'').trim()||h.name;
       const lines=[];
       if(wantsName){
-        ctx.font=fMd;
-        lines.push({text:_chartName,font:fMd,w:ctx.measureText(_chartName).width,haloW:parseFloat(pT(3.5,4,4.5))});
+        ctx.font=_fMd;
+        lines.push({text:_chartName,font:_fMd,w:ctx.measureText(_chartName).width,haloW:parseFloat(pT(3.5,4,4.5))*_hsm});
       }
       if(wantsValue){
-        ctx.font=fLg;
+        ctx.font=_fLg;
         const vtxt=`${vals[i]} ${h.unit}`;
-        lines.push({text:vtxt,font:fLg,w:ctx.measureText(vtxt).width,haloW:parseFloat(pT(3,3.5,4))});
+        lines.push({text:vtxt,font:_fLg,w:ctx.measureText(vtxt).width,haloW:parseFloat(pT(3,3.5,4))*_hsm});
       }
-      const lineH=Math.max(parseFloat(fMd),parseFloat(fLg))*1.05;
+      const lineH=Math.max(parseFloat(_fMd),parseFloat(_fLg))*1.05;
       const blockW=Math.max(...lines.map(l=>l.w));
       const N=lines.length;
       // Candidate placements span 3 distance tiers (close / medium / far). The closest tier
@@ -3295,7 +3320,7 @@ function drawChart(canvas,opts){
         const L=lines[li];
         const entryLx=chosen.side==='left'?(blockRight-L.w):chosen.lx;
         const entry={text:L.text,lx:entryLx,ly:curLy,color:h.color,font:L.font,haloW:L.haloW};
-        if(li===0){entry.leader={X,Y,dotR:_dotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};}
+        if(li===0){entry.leader={X,Y,dotR:_hDotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};}
         _pendingLabels.push(entry);
         curLy+=lineH;
       }
