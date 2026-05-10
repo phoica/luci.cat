@@ -921,6 +921,19 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   </div>
 </div>
 
+<!-- Sources & References modal — opened from the About modal. Per request: dedicated window
+     with X top-right, OK at bottom, and the About modal closes behind it. -->
+<div class="modal-overlay" id="sourcesModal">
+  <div class="modal" style="max-width:740px;max-height:88vh;display:flex;flex-direction:column;position:relative">
+    <button class="hist-btn" onclick="closeSourcesModal()" style="position:absolute;top:14px;right:14px;width:32px;height:32px;font-size:18px;font-weight:700;line-height:1;z-index:2" title="Close" aria-label="Close">×</button>
+    <h3 id="sourcesTitle" style="padding-right:40px;margin-bottom:8px">Sources &amp; References</h3>
+    <div id="sourcesBody" style="overflow-y:auto;flex:1;padding-right:8px;font-size:13px;line-height:1.65;color:var(--text-muted)"></div>
+    <div class="modal-buttons">
+      <button class="btn btn-accent" onclick="closeSourcesModal()">OK</button>
+    </div>
+  </div>
+</div>
+
 <!-- HRT Start Date Modal -->
 <div class="modal-overlay" id="startDateModal">
   <div class="modal" style="max-width:400px">
@@ -1170,6 +1183,114 @@ function t(key){return I18N[lang]?.[key]||I18N.en[key]||key;}
 function pick(en,pt,ca){if(lang==='pt')return pt;if(lang==='ca')return ca;return en;}
 function setLang(l){lang=l;try{localStorage.setItem('hrt_lang',l);}catch(e){}updateStaticLabels();renderInfoModal();renderProfileTabs();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();renderHistory();renderStats();redraw();fitHeaderLogo();}
 function openInfoModal(){renderInfoModal();document.getElementById('infoModal').classList.add('open');}
+function openSourcesModal(){
+  // Close the About modal so this stands alone, per design intent.
+  closeModal('infoModal');
+  renderSourcesModal();
+  document.getElementById('sourcesModal').classList.add('open');
+}
+function closeSourcesModal(){document.getElementById('sourcesModal').classList.remove('open');}
+function renderSourcesModal(){
+  const body=document.getElementById('sourcesBody');if(!body)return;
+  const titleEl=document.getElementById('sourcesTitle');
+  const linkStyle='style="color:var(--accent)"';
+  // Section header style + small note style + citation card style
+  const hStyle='style="color:var(--text);margin:18px 0 6px;font-size:14px;letter-spacing:.2px"';
+  const subH='style="color:var(--text);font-weight:600;font-size:13px;margin-top:10px"';
+  const noteStyle='style="font-size:12px;color:var(--text-dim);font-style:italic;margin:6px 0 10px"';
+  const card='style="padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);margin:6px 0"';
+  const T={
+    en:{
+      title:'Sources & References',
+      intro:`This tool draws on the publications, lab references, and software conventions listed below. Each entry is annotated with what it informs in the visualizer. <strong>Reference ranges and target intervals are general guidance only</strong> — your physician's interpretation, your specific lab's reference interval, and your individual physiology supersede everything here.`,
+      sec_clinical:'Clinical guidelines for trans HRT',
+      sec_lab:'Laboratory reference intervals',
+      sec_pk:'Pharmacokinetics & medication behavior',
+      sec_unit:'Unit conversions',
+      sec_algo:'Chart algorithms & math',
+      sec_typo:'Typography & design assets',
+      sec_credits:'Inspiration & assistance',
+      es_label:'Endocrine Society Clinical Practice Guideline',
+      es_cite:`Hembree WC, Cohen-Kettenis PT, Gooren L, et al. <em>Endocrine Treatment of Gender-Dysphoric/Gender-Incongruent Persons: An Endocrine Society Clinical Practice Guideline.</em> J Clin Endocrinol Metab. 2017 Nov 1;102(11):3869–3903.`,
+      es_use:`Informs the typical pre-HRT "male" and "female" baseline values shown for the sex-hormone presets (E2, T, FT, DHT, PROG, SHBG) and the general goal-range orientation for transfeminine and transmasculine hormone therapy.`,
+      wpath_label:'WPATH Standards of Care, Version 8',
+      wpath_cite:`Coleman E, Radix AE, Bouman WP, et al. <em>Standards of Care for the Health of Transgender and Gender Diverse People, Version 8.</em> Int J Transgend Health. 2022;23(Suppl 1):S1–S259.`,
+      wpath_use:`Current standards of care; consulted for general guidance on hormone monitoring frequency, treatment goals, and the framing of "target" levels rather than strict cutoffs.`,
+      ucsf_label:'UCSF Center of Excellence for Transgender Health',
+      ucsf_cite:`Deutsch MB (ed.). <em>Guidelines for the Primary and Gender-Affirming Care of Transgender and Gender Nonbinary People.</em> 2nd ed. UCSF, 2016.`,
+      ucsf_use:`Practical primary-care guidance; informs the lab panels suggested in the setup wizard and the general grouping of monitored markers (sex hormones, liver/kidney, etc.).`,
+      tfs_label:'Transfeminine Science (transfemscience.org)',
+      tfs_cite:`Aly. <em>Transfeminine Science.</em> transfemscience.org`,
+      tfs_use:`Community-maintained reference on estradiol esters, anti-androgens, and pharmacokinetic data. Background reading that shaped how dose changes are visualized and how pre-HRT to first-lab transitions are drawn.`,
+      lab_label:'Laboratory reference intervals',
+      lab_cite:`Reference intervals for non-sex-hormone analytes (ALT, AST, GGT, creatinine, ferritin, B12, vitamin D, hematocrit, potassium, IGF-1, cortisol) are based on commonly published intervals from major reference laboratories (LabCorp, Quest Diagnostics, Mayo Clinic Laboratories) and standard biochemistry textbooks.`,
+      lab_use:`These supply the default tLo/tHi target shading on the right axes for non-sex-hormone markers. Your lab's own reference range may differ; you can override per-hormone values in the Catálogo (⚙).`,
+      pk_label:'Estradiol ester half-lives & PK profiles',
+      pk_cite:`Compiled from drug package inserts, transfemscience.org dose-response models, and peer-reviewed PK studies for estradiol valerate, enanthate, cypionate, and undecylate.`,
+      pk_use:`The choice of monotone-cubic and Catmull-Rom Hermite splines for between-lab interpolation is informed by typical estradiol injection PK curves: rapid rise to a peak in days, then a smooth fall over weeks. The pre-HRT bridge (Hermite cubic with slope-matching at the first lab) is shaped to mimic that ramp without claiming a specific PK model.`,
+      pk_disclaimer:`The smooth curves between lab measurements are <strong>visual interpolation, not pharmacokinetic predictions</strong>. They suggest a plausible trajectory, not a measurement.`,
+      uc_label:'Molecular weights for unit conversions',
+      uc_cite:`PubChem (NIH National Library of Medicine). Compound molecular weights used for mass-to-mole conversions: E2 (272.4 g/mol), T (288.4), DHT (290.4), PROG (314.5), CORT (362.5), and others.`,
+      uc_use:`The per-hormone unit table (UNIT_CONV in the source) uses these molecular weights to convert between mass-per-volume (pg/mL, ng/mL, ng/dL, mg/dL) and mole-per-volume (pmol/L, nmol/L). A general universal converter handles same-dimension conversions (mass↔mass, mole↔mole, IU↔IU) without needing per-substance data.`,
+      algo_cr_label:'Catmull-Rom Hermite spline (lab-to-lab smoothing)',
+      algo_cr_cite:`Catmull E, Rom R. <em>A class of local interpolating splines.</em> Computer Aided Geometric Design, 1974.`,
+      algo_cr_use:`Used to draw smooth curves between consecutive lab measurements when the Curves toggle is on. With ≥3 data points, Catmull-Rom uses centered-difference tangents for natural-looking curvature; with exactly 2 points, the chart uses a smoothstep ease-in/out (Perlin) so the segment isn't a straight line.`,
+      algo_hermite_label:'Hermite cubic (pre-HRT bridge)',
+      algo_hermite_cite:`Standard cubic Hermite spline (Hermite, 19th c.; modern formulation per Fritsch & Carlson, 1980).`,
+      algo_hermite_use:`The pre-HRT segment from day 0 to the first lab is drawn with a Hermite cubic that's flat at day 0 and matches the lab spline's slope at the first lab. This eliminates the kink that a unified monotone-cubic was producing at the start of HRT.`,
+      algo_smoothstep_label:'Smoothstep (linear-to-smooth fallback)',
+      algo_smoothstep_cite:`Perlin K. <em>Improving Noise.</em> ACM SIGGRAPH, 2002 (smoothstep formulation t² · (3 − 2t)).`,
+      algo_smoothstep_use:`Used for the 2-point case in the lab spline so a single before/after pair shows a curve instead of a straight line.`,
+      algo_layout_label:'Label placement',
+      algo_layout_cite:`Custom: tiered candidate positions (close / medium / far) × 6 corners per tier, scored by label collisions (×10 000), curve crossings (×200), side-alternation penalty (×1500), and distance to dot (×1).`,
+      algo_layout_use:`Drives the chart's label placement: hormone name + value blocks, dose-change values, and medication names. The deferred render queue ensures every label sits on top of every curve regardless of draw order.`,
+      typo_dm:`<strong>DM Sans</strong> &amp; <strong>JetBrains Mono</strong> — UI body text and tabular numerics (Google Fonts, OFL).`,
+      typo_silk:`<strong>Silkscreen</strong>, <strong>Cabin Sketch</strong>, <strong>Fascinate</strong>, <strong>Metamorphous</strong> — theme-specific logo display fonts (Google Fonts, OFL).`,
+      mona:`<strong>Mona — HRT Journal</strong> by Delia Cheminot. <a href="https://github.com/delia-cheminot/mona-hrt" target="_blank" rel="noopener" ${linkStyle}>github.com/delia-cheminot/mona-hrt</a>. Discovered late in development; if you want a full mobile app with reminders, supplies tracking, and a polished UI, go install Mona.`,
+      artemis:`<strong>Artemis II Timeline</strong> by Hank Green. <a href="https://artemistimeline.com" target="_blank" rel="noopener" ${linkStyle}>artemistimeline.com</a>. Inspiration for shipping a "vibe-coded" personal-tooling project publicly.`,
+      llm:`This codebase was built with substantial assistance from large language models. Specific architectural decisions (file structure, single-file no-build pipeline), all clinical data (target ranges, baselines, units), the visual design, and every product-level decision are by Luci. The disclosure exists in the About modal too.`,
+      footer:`If you spot a citation that should be more specific, a target range that differs from the source you trust, or a missing reference, please <a href="mailto:bugport.helpline266@passmail.net" ${linkStyle}>send an email</a>.`
+    }
+  };
+  const _Lcur=T[lang]||{};const _Len=T.en;
+  const L=new Proxy({},{get:(_,k)=>(_Lcur[k]!=null?_Lcur[k]:(_Len[k]!=null?_Len[k]:''))});
+  if(titleEl)titleEl.textContent=L.title;
+  body.innerHTML=`
+    <p style="margin-bottom:14px">${L.intro}</p>
+
+    <h4 ${hStyle}>${L.sec_clinical}</h4>
+    <div ${card}><div ${subH}>${L.es_label}</div><div ${noteStyle}>${L.es_cite}</div><div>${L.es_use}</div><div style="margin-top:6px;font-size:11px"><a href="https://academic.oup.com/jcem/article/102/11/3869/4157558" target="_blank" rel="noopener" ${linkStyle}>academic.oup.com/jcem · DOI 10.1210/jc.2017-01658</a></div></div>
+    <div ${card}><div ${subH}>${L.wpath_label}</div><div ${noteStyle}>${L.wpath_cite}</div><div>${L.wpath_use}</div><div style="margin-top:6px;font-size:11px"><a href="https://www.wpath.org/soc8" target="_blank" rel="noopener" ${linkStyle}>wpath.org/soc8 · DOI 10.1080/26895269.2022.2100644</a></div></div>
+    <div ${card}><div ${subH}>${L.ucsf_label}</div><div ${noteStyle}>${L.ucsf_cite}</div><div>${L.ucsf_use}</div><div style="margin-top:6px;font-size:11px"><a href="https://transcare.ucsf.edu/guidelines" target="_blank" rel="noopener" ${linkStyle}>transcare.ucsf.edu/guidelines</a></div></div>
+    <div ${card}><div ${subH}>${L.tfs_label}</div><div ${noteStyle}>${L.tfs_cite}</div><div>${L.tfs_use}</div><div style="margin-top:6px;font-size:11px"><a href="https://transfemscience.org" target="_blank" rel="noopener" ${linkStyle}>transfemscience.org</a></div></div>
+
+    <h4 ${hStyle}>${L.sec_lab}</h4>
+    <div ${card}><div ${subH}>${L.lab_label}</div><div>${L.lab_cite}</div><div style="margin-top:6px">${L.lab_use}</div></div>
+
+    <h4 ${hStyle}>${L.sec_pk}</h4>
+    <div ${card}><div ${subH}>${L.pk_label}</div><div ${noteStyle}>${L.pk_cite}</div><div>${L.pk_use}</div><div style="margin-top:8px;padding:8px;background:rgba(207,107,107,.08);border-left:3px solid var(--danger);font-size:12px;color:var(--text-muted)">${L.pk_disclaimer}</div></div>
+
+    <h4 ${hStyle}>${L.sec_unit}</h4>
+    <div ${card}><div ${subH}>${L.uc_label}</div><div ${noteStyle}>${L.uc_cite}</div><div>${L.uc_use}</div><div style="margin-top:6px;font-size:11px"><a href="https://pubchem.ncbi.nlm.nih.gov" target="_blank" rel="noopener" ${linkStyle}>pubchem.ncbi.nlm.nih.gov</a></div></div>
+
+    <h4 ${hStyle}>${L.sec_algo}</h4>
+    <div ${card}><div ${subH}>${L.algo_cr_label}</div><div ${noteStyle}>${L.algo_cr_cite}</div><div>${L.algo_cr_use}</div></div>
+    <div ${card}><div ${subH}>${L.algo_hermite_label}</div><div ${noteStyle}>${L.algo_hermite_cite}</div><div>${L.algo_hermite_use}</div></div>
+    <div ${card}><div ${subH}>${L.algo_smoothstep_label}</div><div ${noteStyle}>${L.algo_smoothstep_cite}</div><div>${L.algo_smoothstep_use}</div></div>
+    <div ${card}><div ${subH}>${L.algo_layout_label}</div><div ${noteStyle}>${L.algo_layout_cite}</div><div>${L.algo_layout_use}</div></div>
+
+    <h4 ${hStyle}>${L.sec_typo}</h4>
+    <div ${card}><div>${L.typo_dm}</div></div>
+    <div ${card}><div>${L.typo_silk}</div></div>
+
+    <h4 ${hStyle}>${L.sec_credits}</h4>
+    <div ${card}><div>${L.mona}</div></div>
+    <div ${card}><div>${L.artemis}</div></div>
+    <div ${card}><div>${L.llm}</div></div>
+
+    <p style="margin-top:18px;font-size:12px;color:var(--text-dim)">${L.footer}</p>
+  `;
+}
 function renderInfoModal(){
   const body=document.getElementById('infoBody');if(!body)return;
   const headStyle='style="color:var(--text);margin:16px 0 6px;font-size:14px"';
@@ -1195,6 +1316,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       license:`This tool is released under the <strong>MIT License</strong>. You are free to use, modify, and distribute it. No warranty is provided; use at your own risk.`,
       creditsH:'Credits',
       credits:`Made with care by Luci. Fonts (all from Google Fonts, OFL): DM Sans &amp; JetBrains Mono (UI &amp; data), Silkscreen (Dark logo), Cabin Sketch (Cottage logo), Fascinate (Nonchalant logo), Metamorphous (Evil logo).`,
+      viewSources:`View sources &amp; references`,
       kofi:`If this tool helped you, consider <a href="https://ko-fi.com/K3K01XPH6P" target="_blank" rel="noopener" ${linkStyle}>supporting on Ko-fi</a>.`
     },
     pt:{
@@ -1212,6 +1334,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       license:`Esta ferramenta é distribuída sob a <strong>Licença MIT</strong>. Você é livre para usá-la, modificá-la e distribuí-la. Nenhuma garantia é fornecida; use por sua conta e risco.`,
       creditsH:'Créditos',
       credits:`Feito com carinho por Luci. Fontes (todas do Google Fonts, OFL): DM Sans &amp; JetBrains Mono (UI &amp; dados), Silkscreen (logo Dark), Cabin Sketch (logo Cottage), Fascinate (logo Nonchalant), Metamorphous (logo Evil).`,
+      viewSources:`Ver fontes e referências`,
       kofi:`Se esta ferramenta ajudou você, considere <a href="https://ko-fi.com/K3K01XPH6P" target="_blank" rel="noopener" ${linkStyle}>apoiar no Ko-fi</a>.`
     },
     ca:{
@@ -1229,6 +1352,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       license:`Aquesta eina es distribueix sota la <strong>Llicència MIT</strong>. Pots usar-la, modificar-la i distribuir-la lliurement. No s'ofereix cap garantia; usa-la sota la teva responsabilitat.`,
       creditsH:'Crèdits',
       credits:`Fet amb cura per Luci. Tipografies (totes de Google Fonts, OFL): DM Sans i JetBrains Mono (interfície i dades), Silkscreen (logo Dark), Cabin Sketch (logo Cottage), Fascinate (logo Nonchalant), Metamorphous (logo Evil).`,
+      viewSources:`Veure fonts i referències`,
       kofi:`Si aquesta eina t'ha ajudat, considera <a href="https://ko-fi.com/K3K01XPH6P" target="_blank" rel="noopener" ${linkStyle}>donar suport a Ko-fi</a>.`
     }
   };
@@ -1254,6 +1378,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     ${mit}
     <h4 ${headStyle}>${L.creditsH}</h4>
     <p>${L.credits}</p>
+    <p style="margin-top:14px"><a href="javascript:void(0)" onclick="openSourcesModal()" ${linkStyle}><strong>${L.viewSources||'View sources &amp; references'} →</strong></a></p>
     <p style="font-size:13px;color:var(--text-dim);margin-top:12px">${L.kofi}</p>
   `;
 }
