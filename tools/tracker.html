@@ -3080,11 +3080,14 @@ function drawChart(canvas,opts){
       const wantsName=isFirst&&showLabels;
       const wantsValue=showValues;
       if(!wantsName&&!wantsValue)continue;
-      // Build the block of lines this dot needs (1 or 2).
+      // Build the block of lines this dot needs (1 or 2). Strip any "(alias)" suffix from
+      // the hormone display name when rendering on the chart — the alias belongs in the
+      // catalog/history but clutters the chart and pushes the label far from the dot.
+      const _chartName=String(h.name).replace(/\s*\([^)]*\)\s*$/,'').trim()||h.name;
       const lines=[];
       if(wantsName){
         ctx.font=fMd;
-        lines.push({text:h.name,font:fMd,w:ctx.measureText(h.name).width,haloW:parseFloat(pT(3.5,4,4.5))});
+        lines.push({text:_chartName,font:fMd,w:ctx.measureText(_chartName).width,haloW:parseFloat(pT(3.5,4,4.5))});
       }
       if(wantsValue){
         ctx.font=fLg;
@@ -3095,12 +3098,14 @@ function drawChart(canvas,opts){
       const blockW=Math.max(...lines.map(l=>l.w));
       const N=lines.length;
       const offX=lerp(6,9),offY=lerp(5,7);
-      // Each candidate is the BASELINE Y of the first line. The block extends N*lineH downward.
+      // Candidate placements. Try right-of-dot first (top, then bottom), then left-of-dot.
+      // Each candidate carries `side` so we can right-align lines on left placements,
+      // keeping the right edge of the block consistently close to the dot.
       const candidates=[
-        {lx:X+offX,ly1:Y-offY-(N-1)*lineH},     // upper-right (block sits above dot)
-        {lx:X-blockW-offX,ly1:Y-offY-(N-1)*lineH}, // upper-left
-        {lx:X+offX,ly1:Y+offY+lineH},           // lower-right (block sits below dot)
-        {lx:X-blockW-offX,ly1:Y+offY+lineH}     // lower-left
+        {lx:X+offX,ly1:Y-offY-(N-1)*lineH,side:'right'},     // upper-right
+        {lx:X+offX,ly1:Y+offY+lineH,side:'right'},           // lower-right
+        {lx:X-blockW-offX,ly1:Y-offY-(N-1)*lineH,side:'left'}, // upper-left
+        {lx:X-blockW-offX,ly1:Y+offY+lineH,side:'left'}      // lower-left
       ];
       let chosen=candidates[0];
       for(const c of candidates){
@@ -3117,9 +3122,14 @@ function drawChart(canvas,opts){
       // Push each line. Attach leader info (dot anchor + block bounds) to the FIRST line so
       // the deferred pass draws one micro stub per block (not per line).
       let curLy=chosen.ly1;
+      // Right-align each line when the block sits LEFT of the dot, so a wide line and a
+      // short line don't have their left edges aligned (which would push the short line's
+      // right edge far from the dot).
+      const blockRight=chosen.lx+blockW;
       for(let li=0;li<lines.length;li++){
         const L=lines[li];
-        const entry={text:L.text,lx:chosen.lx,ly:curLy,color:h.color,font:L.font,haloW:L.haloW};
+        const entryLx=chosen.side==='left'?(blockRight-L.w):chosen.lx;
+        const entry={text:L.text,lx:entryLx,ly:curLy,color:h.color,font:L.font,haloW:L.haloW};
         if(li===0){entry.leader={X,Y,dotR:_dotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};}
         _pendingLabels.push(entry);
         curLy+=lineH;
