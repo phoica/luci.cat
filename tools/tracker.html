@@ -2996,9 +2996,13 @@ function drawChart(canvas,opts){
     }
   }
 
-  // Hormone curves
+  // Hormone curves are drawn in two phases so label placement (phase 2) can detect crossings
+  // with EVERY hormone's curve, not just the ones drawn before it. _allCurves holds the
+  // computed curve functions per hormone after phase 1.
+  const _allCurves=[];
+  // Phase 1: compute curve data + draw curves.
   for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hv=getHormoneVals(hk);
-    function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}
+    const yH=(y)=>H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);
     // Separate baseline lab (day -30) from regular labs.
     // Read every value in the hormone's CURRENT display unit so plotting is consistent.
     const showPreHrtH=isPreHrtShownFor(hk);
@@ -3069,10 +3073,30 @@ function drawChart(canvas,opts){
     }
     // Solid curves between real lab points
     if(showLines){let s=false;ctx.lineWidth=2.5;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}}
-    // Dots + value/name labels. The first dot of each hormone gets a stacked block
-    // [name, value] so the two pieces of information stay visually paired; subsequent
-    // dots get just the value. Each block is collision-tested as a single rect.
-    const _dotR=parseFloat(dotR);
+    _allCurves.push({hk,h,hv,yH,times,vals,f,drawFrom});
+  }
+  // Phase 2: dots + labels with full curve info. Each dot-block can avoid collisions with
+  // any other hormone's curve, not just earlier-drawn ones.
+  const _dotR=parseFloat(dotR);
+  // Inverse of xS for sampling curves at a px range (used by curve-crossing scorer).
+  const xPxToDay=(px)=>tMin+((px-margin.left)/(W-margin.left-mr))*(xMax-tMin);
+  for(const C of _allCurves){
+    const {hk,h,times,vals,f:cf,yH,drawFrom}=C;
+    function _rectCrossesCurve(r1,other){
+      if(other.hk===hk)return false;
+      const lastX=other.times.length?other.times[other.times.length-1]:other.drawFrom;
+      const xL=Math.max(xPxToDay(r1.x),other.drawFrom);
+      const xR=Math.min(xPxToDay(r1.x+r1.w),lastX);
+      if(xL>xR)return false;
+      // Sample 5 points across the rect's x range; if the other curve passes through
+      // the rect at any sample, we count it as a crossing.
+      for(let s=0;s<=4;s++){
+        const x=xL+(xR-xL)*(s/4);
+        const yPx=other.yH(other.f(x));
+        if(yPx>=r1.y&&yPx<=r1.y+r1.h)return true;
+      }
+      return false;
+    }
     for(let i=0;i<times.length;i++){
       const X=xS(times[i]),Y=yH(vals[i]);
       ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,_dotR,0,Math.PI*2);ctx.fill();
@@ -3080,11 +3104,14 @@ function drawChart(canvas,opts){
       const wantsName=isFirst&&showLabels;
       const wantsValue=showValues;
       if(!wantsName&&!wantsValue)continue;
-      // Build the block of lines this dot needs (1 or 2).
+      // Build the block of lines this dot needs (1 or 2). Strip any "(alias)" suffix from
+      // the hormone display name when rendering on the chart — the alias belongs in the
+      // catalog/history but clutters the chart and pushes the label far from the dot.
+      const _chartName=String(h.name).replace(/\s*\([^)]*\)\s*$/,'').trim()||h.name;
       const lines=[];
       if(wantsName){
         ctx.font=fMd;
-        lines.push({text:h.name,font:fMd,w:ctx.measureText(h.name).width,haloW:parseFloat(pT(3.5,4,4.5))});
+        lines.push({text:_chartName,font:fMd,w:ctx.measureText(_chartName).width,haloW:parseFloat(pT(3.5,4,4.5))});
       }
       if(wantsValue){
         ctx.font=fLg;
@@ -3095,31 +3122,47 @@ function drawChart(canvas,opts){
       const blockW=Math.max(...lines.map(l=>l.w));
       const N=lines.length;
       const offX=lerp(6,9),offY=lerp(5,7);
-      // Each candidate is the BASELINE Y of the first line. The block extends N*lineH downward.
+      // Candidate placements. Try right-of-dot first (top, then bottom), then left-of-dot.
+      // Each candidate carries `side` so we can right-align lines on left placements,
+      // keeping the right edge of the block consistently close to the dot.
       const candidates=[
-        {lx:X+offX,ly1:Y-offY-(N-1)*lineH},     // upper-right (block sits above dot)
-        {lx:X-blockW-offX,ly1:Y-offY-(N-1)*lineH}, // upper-left
-        {lx:X+offX,ly1:Y+offY+lineH},           // lower-right (block sits below dot)
-        {lx:X-blockW-offX,ly1:Y+offY+lineH}     // lower-left
+        {lx:X+offX,ly1:Y-offY-(N-1)*lineH,side:'right'},     // upper-right
+        {lx:X+offX,ly1:Y+offY+lineH,side:'right'},           // lower-right
+        {lx:X-blockW-offX,ly1:Y-offY-(N-1)*lineH,side:'left'}, // upper-left
+        {lx:X-blockW-offX,ly1:Y+offY+lineH,side:'left'}      // lower-left
       ];
+      // Score each candidate. Lower is better. Label collisions outweigh curve crossings,
+      // and a perfect score (0) short-circuits the search.
       let chosen=candidates[0];
+      let chosenScore=Infinity;
       for(const c of candidates){
         const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
         const r1={x:c.lx,y:top,w:blockW,h:bottom-top};
-        let hit=false;
+        let labelHits=0;
         for(const r2 of _placedLabels){
-          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
+          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;break;}
         }
-        if(!hit){chosen=c;break;}
+        let curveHits=0;
+        for(const other of _allCurves){
+          if(_rectCrossesCurve(r1,other))curveHits++;
+        }
+        const score=labelHits*100+curveHits*10;
+        if(score<chosenScore){chosenScore=score;chosen=c;}
+        if(score===0)break;
       }
       const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
       _placedLabels.push({x:chosen.lx,y:blockTop,w:blockW,h:blockBottom-blockTop});
       // Push each line. Attach leader info (dot anchor + block bounds) to the FIRST line so
       // the deferred pass draws one micro stub per block (not per line).
       let curLy=chosen.ly1;
+      // Right-align each line when the block sits LEFT of the dot, so a wide line and a
+      // short line don't have their left edges aligned (which would push the short line's
+      // right edge far from the dot).
+      const blockRight=chosen.lx+blockW;
       for(let li=0;li<lines.length;li++){
         const L=lines[li];
-        const entry={text:L.text,lx:chosen.lx,ly:curLy,color:h.color,font:L.font,haloW:L.haloW};
+        const entryLx=chosen.side==='left'?(blockRight-L.w):chosen.lx;
+        const entry={text:L.text,lx:entryLx,ly:curLy,color:h.color,font:L.font,haloW:L.haloW};
         if(li===0){entry.leader={X,Y,dotR:_dotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};}
         _pendingLabels.push(entry);
         curLy+=lineH;
@@ -3130,8 +3173,8 @@ function drawChart(canvas,opts){
   // Flush deferred labels last so they always render ON TOP of every curve and dot.
   // Pass A: micro leader lines (a tiny grey stub from each labeled dot toward its block).
   ctx.save();
-  ctx.strokeStyle='rgba(140,140,140,0.5)';
-  ctx.lineWidth=1;
+  ctx.strokeStyle='rgba(170,170,170,0.85)';
+  ctx.lineWidth=1.5;
   for(const lbl of _pendingLabels){
     if(!lbl.leader)continue;
     const L=lbl.leader;
