@@ -837,6 +837,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showRangesToggle" checked onchange="toggleRanges()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showRanges">Ranges</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showGridToggle" checked onchange="toggleGrid()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showGrid">Grid</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showLinesToggle" checked onchange="toggleLines()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showLines">Lines</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showDoseChangesToggle" checked onchange="toggleDoseChanges()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showDoseChanges">Dose changes</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showCurvesToggle" checked onchange="toggleCurves()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showCurves">Curves</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showErrorToggle" onchange="toggleError()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showError">Error</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showAxesToggle" onchange="toggleShowAxes()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showAxesLabel">Axes</span></div>
@@ -1160,9 +1161,9 @@ function setHormoneRange(hk,lo,hi){const p=getActive();if(!p)return;if(!p.hormon
 
 // ═══ i18n ═══
 let lang='en';
-const I18N={en:{profiles:'Profiles',newBtn:'New',exportBtn:'Export',importBtn:'Import',showFromDay:'From day:',showUpToDay:'to day:',showLabels:'Labels',showLegend:'Legend',showValues:'Values',showGuides:'Guides',showPreHrt:'Pre-HRT',showRanges:'Ranges',showGrid:'Grid',showLines:'Lines',showCurves:'Curves',showError:'Error %',exportPng:'Export PNG',addDosage:'Add Dosage',addLabTest:'Add Lab Test',date:'Date',amount:'Amount',addBtn:'Add',addDoseBtn:'Add Dose',addLabBtn:'Add Lab Result',addAllDosesBtn:'Add All Doses',addMedication:'Add Medication',trackHormone:'Track Hormone',history:'History',doses:'Doses',labTests:'Lab Tests',day:'Day',medication:'Medication',values:'Values',edit:'edit',deleteBtn:'delete',noDoses:'No doses recorded yet.',noLabs:'No lab tests recorded yet.',settingsFor:'Settings for',color:'Color',unit:'Unit',createProfile:'Create Profile',profileName:'Profile name...',baseline:'Baseline',noBaseline:'No baseline',preHrtMale:'Pre-HRT "male"',preHrtFemale:'Pre-HRT "female"',typMaleLevels:'Typical pre-HRT "male" levels',typFemaleLevels:'Typical pre-HRT "female" levels',cancel:'Cancel',create:'Create',doseUpdated:'Updated',confirmDeleteDose:'Delete this dose?',confirmDeleteLab:'Delete this lab?',daysLabel:'days since start',doseMg:'dose',hrtStart:'HRT Start',selectMedFirst:'Select a medication first.',fillDateAmount:'Fill in date and amount.',enterValidAmount:'Enter a valid amount.',enterDate:'Enter a date.',enterOneValue:'Enter at least one value.',alreadyExists:'Already exists',cantDeleteOnly:"Can't delete only profile",profilePicSet:'Photo set',exported:'Exported',removed:'Removed',rename:'Rename',setPicture:'Set picture',deletePfp:'Remove picture',recurring:'Recurring dose',every:'Every',days2:'days',forDuration:'for',weeks:'weeks',months:'months',years:'year(s)',addAll:'Add all',dosesAdded:'doses added',dosesTaken:'doses taken',daysSinceLab:'days since last lab',daySinceStart:'days since start',undone:'Undone',hormonesLabel:'hormones',hrtStartDate:'HRT Start Date',chooseOrCustom:'Choose from list or create custom',custom:'Custom...',showDoseDots:'Dose dots',viewAll:'All',viewIndividual:'Individual',viewSplit:'Multi-view',addProfileBtn:'Add Profile',showAxesFor:'Show axes for:',showAxesLabel:'Axes',targetRanges:'Target Ranges',nextBtn:'Next →',backBtn:'← Back',applyBtn:'Apply',parseError:'Parse error',invalidFile:'Invalid file',hormoneMarkerName:'Hormone/marker name',medicationName:'Medication name'},
-pt:{profiles:'Perfis',newBtn:'Novo',exportBtn:'Exportar',importBtn:'Importar',showFromDay:'Do dia:',showUpToDay:'até o dia:',showLabels:'Rótulos',showLegend:'Legenda',showValues:'Valores',showGuides:'Guias',showPreHrt:'Pré-TRH',showRanges:'Faixas',showGrid:'Grade',showLines:'Linhas',showCurves:'Curvas',showError:'Erro %',exportPng:'Exportar PNG',addDosage:'Adicionar Dosagem',addLabTest:'Adicionar Exame',date:'Data',amount:'Quantidade',addBtn:'Adicionar',addDoseBtn:'Adicionar Dose',addLabBtn:'Adicionar Exame',addAllDosesBtn:'Adicionar Todas as Doses',addMedication:'Adicionar Medicação',trackHormone:'Rastrear Hormônio',history:'Histórico',doses:'Doses',labTests:'Exames',day:'Dia',medication:'Medicação',values:'Valores',edit:'editar',deleteBtn:'excluir',noDoses:'Nenhuma dose registrada.',noLabs:'Nenhum exame registrado.',settingsFor:'Configurações de',color:'Cor',unit:'Unidade',createProfile:'Criar Perfil',profileName:'Nome do perfil...',baseline:'Linha de base',noBaseline:'Sem linha de base',preHrtMale:'Pré-TRH "masculino"',preHrtFemale:'Pré-TRH "feminino"',typMaleLevels:'Níveis pré-TRH "masculinos" típicos',typFemaleLevels:'Níveis pré-TRH "femininos" típicos',cancel:'Cancelar',create:'Criar',doseUpdated:'Atualizado',confirmDeleteDose:'Excluir esta dose?',confirmDeleteLab:'Excluir este exame?',daysLabel:'dias desde o início',doseMg:'dose',hrtStart:'Início TRH',selectMedFirst:'Selecione uma medicação.',fillDateAmount:'Preencha data e quantidade.',enterValidAmount:'Valor inválido.',enterDate:'Insira uma data.',enterOneValue:'Insira pelo menos um valor.',alreadyExists:'Já existe',cantDeleteOnly:'Impossível excluir o único perfil',profilePicSet:'Foto definida',exported:'Exportado',removed:'Removido',rename:'Renomear',setPicture:'Definir foto',deletePfp:'Remover foto',recurring:'Dose recorrente',every:'A cada',days2:'dias',forDuration:'por',weeks:'semanas',months:'meses',years:'ano(s)',addAll:'Adicionar tudo',dosesAdded:'doses adicionadas',dosesTaken:'doses tomadas',daysSinceLab:'dias desde último exame',daySinceStart:'dias desde o início',undone:'Desfeito',hormonesLabel:'hormônios',hrtStartDate:'Data de Início TRH',chooseOrCustom:'Escolha da lista ou crie personalizado',custom:'Personalizado...',showDoseDots:'Pontos de dose',viewAll:'Todos',viewSplit:'Multi-visão',addProfileBtn:'Adicionar Perfil',showAxesFor:'Mostrar eixos para:',showAxesLabel:'Eixos',targetRanges:'Faixas Alvo',nextBtn:'Próximo →',backBtn:'← Voltar',applyBtn:'Aplicar',parseError:'Erro',invalidFile:'Arquivo inválido',hormoneMarkerName:'Nome do hormônio/marcador',medicationName:'Nome da medicação'},
-ca:{profiles:'Perfils',newBtn:'Nou',exportBtn:'Exporta',importBtn:'Importa',showFromDay:'Del dia:',showUpToDay:"fins al dia:",showLabels:'Etiquetes',showLegend:'Llegenda',showValues:'Valors',showGuides:'Guies',showPreHrt:'Pre-THS',showRanges:'Intervals',showGrid:'Quadrícula',showLines:'Línies',showCurves:'Corbes',showError:'Error %',exportPng:'Exporta PNG',addDosage:'Afegeix Dosi',addLabTest:'Afegeix Anàlisi',date:'Data',amount:'Quantitat',addBtn:'Afegeix',addDoseBtn:'Afegeix Dosi',addLabBtn:'Afegeix Resultat',addAllDosesBtn:'Afegeix Totes les Dosis',addMedication:'Afegeix Medicació',trackHormone:'Segueix Hormona',history:'Historial',doses:'Dosis',labTests:'Anàlisis',day:'Dia',medication:'Medicació',values:'Valors',edit:'edita',deleteBtn:'elimina',noDoses:'Encara no hi ha dosis registrades.',noLabs:'Encara no hi ha anàlisis registrades.',settingsFor:'Configuració de',color:'Color',unit:'Unitat',createProfile:'Crea Perfil',profileName:'Nom del perfil...',baseline:'Línia base',noBaseline:'Sense línia base',preHrtMale:'Pre-THS "masculí"',preHrtFemale:'Pre-THS "femení"',typMaleLevels:'Nivells pre-THS "masculins" típics',typFemaleLevels:'Nivells pre-THS "femenins" típics',cancel:'Cancel·la',create:'Crea',doseUpdated:'Actualitzat',confirmDeleteDose:'Vols eliminar aquesta dosi?',confirmDeleteLab:'Vols eliminar aquesta anàlisi?',daysLabel:'dies des de l\'inici',doseMg:'dosi',hrtStart:'Inici THS',selectMedFirst:'Selecciona primer una medicació.',fillDateAmount:'Omple data i quantitat.',enterValidAmount:'Introdueix un valor vàlid.',enterDate:'Introdueix una data.',enterOneValue:'Introdueix com a mínim un valor.',alreadyExists:'Ja existeix',cantDeleteOnly:"No es pot eliminar l'únic perfil",profilePicSet:'Foto desada',exported:'Exportat',removed:'Eliminat',rename:'Canvia el nom',setPicture:'Posa foto',deletePfp:'Treu foto',recurring:'Dosi recurrent',every:'Cada',days2:'dies',forDuration:'durant',weeks:'setmanes',months:'mesos',years:'any(s)',addAll:'Afegeix-ho tot',dosesAdded:'dosis afegides',dosesTaken:'dosis preses',daysSinceLab:"dies des de l'última anàlisi",daySinceStart:"dies des de l'inici",undone:'Desfet',hormonesLabel:'hormones',hrtStartDate:"Data d'Inici THS",chooseOrCustom:'Tria de la llista o crea personalitzat',custom:'Personalitzat...',showDoseDots:'Punts de dosi',viewAll:'Totes',viewSplit:'Multi-vista',addProfileBtn:'Afegeix Perfil',showAxesFor:'Mostra eixos per a:',showAxesLabel:'Eixos',targetRanges:'Intervals Objectiu',nextBtn:'Següent →',backBtn:'← Enrere',applyBtn:'Aplica',parseError:'Error de lectura',invalidFile:'Fitxer no vàlid',hormoneMarkerName:'Nom de l\'hormona/marcador',medicationName:'Nom de la medicació'}};
+const I18N={en:{profiles:'Profiles',newBtn:'New',exportBtn:'Export',importBtn:'Import',showFromDay:'From day:',showUpToDay:'to day:',showLabels:'Labels',showLegend:'Legend',showValues:'Values',showGuides:'Guides',showPreHrt:'Pre-HRT',showRanges:'Ranges',showGrid:'Grid',showLines:'Lines',showDoseChanges:'Dose changes',showCurves:'Curves',showError:'Error %',exportPng:'Export PNG',addDosage:'Add Dosage',addLabTest:'Add Lab Test',date:'Date',amount:'Amount',addBtn:'Add',addDoseBtn:'Add Dose',addLabBtn:'Add Lab Result',addAllDosesBtn:'Add All Doses',addMedication:'Add Medication',trackHormone:'Track Hormone',history:'History',doses:'Doses',labTests:'Lab Tests',day:'Day',medication:'Medication',values:'Values',edit:'edit',deleteBtn:'delete',noDoses:'No doses recorded yet.',noLabs:'No lab tests recorded yet.',settingsFor:'Settings for',color:'Color',unit:'Unit',createProfile:'Create Profile',profileName:'Profile name...',baseline:'Baseline',noBaseline:'No baseline',preHrtMale:'Pre-HRT "male"',preHrtFemale:'Pre-HRT "female"',typMaleLevels:'Typical pre-HRT "male" levels',typFemaleLevels:'Typical pre-HRT "female" levels',cancel:'Cancel',create:'Create',doseUpdated:'Updated',confirmDeleteDose:'Delete this dose?',confirmDeleteLab:'Delete this lab?',daysLabel:'days since start',doseMg:'dose',hrtStart:'HRT Start',selectMedFirst:'Select a medication first.',fillDateAmount:'Fill in date and amount.',enterValidAmount:'Enter a valid amount.',enterDate:'Enter a date.',enterOneValue:'Enter at least one value.',alreadyExists:'Already exists',cantDeleteOnly:"Can't delete only profile",profilePicSet:'Photo set',exported:'Exported',removed:'Removed',rename:'Rename',setPicture:'Set picture',deletePfp:'Remove picture',recurring:'Recurring dose',every:'Every',days2:'days',forDuration:'for',weeks:'weeks',months:'months',years:'year(s)',addAll:'Add all',dosesAdded:'doses added',dosesTaken:'doses taken',daysSinceLab:'days since last lab',daySinceStart:'days since start',undone:'Undone',hormonesLabel:'hormones',hrtStartDate:'HRT Start Date',chooseOrCustom:'Choose from list or create custom',custom:'Custom...',showDoseDots:'Dose dots',viewAll:'All',viewIndividual:'Individual',viewSplit:'Multi-view',addProfileBtn:'Add Profile',showAxesFor:'Show axes for:',showAxesLabel:'Axes',targetRanges:'Target Ranges',nextBtn:'Next →',backBtn:'← Back',applyBtn:'Apply',parseError:'Parse error',invalidFile:'Invalid file',hormoneMarkerName:'Hormone/marker name',medicationName:'Medication name'},
+pt:{profiles:'Perfis',newBtn:'Novo',exportBtn:'Exportar',importBtn:'Importar',showFromDay:'Do dia:',showUpToDay:'até o dia:',showLabels:'Rótulos',showLegend:'Legenda',showValues:'Valores',showGuides:'Guias',showPreHrt:'Pré-TRH',showRanges:'Faixas',showGrid:'Grade',showLines:'Linhas',showDoseChanges:'Mudanças de dose',showCurves:'Curvas',showError:'Erro %',exportPng:'Exportar PNG',addDosage:'Adicionar Dosagem',addLabTest:'Adicionar Exame',date:'Data',amount:'Quantidade',addBtn:'Adicionar',addDoseBtn:'Adicionar Dose',addLabBtn:'Adicionar Exame',addAllDosesBtn:'Adicionar Todas as Doses',addMedication:'Adicionar Medicação',trackHormone:'Rastrear Hormônio',history:'Histórico',doses:'Doses',labTests:'Exames',day:'Dia',medication:'Medicação',values:'Valores',edit:'editar',deleteBtn:'excluir',noDoses:'Nenhuma dose registrada.',noLabs:'Nenhum exame registrado.',settingsFor:'Configurações de',color:'Cor',unit:'Unidade',createProfile:'Criar Perfil',profileName:'Nome do perfil...',baseline:'Linha de base',noBaseline:'Sem linha de base',preHrtMale:'Pré-TRH "masculino"',preHrtFemale:'Pré-TRH "feminino"',typMaleLevels:'Níveis pré-TRH "masculinos" típicos',typFemaleLevels:'Níveis pré-TRH "femininos" típicos',cancel:'Cancelar',create:'Criar',doseUpdated:'Atualizado',confirmDeleteDose:'Excluir esta dose?',confirmDeleteLab:'Excluir este exame?',daysLabel:'dias desde o início',doseMg:'dose',hrtStart:'Início TRH',selectMedFirst:'Selecione uma medicação.',fillDateAmount:'Preencha data e quantidade.',enterValidAmount:'Valor inválido.',enterDate:'Insira uma data.',enterOneValue:'Insira pelo menos um valor.',alreadyExists:'Já existe',cantDeleteOnly:'Impossível excluir o único perfil',profilePicSet:'Foto definida',exported:'Exportado',removed:'Removido',rename:'Renomear',setPicture:'Definir foto',deletePfp:'Remover foto',recurring:'Dose recorrente',every:'A cada',days2:'dias',forDuration:'por',weeks:'semanas',months:'meses',years:'ano(s)',addAll:'Adicionar tudo',dosesAdded:'doses adicionadas',dosesTaken:'doses tomadas',daysSinceLab:'dias desde último exame',daySinceStart:'dias desde o início',undone:'Desfeito',hormonesLabel:'hormônios',hrtStartDate:'Data de Início TRH',chooseOrCustom:'Escolha da lista ou crie personalizado',custom:'Personalizado...',showDoseDots:'Pontos de dose',viewAll:'Todos',viewSplit:'Multi-visão',addProfileBtn:'Adicionar Perfil',showAxesFor:'Mostrar eixos para:',showAxesLabel:'Eixos',targetRanges:'Faixas Alvo',nextBtn:'Próximo →',backBtn:'← Voltar',applyBtn:'Aplicar',parseError:'Erro',invalidFile:'Arquivo inválido',hormoneMarkerName:'Nome do hormônio/marcador',medicationName:'Nome da medicação'},
+ca:{profiles:'Perfils',newBtn:'Nou',exportBtn:'Exporta',importBtn:'Importa',showFromDay:'Del dia:',showUpToDay:"fins al dia:",showLabels:'Etiquetes',showLegend:'Llegenda',showValues:'Valors',showGuides:'Guies',showPreHrt:'Pre-THS',showRanges:'Intervals',showGrid:'Quadrícula',showLines:'Línies',showDoseChanges:'Canvis de dosi',showCurves:'Corbes',showError:'Error %',exportPng:'Exporta PNG',addDosage:'Afegeix Dosi',addLabTest:'Afegeix Anàlisi',date:'Data',amount:'Quantitat',addBtn:'Afegeix',addDoseBtn:'Afegeix Dosi',addLabBtn:'Afegeix Resultat',addAllDosesBtn:'Afegeix Totes les Dosis',addMedication:'Afegeix Medicació',trackHormone:'Segueix Hormona',history:'Historial',doses:'Dosis',labTests:'Anàlisis',day:'Dia',medication:'Medicació',values:'Valors',edit:'edita',deleteBtn:'elimina',noDoses:'Encara no hi ha dosis registrades.',noLabs:'Encara no hi ha anàlisis registrades.',settingsFor:'Configuració de',color:'Color',unit:'Unitat',createProfile:'Crea Perfil',profileName:'Nom del perfil...',baseline:'Línia base',noBaseline:'Sense línia base',preHrtMale:'Pre-THS "masculí"',preHrtFemale:'Pre-THS "femení"',typMaleLevels:'Nivells pre-THS "masculins" típics',typFemaleLevels:'Nivells pre-THS "femenins" típics',cancel:'Cancel·la',create:'Crea',doseUpdated:'Actualitzat',confirmDeleteDose:'Vols eliminar aquesta dosi?',confirmDeleteLab:'Vols eliminar aquesta anàlisi?',daysLabel:'dies des de l\'inici',doseMg:'dosi',hrtStart:'Inici THS',selectMedFirst:'Selecciona primer una medicació.',fillDateAmount:'Omple data i quantitat.',enterValidAmount:'Introdueix un valor vàlid.',enterDate:'Introdueix una data.',enterOneValue:'Introdueix com a mínim un valor.',alreadyExists:'Ja existeix',cantDeleteOnly:"No es pot eliminar l'únic perfil",profilePicSet:'Foto desada',exported:'Exportat',removed:'Eliminat',rename:'Canvia el nom',setPicture:'Posa foto',deletePfp:'Treu foto',recurring:'Dosi recurrent',every:'Cada',days2:'dies',forDuration:'durant',weeks:'setmanes',months:'mesos',years:'any(s)',addAll:'Afegeix-ho tot',dosesAdded:'dosis afegides',dosesTaken:'dosis preses',daysSinceLab:"dies des de l'última anàlisi",daySinceStart:"dies des de l'inici",undone:'Desfet',hormonesLabel:'hormones',hrtStartDate:"Data d'Inici THS",chooseOrCustom:'Tria de la llista o crea personalitzat',custom:'Personalitzat...',showDoseDots:'Punts de dosi',viewAll:'Totes',viewSplit:'Multi-vista',addProfileBtn:'Afegeix Perfil',showAxesFor:'Mostra eixos per a:',showAxesLabel:'Eixos',targetRanges:'Intervals Objectiu',nextBtn:'Següent →',backBtn:'← Enrere',applyBtn:'Aplica',parseError:'Error de lectura',invalidFile:'Fitxer no vàlid',hormoneMarkerName:'Nom de l\'hormona/marcador',medicationName:'Nom de la medicació'}};
 function t(key){return I18N[lang]?.[key]||I18N.en[key]||key;}
 function pick(en,pt,ca){if(lang==='pt')return pt;if(lang==='ca')return ca;return en;}
 function setLang(l){lang=l;try{localStorage.setItem('hrt_lang',l);}catch(e){}updateStaticLabels();renderInfoModal();renderProfileTabs();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();renderHistory();renderStats();redraw();fitHeaderLogo();}
@@ -1973,8 +1974,22 @@ function finishWizard(){
   profiles[name]={startDate:'',baseline:wizardData.baseline||'tprehrtm',profilePic:pic,medications:initMeds,medCustom:initMedCustom,customMeds:initCustomMeds,customHormones:[],doses:initDoses,trackedHormones:hormones,shownAxes:[],labs:initialLabs};
   activeProfileName=name;saveToStorage();closeModal('newProfileModal');fullRefresh();
 }
-function deleteProfile(name,ev){ev.stopPropagation();pushUndo();delete profiles[name];if(activeProfileName===name)activeProfileName=Object.keys(profiles)[0]||'';saveToStorage();fullRefresh();toast(t('removed'));}
+function deleteProfile(name,ev){ev.stopPropagation();pushUndo();delete profiles[name];if(activeProfileName===name)activeProfileName=Object.keys(profiles)[0]||'';closeAllCtxMenus();saveToStorage();fullRefresh();toast(t('removed'));}
 let openCtxMenu=null;
+// The context menu is teleported to <body> when opened so it can escape ancestor `overflow:hidden`.
+// On profile delete (or any rerender of profileTabs), the menu would otherwise be left orphaned in
+// <body>. closeAllCtxMenus restores any open menus to their original parent so the next innerHTML
+// reset on profileTabs cleanly removes them.
+function closeAllCtxMenus(){
+  document.querySelectorAll('.ctx-menu.open').forEach(m=>{
+    m.classList.remove('open');
+    m.style.position='';m.style.top='';m.style.left='';m.style.zIndex='';
+    if(m._origParent){m._origParent.appendChild(m);m._origParent=null;}
+  });
+  // Belt-and-suspenders: nuke any ctx-menu nodes still loose in <body>.
+  document.querySelectorAll('body > .ctx-menu').forEach(m=>m.remove());
+  openCtxMenu=null;
+}
 function toggleCtxMenu(name,ev){
   ev.stopPropagation();
   // Close any open menus and restore them to their original parents
@@ -2428,12 +2443,14 @@ let showError=false;
 let showCurves=true;
 let showLines=true;
 let showGrid=true;
+let showDoseChanges=true;
 function togglePreHrt(){showPreHrt=document.getElementById('showPreHrtToggle').checked;renderHistory();redraw();}
 function toggleRanges(){showRanges=document.getElementById('showRangesToggle').checked;redraw();}
 function toggleError(){showError=document.getElementById('showErrorToggle').checked;redraw();}
 function toggleCurves(){showCurves=document.getElementById('showCurvesToggle').checked;redraw();}
 function toggleLines(){showLines=document.getElementById('showLinesToggle').checked;redraw();}
 function toggleGrid(){showGrid=document.getElementById('showGridToggle').checked;redraw();}
+function toggleDoseChanges(){showDoseChanges=document.getElementById('showDoseChangesToggle').checked;redraw();}
 function toggleShowAxes(){
   showAxesMaster=document.getElementById('showAxesToggle').checked;
   document.getElementById('axesForRow').style.display=showAxesMaster?'':'none';
@@ -2876,6 +2893,8 @@ function drawChart(canvas,opts){
   // final pass at the end of drawChart so labels always sit on top of the lines, regardless
   // of which order hormones/meds were drawn in.
   const _pendingLabels=[];
+  // Strict left/right alternation counter shared across med labels and hormone labels.
+  let _sideToggle=0;
   for(const medId of medsToShow){const md=doses[medId];if(!md||!md.length)continue;let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;const dMax=Math.max(1,mx*1.4);const dStep2=niceStep(dMax,6);const col=getMedColor(medId);ctx.fillStyle=col;
     function yD(y){return H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);}
     const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
@@ -2908,6 +2927,65 @@ function drawChart(canvas,opts){
       _placedLabels.push({x:chosen.lx,y:chosen.ly-mth,w:mtw,h:mth});
       _pendingLabels.push({text:mtxt,lx:chosen.lx,ly:chosen.ly,color:col,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
       ctx.font=fSm;
+    }
+    // Dose-change labels: show the new dose value at every point where it changes from the
+    // previous one. Each placement reuses the tiered/scored placement logic and the shared
+    // side-alternation counter, so dose labels and hormone labels coordinate visually.
+    if(showDoseChanges){
+      const u=getMedUnit(medId);
+      const dotR_med=lerpF(2.8,3.5);
+      const haloW=parseFloat(pT(2.5,3,3.5));
+      ctx.font=fSm;
+      const lineH=parseFloat(fSm)*1.05;
+      for(let i=0;i<sorted.length;i++){
+        const day=sorted[i][0],mg=sorted[i][1];
+        if(i>0&&mg===sorted[i-1][1])continue;
+        const X=xS(day),Y=yD(mg);
+        const text=`${mg} ${u}`;
+        const tw=ctx.measureText(text).width;
+        const N=1;
+        const tiers=[
+          {offX:lerp(5,7),offY:lerp(4,6)},
+          {offX:lerp(20,26),offY:lerp(16,20)},
+          {offX:lerp(38,50),offY:lerp(30,40)}
+        ];
+        const candidates=[];
+        for(const tr of tiers){
+          const midLy1=Y+(2-N)*lineH/2;
+          candidates.push(
+            {lx:X+tr.offX,ly1:midLy1,side:'right'},
+            {lx:X-tw-tr.offX,ly1:midLy1,side:'left'},
+            {lx:X+tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'right'},
+            {lx:X-tw-tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'left'},
+            {lx:X+tr.offX,ly1:Y+tr.offY+lineH,side:'right'},
+            {lx:X-tw-tr.offX,ly1:Y+tr.offY+lineH,side:'left'}
+          );
+        }
+        const preferredSide=(_sideToggle%2===0)?'right':'left';
+        let chosen=candidates[0];
+        let chosenScore=Infinity;
+        for(const c of candidates){
+          const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
+          const r1={x:c.lx,y:top,w:tw,h:bottom-top};
+          let labelHits=0;
+          for(const r2 of _placedLabels){
+            if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;}
+          }
+          const nx=Math.max(r1.x,Math.min(X,r1.x+r1.w));
+          const ny=Math.max(r1.y,Math.min(Y,r1.y+r1.h));
+          const dx=nx-X,dy=ny-Y;
+          const dist=Math.sqrt(dx*dx+dy*dy);
+          const sidePenalty=(c.side===preferredSide)?0:1500;
+          const score=labelHits*10000+sidePenalty+dist;
+          if(score<chosenScore){chosenScore=score;chosen=c;}
+        }
+        _sideToggle++;
+        const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
+        _placedLabels.push({x:chosen.lx,y:blockTop,w:tw,h:blockBottom-blockTop});
+        const blockRight=chosen.lx+tw;
+        const entryLx=chosen.side==='left'?(blockRight-tw):chosen.lx;
+        _pendingLabels.push({text,lx:entryLx,ly:chosen.ly1,color:col,font:fSm,haloW,leader:{X,Y,dotR:dotR_med,blockX:chosen.lx,blockY:blockTop,blockW:tw,blockH:blockBottom-blockTop}});
+      }
     }
   }
 
@@ -3080,8 +3158,6 @@ function drawChart(canvas,opts){
   const _dotR=parseFloat(dotR);
   // Inverse of xS for sampling curves at a px range (used by curve-crossing scorer).
   const xPxToDay=(px)=>tMin+((px-margin.left)/(W-margin.left-mr))*(xMax-tMin);
-  // Strict left/right alternation: each label placed flips the preferred side for the next.
-  let _sideToggle=0;
   for(const C of _allCurves){
     const {hk,h,times,vals,f:cf,yH,drawFrom}=C;
     function _rectCrossesCurve(r1,other){
