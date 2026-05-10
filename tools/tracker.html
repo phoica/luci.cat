@@ -3121,19 +3121,27 @@ function drawChart(canvas,opts){
       const lineH=Math.max(parseFloat(fMd),parseFloat(fLg))*1.05;
       const blockW=Math.max(...lines.map(l=>l.w));
       const N=lines.length;
-      const offX=lerp(6,9),offY=lerp(5,7);
-      // 6 candidate placements, two per side: middle (vertically centered with the dot, the
-      // closest position so it's preferred by default), then top, then bottom.
-      // Each candidate carries `side` so we can right-align lines on left placements.
-      const midLy1=Y+(2-N)*lineH/2;
-      const candidates=[
-        {lx:X+offX,ly1:midLy1,side:'right'},                              // middle-right
-        {lx:X-blockW-offX,ly1:midLy1,side:'left'},                        // middle-left
-        {lx:X+offX,ly1:Y-offY-(N-1)*lineH,side:'right'},                  // upper-right
-        {lx:X-blockW-offX,ly1:Y-offY-(N-1)*lineH,side:'left'},            // upper-left
-        {lx:X+offX,ly1:Y+offY+lineH,side:'right'},                        // lower-right
-        {lx:X-blockW-offX,ly1:Y+offY+lineH,side:'left'}                   // lower-left
+      // Candidate placements span 3 distance tiers (close / medium / far). The closest tier
+      // wins by default thanks to the distance term in the scorer; further tiers only win
+      // when crowding forces collisions in the closer ones — and then the leader stub
+      // visually grows to bridge that distance.
+      const tiers=[
+        {offX:lerp(6,9),offY:lerp(5,7)},
+        {offX:lerp(22,30),offY:lerp(18,24)},
+        {offX:lerp(40,54),offY:lerp(32,44)}
       ];
+      const candidates=[];
+      for(const tr of tiers){
+        const midLy1=Y+(2-N)*lineH/2;
+        candidates.push(
+          {lx:X+tr.offX,ly1:midLy1,side:'right'},
+          {lx:X-blockW-tr.offX,ly1:midLy1,side:'left'},
+          {lx:X+tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'right'},
+          {lx:X-blockW-tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'left'},
+          {lx:X+tr.offX,ly1:Y+tr.offY+lineH,side:'right'},
+          {lx:X-blockW-tr.offX,ly1:Y+tr.offY+lineH,side:'left'}
+        );
+      }
       // Score each candidate. Lower is better. Strong penalties for overlapping another label;
       // moderate penalty for crossing another hormone's curve; small term for distance from the
       // dot center to the nearest point on the block (so closer wins all else equal). The
@@ -3194,12 +3202,12 @@ function drawChart(canvas,opts){
     const dx=nx-L.X,dy=ny-L.Y;
     const dist=Math.sqrt(dx*dx+dy*dy);
     if(dist<L.dotR+1)continue; // label sits on top of dot — no stub needed
-    // Start at dot edge, end somewhere short of (or at) the nearest block edge — capped at 5px past the dot.
+    // Stub spans the full gap from the dot edge to the nearest block edge. When labels are
+    // crowded the placement scorer pushes them onto a further tier; the stub grows with it
+    // so the visual association stays clear even at distance.
     const sx=L.X+(dx/dist)*L.dotR;
     const sy=L.Y+(dy/dist)*L.dotR;
-    const stub=Math.min(dist-L.dotR,5);
-    const ex=L.X+(dx/dist)*(L.dotR+stub);
-    const ey=L.Y+(dy/dist)*(L.dotR+stub);
+    const ex=L.X+dx,ey=L.Y+dy;
     ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
   }
   ctx.restore();
