@@ -2996,9 +2996,13 @@ function drawChart(canvas,opts){
     }
   }
 
-  // Hormone curves
+  // Hormone curves are drawn in two phases so label placement (phase 2) can detect crossings
+  // with EVERY hormone's curve, not just the ones drawn before it. _allCurves holds the
+  // computed curve functions per hormone after phase 1.
+  const _allCurves=[];
+  // Phase 1: compute curve data + draw curves.
   for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hv=getHormoneVals(hk);
-    function yH(y){return H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);}
+    const yH=(y)=>H-margin.bottom-(y/h.maxScale)*(H-margin.top-margin.bottom);
     // Separate baseline lab (day -30) from regular labs.
     // Read every value in the hormone's CURRENT display unit so plotting is consistent.
     const showPreHrtH=isPreHrtShownFor(hk);
@@ -3069,10 +3073,30 @@ function drawChart(canvas,opts){
     }
     // Solid curves between real lab points
     if(showLines){let s=false;ctx.lineWidth=2.5;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}}
-    // Dots + value/name labels. The first dot of each hormone gets a stacked block
-    // [name, value] so the two pieces of information stay visually paired; subsequent
-    // dots get just the value. Each block is collision-tested as a single rect.
-    const _dotR=parseFloat(dotR);
+    _allCurves.push({hk,h,hv,yH,times,vals,f,drawFrom});
+  }
+  // Phase 2: dots + labels with full curve info. Each dot-block can avoid collisions with
+  // any other hormone's curve, not just earlier-drawn ones.
+  const _dotR=parseFloat(dotR);
+  // Inverse of xS for sampling curves at a px range (used by curve-crossing scorer).
+  const xPxToDay=(px)=>tMin+((px-margin.left)/(W-margin.left-mr))*(xMax-tMin);
+  for(const C of _allCurves){
+    const {hk,h,times,vals,f:cf,yH,drawFrom}=C;
+    function _rectCrossesCurve(r1,other){
+      if(other.hk===hk)return false;
+      const lastX=other.times.length?other.times[other.times.length-1]:other.drawFrom;
+      const xL=Math.max(xPxToDay(r1.x),other.drawFrom);
+      const xR=Math.min(xPxToDay(r1.x+r1.w),lastX);
+      if(xL>xR)return false;
+      // Sample 5 points across the rect's x range; if the other curve passes through
+      // the rect at any sample, we count it as a crossing.
+      for(let s=0;s<=4;s++){
+        const x=xL+(xR-xL)*(s/4);
+        const yPx=other.yH(other.f(x));
+        if(yPx>=r1.y&&yPx<=r1.y+r1.h)return true;
+      }
+      return false;
+    }
     for(let i=0;i<times.length;i++){
       const X=xS(times[i]),Y=yH(vals[i]);
       ctx.fillStyle=h.color;ctx.beginPath();ctx.arc(X,Y,_dotR,0,Math.PI*2);ctx.fill();
@@ -3107,15 +3131,24 @@ function drawChart(canvas,opts){
         {lx:X-blockW-offX,ly1:Y-offY-(N-1)*lineH,side:'left'}, // upper-left
         {lx:X-blockW-offX,ly1:Y+offY+lineH,side:'left'}      // lower-left
       ];
+      // Score each candidate. Lower is better. Label collisions outweigh curve crossings,
+      // and a perfect score (0) short-circuits the search.
       let chosen=candidates[0];
+      let chosenScore=Infinity;
       for(const c of candidates){
         const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
         const r1={x:c.lx,y:top,w:blockW,h:bottom-top};
-        let hit=false;
+        let labelHits=0;
         for(const r2 of _placedLabels){
-          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
+          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;break;}
         }
-        if(!hit){chosen=c;break;}
+        let curveHits=0;
+        for(const other of _allCurves){
+          if(_rectCrossesCurve(r1,other))curveHits++;
+        }
+        const score=labelHits*100+curveHits*10;
+        if(score<chosenScore){chosenScore=score;chosen=c;}
+        if(score===0)break;
       }
       const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
       _placedLabels.push({x:chosen.lx,y:blockTop,w:blockW,h:blockBottom-blockTop});
