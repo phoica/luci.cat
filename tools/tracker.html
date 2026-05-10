@@ -1974,8 +1974,22 @@ function finishWizard(){
   profiles[name]={startDate:'',baseline:wizardData.baseline||'tprehrtm',profilePic:pic,medications:initMeds,medCustom:initMedCustom,customMeds:initCustomMeds,customHormones:[],doses:initDoses,trackedHormones:hormones,shownAxes:[],labs:initialLabs};
   activeProfileName=name;saveToStorage();closeModal('newProfileModal');fullRefresh();
 }
-function deleteProfile(name,ev){ev.stopPropagation();pushUndo();delete profiles[name];if(activeProfileName===name)activeProfileName=Object.keys(profiles)[0]||'';saveToStorage();fullRefresh();toast(t('removed'));}
+function deleteProfile(name,ev){ev.stopPropagation();pushUndo();delete profiles[name];if(activeProfileName===name)activeProfileName=Object.keys(profiles)[0]||'';closeAllCtxMenus();saveToStorage();fullRefresh();toast(t('removed'));}
 let openCtxMenu=null;
+// The context menu is teleported to <body> when opened so it can escape ancestor `overflow:hidden`.
+// On profile delete (or any rerender of profileTabs), the menu would otherwise be left orphaned in
+// <body>. closeAllCtxMenus restores any open menus to their original parent so the next innerHTML
+// reset on profileTabs cleanly removes them.
+function closeAllCtxMenus(){
+  document.querySelectorAll('.ctx-menu.open').forEach(m=>{
+    m.classList.remove('open');
+    m.style.position='';m.style.top='';m.style.left='';m.style.zIndex='';
+    if(m._origParent){m._origParent.appendChild(m);m._origParent=null;}
+  });
+  // Belt-and-suspenders: nuke any ctx-menu nodes still loose in <body>.
+  document.querySelectorAll('body > .ctx-menu').forEach(m=>m.remove());
+  openCtxMenu=null;
+}
 function toggleCtxMenu(name,ev){
   ev.stopPropagation();
   // Close any open menus and restore them to their original parents
