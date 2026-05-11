@@ -904,7 +904,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
 <div class="modal-overlay" id="medDiscModal">
   <div class="modal" style="max-width:560px;max-height:85vh">
     <h3 id="medDiscTitle" style="color:var(--accent);display:flex;align-items:center;gap:10px"><span style="font-size:24px">⚠️</span><span>Medical Disclaimer</span></h3>
-    <div id="medDiscBody" style="font-size:14px;line-height:1.6;color:var(--text-muted);overflow-y:auto;flex:1;min-height:0;padding-right:6px"><p style="margin:0 0 12px">This tool is provided <strong>for informational and personal tracking purposes only</strong>. It is <strong>NOT</strong> a medical device and is <strong>NOT</strong> intended to diagnose, treat, cure, or prevent any medical condition. The creator of this tool is not a medical professional and assumes no responsibility for any decisions, health outcomes, or damages arising from its use.</p><p style="margin:0 0 12px">Always consult a qualified healthcare provider about hormone therapy or medication. <strong>Lab reference ranges, preset baselines, target values, and the curves drawn between data points</strong> are general approximations based on published guidelines and may not apply to your specific physiology, lab method, or treatment regimen.</p><p style="margin:0">The smooth curves shown between lab measurements are <strong>visual interpolation, not pharmacokinetic predictions</strong>. Actual hormone levels between tests can fluctuate significantly. <strong>Always verify medical information with your physician.</strong></p></div>
+    <div id="medDiscBody" style="font-size:14px;line-height:1.6;color:var(--text-muted);overflow-y:auto;flex:1;min-height:0;padding-right:6px"><p style="margin:0 0 12px">This tool is provided <strong>for informational and personal tracking purposes only</strong>. It is <strong>NOT</strong> a medical device and is <strong>NOT</strong> intended to diagnose, treat, cure, or prevent any medical condition. The creator of this tool is not a medical professional and assumes no responsibility for any decisions, health outcomes, or damages arising from its use.</p><p style="margin:0 0 12px">Always consult a qualified healthcare provider about hormone therapy or medication. <strong>Lab reference ranges, preset baselines, target values, and the curves drawn between data points</strong> are general approximations based on published guidelines and may not apply to your specific physiology, lab method, or treatment regimen.</p><p style="margin:0 0 12px">The smooth curves shown between lab measurements are <strong>visual interpolation, not pharmacokinetic predictions</strong>. Actual hormone levels between tests can fluctuate significantly. <strong>Always verify medical information with your physician.</strong></p><p style="margin:0"><a href="javascript:void(0)" onclick="openSourcesModal()" style="color:var(--accent)"><strong>View sources &amp; references →</strong></a></p></div>
     <div class="modal-buttons">
       <button class="btn btn-accent" onclick="acknowledgeMedDisclaimer()" id="medDiscAckBtn">I understand</button>
     </div>
@@ -1208,8 +1208,6 @@ function renderSourcesModal(){
       sec_pk:'Pharmacokinetics & medication behavior',
       sec_unit:'Unit conversions',
       sec_algo:'Chart algorithms & math',
-      sec_typo:'Typography & design assets',
-      sec_credits:'Inspiration & assistance',
       es_label:'Endocrine Society Clinical Practice Guideline',
       es_cite:`Hembree WC, Cohen-Kettenis PT, Gooren L, et al. <em>Endocrine Treatment of Gender-Dysphoric/Gender-Incongruent Persons: An Endocrine Society Clinical Practice Guideline.</em> J Clin Endocrinol Metab. 2017 Nov 1;102(11):3869–3903.`,
       es_use:`Informs the typical pre-HRT "male" and "female" baseline values shown for the sex-hormone presets (E2, T, FT, DHT, PROG, SHBG) and the general goal-range orientation for transfeminine and transmasculine hormone therapy.`,
@@ -1244,11 +1242,6 @@ function renderSourcesModal(){
       algo_layout_label:'Label placement',
       algo_layout_cite:`Custom: tiered candidate positions (close / medium / far) × 6 corners per tier, scored by label collisions (×10 000), curve crossings (×200), side-alternation penalty (×1500), and distance to dot (×1).`,
       algo_layout_use:`Drives the chart's label placement: hormone name + value blocks, dose-change values, and medication names. The deferred render queue ensures every label sits on top of every curve regardless of draw order.`,
-      typo_dm:`<strong>DM Sans</strong> &amp; <strong>JetBrains Mono</strong> — UI body text and tabular numerics (Google Fonts, OFL).`,
-      typo_silk:`<strong>Silkscreen</strong>, <strong>Cabin Sketch</strong>, <strong>Fascinate</strong>, <strong>Metamorphous</strong> — theme-specific logo display fonts (Google Fonts, OFL).`,
-      mona:`<strong>Mona — HRT Journal</strong> by Delia Cheminot. <a href="https://github.com/delia-cheminot/mona-hrt" target="_blank" rel="noopener" ${linkStyle}>github.com/delia-cheminot/mona-hrt</a>. Discovered late in development; if you want a full mobile app with reminders, supplies tracking, and a polished UI, go install Mona.`,
-      artemis:`<strong>Artemis II Timeline</strong> by Hank Green. <a href="https://artemistimeline.com" target="_blank" rel="noopener" ${linkStyle}>artemistimeline.com</a>. Inspiration for shipping a "vibe-coded" personal-tooling project publicly.`,
-      llm:`This codebase was built with substantial assistance from large language models. Specific architectural decisions (file structure, single-file no-build pipeline), all clinical data (target ranges, baselines, units), the visual design, and every product-level decision are by Luci. The disclosure exists in the About modal too.`,
       footer:`If you spot a citation that should be more specific, a target range that differs from the source you trust, or a missing reference, please <a href="mailto:bugport.helpline266@passmail.net" ${linkStyle}>send an email</a>.`
     }
   };
@@ -1278,15 +1271,6 @@ function renderSourcesModal(){
     <div ${card}><div ${subH}>${L.algo_hermite_label}</div><div ${noteStyle}>${L.algo_hermite_cite}</div><div>${L.algo_hermite_use}</div></div>
     <div ${card}><div ${subH}>${L.algo_smoothstep_label}</div><div ${noteStyle}>${L.algo_smoothstep_cite}</div><div>${L.algo_smoothstep_use}</div></div>
     <div ${card}><div ${subH}>${L.algo_layout_label}</div><div ${noteStyle}>${L.algo_layout_cite}</div><div>${L.algo_layout_use}</div></div>
-
-    <h4 ${hStyle}>${L.sec_typo}</h4>
-    <div ${card}><div>${L.typo_dm}</div></div>
-    <div ${card}><div>${L.typo_silk}</div></div>
-
-    <h4 ${hStyle}>${L.sec_credits}</h4>
-    <div ${card}><div>${L.mona}</div></div>
-    <div ${card}><div>${L.artemis}</div></div>
-    <div ${card}><div>${L.llm}</div></div>
 
     <p style="margin-top:18px;font-size:12px;color:var(--text-dim)">${L.footer}</p>
   `;
@@ -1366,6 +1350,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
       ${L.disc1}<br><br>
       ${L.disc2}<br><br>
       ${L.disc3}
+      <div style="margin-top:12px"><a href="javascript:void(0)" onclick="openSourcesModal()" ${linkStyle}><strong>${L.viewSources||'View sources &amp; references'} →</strong></a></div>
     </div>
     <h4 ${headStyle}>${L.aboutH}</h4>
     <p>${L.about1}</p>
@@ -1378,7 +1363,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     ${mit}
     <h4 ${headStyle}>${L.creditsH}</h4>
     <p>${L.credits}</p>
-    <p style="margin-top:14px"><a href="javascript:void(0)" onclick="openSourcesModal()" ${linkStyle}><strong>${L.viewSources||'View sources &amp; references'} →</strong></a></p>
     <p style="font-size:13px;color:var(--text-dim);margin-top:12px">${L.kofi}</p>
   `;
 }
