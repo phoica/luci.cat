@@ -1508,6 +1508,34 @@ document.addEventListener('keydown',e=>{
 });
 
 // ═══ STORAGE ═══
+// One-time migration: for each tracked hormone in a profile, set its per-profile display unit
+// to whatever unit the user actually entered the most-recent lab in. Skips hormones where the
+// user has already pinned a unit in the catalog. Guarded by a flag so this only runs once
+// per profile.
+function migrateDisplayUnits(profile){
+  if(profile._unitMigrated)return;
+  if(!profile.hormoneRanges)profile.hormoneRanges={};
+  const labs=Array.isArray(profile.labs)?profile.labs:[];
+  const lastUnitByHk={};
+  // Walk labs in chronological order, keeping the last seen unit per hormone.
+  const sorted=[...labs].sort((a,b)=>(a.day||0)-(b.day||0));
+  for(const lab of sorted){
+    if(lab.isBaseline)continue;
+    const vals=lab.values||{};
+    for(const hk of Object.keys(vals)){
+      const raw=vals[hk];
+      if(raw&&typeof raw==='object'&&raw.u)lastUnitByHk[hk]=raw.u;
+    }
+  }
+  for(const hk of Object.keys(lastUnitByHk)){
+    if(!profile.hormoneRanges[hk])profile.hormoneRanges[hk]={};
+    // Only set if there's no existing override.
+    if(profile.hormoneRanges[hk].unit==null){
+      profile.hormoneRanges[hk].unit=lastUnitByHk[hk];
+    }
+  }
+  profile._unitMigrated=true;
+}
 function migrateLabValues(profile){
   // Convert legacy lab.values[hk] = number into {v, u} where u defaults to the hormone's
   // current display unit. Idempotent — re-running on already-migrated data is a no-op.
@@ -1532,7 +1560,7 @@ function loadFromStorage(){
   // Migrate from v4 if v5 is empty
   if(!Object.keys(profiles).length){try{const s=localStorage.getItem('hrt_profiles_v4');if(s){const d=JSON.parse(s);if(d.profiles){for(const[n,p]of Object.entries(d.profiles)){p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];p.medCustom=p.medCustom||{};profiles[n]=p;}activeProfileName=d.active||Object.keys(profiles)[0]||'';}}}catch(e){}}
   // Migrate lab values to {v, u} format so each measurement carries its unit
-  for(const p of Object.values(profiles)){p.preHrtPerHormone=p.preHrtPerHormone||{};migrateLabValues(p);}
+  for(const p of Object.values(profiles)){p.preHrtPerHormone=p.preHrtPerHormone||{};migrateLabValues(p);migrateDisplayUnits(p);}
   saveToStorage();
 }
 function saveToStorage(){try{localStorage.setItem('hrt_profiles_v5',JSON.stringify({profiles,active:activeProfileName}));}catch(e){}}
@@ -2193,7 +2221,7 @@ function triggerPfp(){openCtxMenu=null;document.getElementById('pfpInput').click
 function removePfp(){pushUndo();profilePic='';syncToProfile();renderProfileTabs();openCtxMenu=null;}
 function renderProfileTabs(){const c=document.getElementById('profileTabs');c.innerHTML='';for(const name of Object.keys(profiles)){const isA=name===activeProfileName;const p=profiles[name];const safeId=name.replace(/[^a-zA-Z0-9]/g,'_');const tab=document.createElement('button');tab.className='profile-tab'+(isA?' active':'');const picHtml=p.profilePic?`<img class="tab-pic" src="${p.profilePic}">`:'<span class="tab-dot"></span>';const delLabel=t('deleteBtn');const capDel=delLabel.charAt(0).toUpperCase()+delLabel.slice(1);const dotsIcon='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>';tab.innerHTML=`${picHtml}<span>${esc(name)}</span><button class="tab-menu-btn" aria-label="Profile menu" onclick="toggleCtxMenu('${esc(name)}',event)">${dotsIcon}</button><div class="ctx-menu" id="ctx_${safeId}"><button class="ctx-menu-item" onclick="startRename('${esc(name)}')">${t('rename')}</button><button class="ctx-menu-item" onclick="triggerPfp()">${t('setPicture')}</button><button class="ctx-menu-item" onclick="openQuickEmoji()">${pick('Set emoji','Definir emoji','Posa emoji')}</button>${p.profilePic?`<button class="ctx-menu-item" onclick="removePfp()">${t('deletePfp')}</button>`:''}<button class="ctx-menu-item" onclick="openSetupWizardForActive()">${pick('Setup wizard','Configuração inicial','Configuració inicial')}</button><button class="ctx-menu-item" style="color:var(--danger)" onclick="deleteProfile('${esc(name)}',event)">${capDel}</button></div>`;tab.addEventListener('click',(e)=>{if(!e.target.closest('.tab-menu-btn')&&!e.target.closest('.ctx-menu'))switchProfile(name);});c.appendChild(tab);}}
 function exportProfiles(){syncToProfile();const blob=new Blob([JSON.stringify({version:5,profiles,active:activeProfileName},null,2)],{type:'application/json'});const a=document.createElement('a');a.download=`HRT_${activeProfileName.replace(/[^a-zA-Z0-9]/g,'_')}.json`;a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);toast(t('exported'));}
-function importProfiles(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.profiles){toast(t('invalidFile'));return;}pushUndo();for(const[n,p]of Object.entries(data.profiles)){p.medCustom=p.medCustom||{};p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];p.preHrtPerHormone=p.preHrtPerHormone||{};migrateLabValues(p);profiles[n]=p;}if(data.active&&profiles[data.active])activeProfileName=data.active;saveToStorage();fullRefresh();}catch(err){toast(t('parseError'));}};reader.readAsText(file);event.target.value='';}
+function importProfiles(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=function(e){try{const data=JSON.parse(e.target.result);if(!data.profiles){toast(t('invalidFile'));return;}pushUndo();for(const[n,p]of Object.entries(data.profiles)){p.medCustom=p.medCustom||{};p.customMeds=p.customMeds||[];p.customHormones=p.customHormones||[];p.preHrtPerHormone=p.preHrtPerHormone||{};migrateLabValues(p);migrateDisplayUnits(p);profiles[n]=p;}if(data.active&&profiles[data.active])activeProfileName=data.active;saveToStorage();fullRefresh();}catch(err){toast(t('parseError'));}};reader.readAsText(file);event.target.value='';}
 
 // ═══ ADD MEDICATION MODAL ═══
 let catalogSnapshot=null,catalogKind=null;
