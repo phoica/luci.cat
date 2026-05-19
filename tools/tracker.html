@@ -1185,7 +1185,25 @@ function getMedColor(id){return medCustom?.[id]?.color||getMed(id)?.color||'#888
 function getMedUnit(id){return medCustom?.[id]?.unit||getMed(id)?.unit||'mg';}
 function getMedShortName(id){const m=getMed(id);if(!m)return id;const match=m.name.match(/\(([^)]+)\)/);if(match){const inner=match[1];if(inner.length<=6&&/^[A-Z]/.test(inner))return inner;}return m.name.replace(/\s*\([^)]*\)\s*/,'');}
 function getMedDots(id){return medCustom?.[id]?.showDots!==false;}
-function getHormone(hk){const base=BUILTIN_HORMONES[hk]||(customHormones||[]).find(h=>h.id===hk)||null;if(!base)return null;const p=getActive();const ov=p?.hormoneRanges?.[hk];if(!ov)return base;return{...base,color:ov.color||base.color,unit:ov.unit||base.unit};}
+function getHormone(hk){
+  const base=BUILTIN_HORMONES[hk]||(customHormones||[]).find(h=>h.id===hk)||null;
+  if(!base)return null;
+  const p=getActive();
+  const ov=p?.hormoneRanges?.[hk];
+  const displayU=(ov&&ov.unit)||base.unit;
+  // If the display unit differs from the base, scale maxScale into the display unit too —
+  // otherwise the chart's y-axis is calibrated for the wrong unit and the curve plots
+  // off-scale (sometimes invisibly off-screen). This fixes "my T line just disappeared"
+  // when a hormone's display unit gets migrated to whatever the user entered labs in.
+  let maxScale=base.maxScale;
+  if(displayU!==base.unit){
+    const conv=convertUnit(hk,base.maxScale,base.unit,displayU);
+    if(Number.isFinite(conv)&&conv>0)maxScale=conv;
+  }
+  const out={...base,unit:displayU,maxScale};
+  if(ov&&ov.color)out.color=ov.color;
+  return out;
+}
 function setHormoneColor(hk,color){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};p.hormoneRanges[hk].color=color;saveToStorage();redraw();renderHistory();renderStats();renderAxisToggles();renderChartTabs();}
 function setHormoneUnit(hk,unit){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};p.hormoneRanges[hk].unit=unit;saveToStorage();redraw();renderHistory();renderStats();}
 function dateToDays(ds){const d=new Date(ds+'T12:00:00');return Math.round((d-startDate)/864e5);}
@@ -1193,10 +1211,16 @@ function daysToDateObj(day){return new Date(startDate.getTime()+day*864e5);}
 function daysToDate(day){const d=daysToDateObj(day);const ms=getMonths();return`${d.getDate()} ${ms[d.getMonth()]} ${d.getFullYear()}`;}
 function daysToISO(day){return daysToDateObj(day).toISOString().slice(0,10);}
 function getHormoneVals(hk){const h=getHormone(hk);if(!h)return{typ:0,tLo:0,tHi:0};
+  // Base hormone defines tprehrtm/tprehrtf in its BASE unit; if the display unit differs,
+  // scale the typical/target values into the display unit so target bands and pre-HRT
+  // baselines stay correct visually.
+  const base=BUILTIN_HORMONES[hk]||(customHormones||[]).find(x=>x.id===hk)||null;
+  const baseUnit=base?base.unit:h.unit;
   const p=getActive();const cr=p?.hormoneRanges?.[hk];
-  const defaults=(h.tprehrtm?(baseline==='tprehrtf'?h.tprehrtf:h.tprehrtm):null)||{typ:0,tLo:0,tHi:0};
-  if(cr)return{typ:defaults.typ,tLo:cr.tLo!=null?cr.tLo:defaults.tLo,tHi:cr.tHi!=null?cr.tHi:defaults.tHi};
-  return defaults;
+  const defaults=(base&&base.tprehrtm?(baseline==='tprehrtf'?base.tprehrtf:base.tprehrtm):null)||{typ:0,tLo:0,tHi:0};
+  const sc=(v)=>{if(!Number.isFinite(v)||h.unit===baseUnit)return v;const c=convertUnit(hk,v,baseUnit,h.unit);return Number.isFinite(c)?c:v;};
+  if(cr)return{typ:sc(defaults.typ),tLo:cr.tLo!=null?cr.tLo:sc(defaults.tLo),tHi:cr.tHi!=null?cr.tHi:sc(defaults.tHi)};
+  return{typ:sc(defaults.typ),tLo:sc(defaults.tLo),tHi:sc(defaults.tHi)};
 }
 function getHormoneErrorPct(hk){const h=getHormone(hk);if(!h)return 15;const p=getActive();const cr=p?.hormoneRanges?.[hk];if(cr&&cr.errorPct!=null)return cr.errorPct;return h.errorPct!=null?h.errorPct:15;}
 function setHormoneRange(hk,lo,hi){const p=getActive();if(!p)return;if(!p.hormoneRanges)p.hormoneRanges={};if(!p.hormoneRanges[hk])p.hormoneRanges[hk]={};if(Number.isFinite(lo))p.hormoneRanges[hk].tLo=lo;if(Number.isFinite(hi))p.hormoneRanges[hk].tHi=hi;saveToStorage();redraw();}
