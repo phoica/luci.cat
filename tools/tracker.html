@@ -3148,6 +3148,97 @@ function drawChart(canvas,opts){
   const _pendingLabels=[];
   // Strict left/right alternation counter shared across med labels and hormone labels.
   let _sideToggle=0;
+  // Inverse of xS for sampling curves at a px range (used by curve-crossing scorer).
+  const xPxToDay=(px)=>tMin+((px-margin.left)/(W-margin.left-mr))*(xMax-tMin);
+  // Does a candidate rect pass through `other`'s curve in the x-range it occupies? Sampling
+  // 5 points is enough to catch a near-horizontal curve crossing through the label area.
+  // excludeHk: the hormone the label belongs to — never count its own curve as a crossing.
+  function _rectCrossesCurve(r1,other,excludeHk){
+    if(excludeHk!=null&&other.hk===excludeHk)return false;
+    const lastX=other.times.length?other.times[other.times.length-1]:other.drawFrom;
+    const xL=Math.max(xPxToDay(r1.x),other.drawFrom);
+    const xR=Math.min(xPxToDay(r1.x+r1.w),lastX);
+    if(xL>xR)return false;
+    for(let s=0;s<=4;s++){
+      const x=xL+(xR-xL)*(s/4);
+      const yPx=other.yH(other.f(x));
+      if(yPx>=r1.y&&yPx<=r1.y+r1.h)return true;
+    }
+    return false;
+  }
+  // Universal label placement. Tries every (tier × position) candidate, scores them, picks
+  // the lowest-cost. Pushes the winning rect into _placedLabels and the deferred draw
+  // entries into _pendingLabels. Strict L/R alternation via _sideToggle.
+  //   opts.lines: [{text, font, w, haloW}] (1 or 2 lines)
+  //   opts.anchor: {X, Y, dotR}
+  //   opts.color: stroke/fill color for the lines
+  //   opts.tiers: [{offX, offY}, ...] (close→far)
+  //   opts.includeMiddle: include the middle (vertically centered) candidates? default true
+  //   opts.excludeCurveHk: a hormone id to skip in curve-crossing checks (its own curve)
+  //                       — pass null to skip the curve check entirely (med/dose labels).
+  function placeLabel(opts){
+    const {lines,anchor,color,tiers,includeMiddle=true,excludeCurveHk=null}=opts;
+    const X=anchor.X,Y=anchor.Y;
+    const lineH=Math.max(...lines.map(l=>parseFloat(l.font)))*1.05;
+    const blockW=Math.max(...lines.map(l=>l.w));
+    const N=lines.length;
+    const candidates=[];
+    for(const tr of tiers){
+      if(includeMiddle){
+        const midLy1=Y+(2-N)*lineH/2;
+        candidates.push(
+          {lx:X+tr.offX,ly1:midLy1,side:'right'},
+          {lx:X-blockW-tr.offX,ly1:midLy1,side:'left'}
+        );
+      }
+      candidates.push(
+        {lx:X+tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'right'},
+        {lx:X-blockW-tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'left'},
+        {lx:X+tr.offX,ly1:Y+tr.offY+lineH,side:'right'},
+        {lx:X-blockW-tr.offX,ly1:Y+tr.offY+lineH,side:'left'}
+      );
+    }
+    const preferredSide=(_sideToggle%2===0)?'right':'left';
+    let chosen=candidates[0];
+    let chosenScore=Infinity;
+    for(const c of candidates){
+      const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
+      const r1={x:c.lx,y:top,w:blockW,h:bottom-top};
+      let labelHits=0;
+      for(const r2 of _placedLabels){
+        if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;}
+      }
+      let curveHits=0;
+      if(excludeCurveHk!==null){
+        for(const other of _allCurves){
+          if(_rectCrossesCurve(r1,other,excludeCurveHk))curveHits++;
+        }
+      }
+      const nx=Math.max(r1.x,Math.min(X,r1.x+r1.w));
+      const ny=Math.max(r1.y,Math.min(Y,r1.y+r1.h));
+      const dx=nx-X,dy=ny-Y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      const sidePenalty=(c.side===preferredSide)?0:1500;
+      const score=labelHits*10000+sidePenalty+curveHits*200+dist;
+      if(score<chosenScore){chosenScore=score;chosen=c;}
+    }
+    _sideToggle++;
+    const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
+    _placedLabels.push({x:chosen.lx,y:blockTop,w:blockW,h:blockBottom-blockTop});
+    const blockRight=chosen.lx+blockW;
+    let curLy=chosen.ly1;
+    for(let li=0;li<lines.length;li++){
+      const L=lines[li];
+      const entryLx=chosen.side==='left'?(blockRight-L.w):chosen.lx;
+      const entry={text:L.text,lx:entryLx,ly:curLy,color,font:L.font,haloW:L.haloW};
+      if(li===0)entry.leader={X:anchor.X,Y:anchor.Y,dotR:anchor.dotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};
+      _pendingLabels.push(entry);
+      curLy+=lineH;
+    }
+  }
+  // _allCurves is populated by Phase 1 of the hormones loop, used by placeLabel for the
+  // curve-crossing check during hormone label placement.
+  const _allCurves=[];
   for(const medId of medsToShow){const md=doses[medId];if(!md||!md.length)continue;let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;const dMax=Math.max(1,mx*1.4);const dStep2=niceStep(dMax,6);const col=getMedColor(medId);ctx.fillStyle=col;
     function yD(y){return H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);}
     const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
@@ -3190,52 +3281,25 @@ function drawChart(canvas,opts){
       const haloW=parseFloat(pT(2.5,3,3.5));
       ctx.font=fSm;
       const lineH=parseFloat(fSm)*1.05;
+      const tiersDose=[
+        {offX:lerp(5,7),offY:lerp(4,6)},
+        {offX:lerp(20,26),offY:lerp(16,20)},
+        {offX:lerp(38,50),offY:lerp(30,40)}
+      ];
       for(let i=0;i<sorted.length;i++){
         const day=sorted[i][0],mg=sorted[i][1];
         if(i>0&&mg===sorted[i-1][1])continue;
-        const X=xS(day),Y=yD(mg);
         const text=`${fmtNum(mg)} ${u}`;
+        ctx.font=fSm;
         const tw=ctx.measureText(text).width;
-        const N=1;
-        const tiers=[
-          {offX:lerp(5,7),offY:lerp(4,6)},
-          {offX:lerp(20,26),offY:lerp(16,20)},
-          {offX:lerp(38,50),offY:lerp(30,40)}
-        ];
-        // No middle candidates for dose-change labels — middle would land on the dose step line.
-        const candidates=[];
-        for(const tr of tiers){
-          candidates.push(
-            {lx:X+tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'right'},
-            {lx:X-tw-tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'left'},
-            {lx:X+tr.offX,ly1:Y+tr.offY+lineH,side:'right'},
-            {lx:X-tw-tr.offX,ly1:Y+tr.offY+lineH,side:'left'}
-          );
-        }
-        const preferredSide=(_sideToggle%2===0)?'right':'left';
-        let chosen=candidates[0];
-        let chosenScore=Infinity;
-        for(const c of candidates){
-          const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
-          const r1={x:c.lx,y:top,w:tw,h:bottom-top};
-          let labelHits=0;
-          for(const r2 of _placedLabels){
-            if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;}
-          }
-          const nx=Math.max(r1.x,Math.min(X,r1.x+r1.w));
-          const ny=Math.max(r1.y,Math.min(Y,r1.y+r1.h));
-          const dx=nx-X,dy=ny-Y;
-          const dist=Math.sqrt(dx*dx+dy*dy);
-          const sidePenalty=(c.side===preferredSide)?0:1500;
-          const score=labelHits*10000+sidePenalty+dist;
-          if(score<chosenScore){chosenScore=score;chosen=c;}
-        }
-        _sideToggle++;
-        const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
-        _placedLabels.push({x:chosen.lx,y:blockTop,w:tw,h:blockBottom-blockTop});
-        const blockRight=chosen.lx+tw;
-        const entryLx=chosen.side==='left'?(blockRight-tw):chosen.lx;
-        _pendingLabels.push({text,lx:entryLx,ly:chosen.ly1,color:col,font:fSm,haloW,leader:{X,Y,dotR:dotR_med,blockX:chosen.lx,blockY:blockTop,blockW:tw,blockH:blockBottom-blockTop}});
+        placeLabel({
+          lines:[{text,font:fSm,w:tw,haloW}],
+          anchor:{X:xS(day),Y:yD(mg),dotR:dotR_med},
+          color:col,
+          tiers:tiersDose,
+          includeMiddle:false,
+          excludeCurveHk:null
+        });
       }
     }
   }
@@ -3340,9 +3404,8 @@ function drawChart(canvas,opts){
   }
 
   // Hormone curves are drawn in two phases so label placement (phase 2) can detect crossings
-  // with EVERY hormone's curve, not just the ones drawn before it. _allCurves holds the
-  // computed curve functions per hormone after phase 1.
-  const _allCurves=[];
+  // with EVERY hormone's curve, not just the ones drawn before it. _allCurves was declared
+  // earlier (near the placeLabel helper); Phase 1 fills it.
   // Phase 1: compute curve data + draw curves.
   for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hv=getHormoneVals(hk);
     const _esCurve=_effScale(hk,h);
@@ -3424,25 +3487,10 @@ function drawChart(canvas,opts){
   // Phase 2: dots + labels with full curve info. Each dot-block can avoid collisions with
   // any other hormone's curve, not just earlier-drawn ones.
   const _dotR=parseFloat(dotR);
-  // Inverse of xS for sampling curves at a px range (used by curve-crossing scorer).
-  const xPxToDay=(px)=>tMin+((px-margin.left)/(W-margin.left-mr))*(xMax-tMin);
+  // (placeLabel + _rectCrossesCurve + xPxToDay live near the top of drawChart; they're shared
+  // between dose-change labels (phase 0 ish, inside meds loop) and hormone labels here.)
   for(const C of _allCurves){
     const {hk,h,times,vals,f:cf,yH,drawFrom}=C;
-    function _rectCrossesCurve(r1,other){
-      if(other.hk===hk)return false;
-      const lastX=other.times.length?other.times[other.times.length-1]:other.drawFrom;
-      const xL=Math.max(xPxToDay(r1.x),other.drawFrom);
-      const xR=Math.min(xPxToDay(r1.x+r1.w),lastX);
-      if(xL>xR)return false;
-      // Sample 5 points across the rect's x range; if the other curve passes through
-      // the rect at any sample, we count it as a crossing.
-      for(let s=0;s<=4;s++){
-        const x=xL+(xR-xL)*(s/4);
-        const yPx=other.yH(other.f(x));
-        if(yPx>=r1.y&&yPx<=r1.y+r1.h)return true;
-      }
-      return false;
-    }
     const _hsm=_hormSize(hk);
     const _hDotR=_dotR*_hsm;
     const _fMd=_scaledFont(fMd,_hsm);
@@ -3468,112 +3516,59 @@ function drawChart(canvas,opts){
         const vtxt=`${fmtNum(vals[i])} ${h.unit}`;
         lines.push({text:vtxt,font:_fLg,w:ctx.measureText(vtxt).width,haloW:parseFloat(pT(3,3.5,4))*_hsm});
       }
-      const lineH=Math.max(parseFloat(_fMd),parseFloat(_fLg))*1.05;
-      const blockW=Math.max(...lines.map(l=>l.w));
-      const N=lines.length;
-      // Candidate placements span 3 distance tiers (close / medium / far). The closest tier
-      // wins by default thanks to the distance term in the scorer; further tiers only win
-      // when crowding forces collisions in the closer ones — and then the leader stub
-      // visually grows to bridge that distance.
-      const tiers=[
-        {offX:lerp(6,9),offY:lerp(5,7)},
-        {offX:lerp(22,30),offY:lerp(18,24)},
-        {offX:lerp(40,54),offY:lerp(32,44)}
-      ];
-      const candidates=[];
-      for(const tr of tiers){
-        const midLy1=Y+(2-N)*lineH/2;
-        candidates.push(
-          {lx:X+tr.offX,ly1:midLy1,side:'right'},
-          {lx:X-blockW-tr.offX,ly1:midLy1,side:'left'},
-          {lx:X+tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'right'},
-          {lx:X-blockW-tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'left'},
-          {lx:X+tr.offX,ly1:Y+tr.offY+lineH,side:'right'},
-          {lx:X-blockW-tr.offX,ly1:Y+tr.offY+lineH,side:'left'}
-        );
-      }
-      // Strict alternation: every placement flips the preferred side. The scorer adds a hefty
-      // bias against the non-preferred side, but a label-collision on the preferred side still
-      // loses to a clean opposite-side placement (since labelHits weight is much larger).
-      const preferredSide=(_sideToggle%2===0)?'right':'left';
-      let chosen=candidates[0];
-      let chosenScore=Infinity;
-      for(const c of candidates){
-        const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
-        const r1={x:c.lx,y:top,w:blockW,h:bottom-top};
-        let labelHits=0;
-        for(const r2 of _placedLabels){
-          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;}
-        }
-        let curveHits=0;
-        for(const other of _allCurves){
-          if(_rectCrossesCurve(r1,other))curveHits++;
-        }
-        const nx=Math.max(r1.x,Math.min(X,r1.x+r1.w));
-        const ny=Math.max(r1.y,Math.min(Y,r1.y+r1.h));
-        const dx=nx-X,dy=ny-Y;
-        const dist=Math.sqrt(dx*dx+dy*dy);
-        const sidePenalty=(c.side===preferredSide)?0:1500;
-        const score=labelHits*10000+sidePenalty+curveHits*200+dist;
-        if(score<chosenScore){chosenScore=score;chosen=c;}
-      }
-      _sideToggle++;
-      const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
-      _placedLabels.push({x:chosen.lx,y:blockTop,w:blockW,h:blockBottom-blockTop});
-      // Push each line. Attach leader info (dot anchor + block bounds) to the FIRST line so
-      // the deferred pass draws one micro stub per block (not per line).
-      let curLy=chosen.ly1;
-      // Right-align each line when the block sits LEFT of the dot, so a wide line and a
-      // short line don't have their left edges aligned (which would push the short line's
-      // right edge far from the dot).
-      const blockRight=chosen.lx+blockW;
-      for(let li=0;li<lines.length;li++){
-        const L=lines[li];
-        const entryLx=chosen.side==='left'?(blockRight-L.w):chosen.lx;
-        const entry={text:L.text,lx:entryLx,ly:curLy,color:h.color,font:L.font,haloW:L.haloW};
-        if(li===0){entry.leader={X,Y,dotR:_hDotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};}
-        _pendingLabels.push(entry);
-        curLy+=lineH;
-      }
+      placeLabel({
+        lines,
+        anchor:{X,Y,dotR:_hDotR},
+        color:h.color,
+        tiers:[
+          {offX:lerp(6,9),offY:lerp(5,7)},
+          {offX:lerp(22,30),offY:lerp(18,24)},
+          {offX:lerp(40,54),offY:lerp(32,44)}
+        ],
+        includeMiddle:true,
+        excludeCurveHk:hk
+      });
     }
   }
 
-  // Flush deferred labels last so they always render ON TOP of every curve and dot.
-  // Pass A: micro leader lines (a tiny grey stub from each labeled dot toward its block).
-  ctx.save();
-  ctx.strokeStyle='rgba(170,170,170,0.85)';
-  ctx.lineWidth=1.5;
-  for(const lbl of _pendingLabels){
-    if(!lbl.leader)continue;
-    const L=lbl.leader;
-    // Find the block-rect point closest to the dot center.
-    const nx=Math.max(L.blockX,Math.min(L.X,L.blockX+L.blockW));
-    const ny=Math.max(L.blockY,Math.min(L.Y,L.blockY+L.blockH));
-    const dx=nx-L.X,dy=ny-L.Y;
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<L.dotR+1)continue; // label sits on top of dot — no stub needed
-    // Stub spans the full gap from the dot edge to the nearest block edge. When labels are
-    // crowded the placement scorer pushes them onto a further tier; the stub grows with it
-    // so the visual association stays clear even at distance.
-    const sx=L.X+(dx/dist)*L.dotR;
-    const sy=L.Y+(dy/dist)*L.dotR;
-    const ex=L.X+dx,ey=L.Y+dy;
-    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
-  }
-  ctx.restore();
-  // Pass B: text halos + colored fills.
-  for(const lbl of _pendingLabels){
-    ctx.font=lbl.font;
-    ctx.lineWidth=lbl.haloW;
-    ctx.strokeStyle=bgColor;
-    ctx.lineJoin='round';
-    ctx.miterLimit=2;
-    ctx.strokeText(lbl.text,lbl.lx,lbl.ly);
-    ctx.fillStyle=lbl.color;
-    ctx.fillText(lbl.text,lbl.lx,lbl.ly);
+  flushDeferredLabels();
+  // flushDeferredLabels: leader stubs first (so the label halo can cover the stub end),
+  // then the labels themselves on top of everything drawn so far.
+  function flushDeferredLabels(){
+    ctx.save();
+    ctx.strokeStyle='rgba(170,170,170,0.85)';
+    ctx.lineWidth=1.5;
+    for(const lbl of _pendingLabels){
+      if(!lbl.leader)continue;
+      const L=lbl.leader;
+      const nx=Math.max(L.blockX,Math.min(L.X,L.blockX+L.blockW));
+      const ny=Math.max(L.blockY,Math.min(L.Y,L.blockY+L.blockH));
+      const dx=nx-L.X,dy=ny-L.Y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<L.dotR+1)continue;
+      const sx=L.X+(dx/dist)*L.dotR;
+      const sy=L.Y+(dy/dist)*L.dotR;
+      const ex=L.X+dx,ey=L.Y+dy;
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+    }
+    ctx.restore();
+    for(const lbl of _pendingLabels){
+      ctx.font=lbl.font;
+      ctx.lineWidth=lbl.haloW;
+      ctx.strokeStyle=bgColor;
+      ctx.lineJoin='round';
+      ctx.miterLimit=2;
+      ctx.strokeText(lbl.text,lbl.lx,lbl.ly);
+      ctx.fillStyle=lbl.color;
+      ctx.fillText(lbl.text,lbl.lx,lbl.ly);
+    }
   }
 
-  // Legend — only show categories that have data
+  drawLegend();
+  // drawLegend renders the per-category swatches at the bottom of the chart: doses,
+  // hormones, and "bands" (target ranges + error halo). Pre-measured earlier so the
+  // canvas reserved enough bottom margin for whatever rows we end up needing.
+  function drawLegend(){
   if(showLegend){
     const lFont=fLg;
     const lFontSm=fSm;
@@ -3662,6 +3657,7 @@ function drawChart(canvas,opts){
       }
       ctx.font=lFont;
     }
+  }
   }
 }
 
