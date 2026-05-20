@@ -3531,42 +3531,44 @@ function drawChart(canvas,opts){
     }
   }
 
-  // Flush deferred labels last so they always render ON TOP of every curve and dot.
-  // Pass A: micro leader lines (a tiny grey stub from each labeled dot toward its block).
-  ctx.save();
-  ctx.strokeStyle='rgba(170,170,170,0.85)';
-  ctx.lineWidth=1.5;
-  for(const lbl of _pendingLabels){
-    if(!lbl.leader)continue;
-    const L=lbl.leader;
-    // Find the block-rect point closest to the dot center.
-    const nx=Math.max(L.blockX,Math.min(L.X,L.blockX+L.blockW));
-    const ny=Math.max(L.blockY,Math.min(L.Y,L.blockY+L.blockH));
-    const dx=nx-L.X,dy=ny-L.Y;
-    const dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<L.dotR+1)continue; // label sits on top of dot — no stub needed
-    // Stub spans the full gap from the dot edge to the nearest block edge. When labels are
-    // crowded the placement scorer pushes them onto a further tier; the stub grows with it
-    // so the visual association stays clear even at distance.
-    const sx=L.X+(dx/dist)*L.dotR;
-    const sy=L.Y+(dy/dist)*L.dotR;
-    const ex=L.X+dx,ey=L.Y+dy;
-    ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
-  }
-  ctx.restore();
-  // Pass B: text halos + colored fills.
-  for(const lbl of _pendingLabels){
-    ctx.font=lbl.font;
-    ctx.lineWidth=lbl.haloW;
-    ctx.strokeStyle=bgColor;
-    ctx.lineJoin='round';
-    ctx.miterLimit=2;
-    ctx.strokeText(lbl.text,lbl.lx,lbl.ly);
-    ctx.fillStyle=lbl.color;
-    ctx.fillText(lbl.text,lbl.lx,lbl.ly);
+  flushDeferredLabels();
+  // flushDeferredLabels: leader stubs first (so the label halo can cover the stub end),
+  // then the labels themselves on top of everything drawn so far.
+  function flushDeferredLabels(){
+    ctx.save();
+    ctx.strokeStyle='rgba(170,170,170,0.85)';
+    ctx.lineWidth=1.5;
+    for(const lbl of _pendingLabels){
+      if(!lbl.leader)continue;
+      const L=lbl.leader;
+      const nx=Math.max(L.blockX,Math.min(L.X,L.blockX+L.blockW));
+      const ny=Math.max(L.blockY,Math.min(L.Y,L.blockY+L.blockH));
+      const dx=nx-L.X,dy=ny-L.Y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<L.dotR+1)continue;
+      const sx=L.X+(dx/dist)*L.dotR;
+      const sy=L.Y+(dy/dist)*L.dotR;
+      const ex=L.X+dx,ey=L.Y+dy;
+      ctx.beginPath();ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);ctx.stroke();
+    }
+    ctx.restore();
+    for(const lbl of _pendingLabels){
+      ctx.font=lbl.font;
+      ctx.lineWidth=lbl.haloW;
+      ctx.strokeStyle=bgColor;
+      ctx.lineJoin='round';
+      ctx.miterLimit=2;
+      ctx.strokeText(lbl.text,lbl.lx,lbl.ly);
+      ctx.fillStyle=lbl.color;
+      ctx.fillText(lbl.text,lbl.lx,lbl.ly);
+    }
   }
 
-  // Legend — only show categories that have data
+  drawLegend();
+  // drawLegend renders the per-category swatches at the bottom of the chart: doses,
+  // hormones, and "bands" (target ranges + error halo). Pre-measured earlier so the
+  // canvas reserved enough bottom margin for whatever rows we end up needing.
+  function drawLegend(){
   if(showLegend){
     const lFont=fLg;
     const lFontSm=fSm;
@@ -3655,6 +3657,7 @@ function drawChart(canvas,opts){
       }
       ctx.font=lFont;
     }
+  }
   }
 }
 
