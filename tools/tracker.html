@@ -3417,7 +3417,14 @@ function drawChart(canvas,opts){
   // Hormone curves are drawn in two phases so label placement (phase 2) can detect crossings
   // with EVERY hormone's curve, not just the ones drawn before it. _allCurves was declared
   // earlier (near the placeLabel helper); Phase 1 fills it.
-  // Phase 1: compute curve data + draw curves.
+  drawHormoneCurvesPhase1();
+  drawHormoneLabelsPhase2();
+  flushDeferredLabels();
+  drawLegend();
+  // drawHormoneCurvesPhase1: for each tracked+visible hormone, build its lab-spline and
+  // pre-HRT bridge, draw the error halo + dashed pre-HRT segment + solid lab segments,
+  // and push the curve info into _allCurves for Phase 2 to reuse.
+  function drawHormoneCurvesPhase1(){
   for(const hk of hormonesToShow){const h=getHormone(hk);if(!h)continue;const hv=getHormoneVals(hk);
     const _esCurve=_effScale(hk,h);
     const yH=(y)=>H-margin.bottom-(y/_esCurve)*(H-margin.top-margin.bottom);
@@ -3495,11 +3502,13 @@ function drawChart(canvas,opts){
     if(showLines){let s=false;ctx.lineWidth=2.5*_hsm;for(let i=0;i<times.length-1;i++){ctx.beginPath();s=false;for(let x=times[i];x<=times[i+1];x+=step2){const X=xS(x),Y=yH(f(x));if(!s){ctx.moveTo(X,Y);s=true;}else ctx.lineTo(X,Y);}ctx.stroke();}}
     _allCurves.push({hk,h,hv,yH,times,vals,f,drawFrom});
   }
-  // Phase 2: dots + labels with full curve info. Each dot-block can avoid collisions with
-  // any other hormone's curve, not just earlier-drawn ones.
+  }
+  // drawHormoneLabelsPhase2: walks _allCurves (built by Phase 1) and for each hormone draws
+  // the dots and queues hormone-name + value labels via placeLabel. The curve-cross check in
+  // placeLabel scores against the entire _allCurves set, so labels can avoid any hormone's
+  // line regardless of draw order.
+  function drawHormoneLabelsPhase2(){
   const _dotR=parseFloat(dotR);
-  // (placeLabel + _rectCrossesCurve + xPxToDay live near the top of drawChart; they're shared
-  // between dose-change labels (phase 0 ish, inside meds loop) and hormone labels here.)
   for(const C of _allCurves){
     const {hk,h,times,vals,f:cf,yH,drawFrom}=C;
     const _hsm=_hormSize(hk);
@@ -3541,8 +3550,8 @@ function drawChart(canvas,opts){
       });
     }
   }
+  }
 
-  flushDeferredLabels();
   // flushDeferredLabels: leader stubs first (so the label halo can cover the stub end),
   // then the labels themselves on top of everything drawn so far.
   function flushDeferredLabels(){
@@ -3575,7 +3584,6 @@ function drawChart(canvas,opts){
     }
   }
 
-  drawLegend();
   // drawLegend renders the per-category swatches at the bottom of the chart: doses,
   // hormones, and "bands" (target ranges + error halo). Pre-measured earlier so the
   // canvas reserved enough bottom margin for whatever rows we end up needing.
