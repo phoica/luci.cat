@@ -3239,67 +3239,80 @@ function drawChart(canvas,opts){
   // _allCurves is populated by Phase 1 of the hormones loop, used by placeLabel for the
   // curve-crossing check during hormone label placement.
   const _allCurves=[];
-  for(const medId of medsToShow){const md=doses[medId];if(!md||!md.length)continue;let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;const dMax=Math.max(1,mx*1.4);const dStep2=niceStep(dMax,6);const col=getMedColor(medId);ctx.fillStyle=col;
-    function yD(y){return H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);}
-    const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
-    if(showThisAxis){for(let y=0;y<=dMax*1.5;y+=dStep2){const yy=yD(y);if(yy<margin.top-2)break;if(yy<=H-margin.bottom)ctx.fillText(String(Math.round(y*100)/100),margin.left-ctx.measureText(String(Math.round(y*100)/100)).width-4,yy+4);}}
-    // Draw dose line (always)
-    const sorted=[...md].sort((a,b)=>a[0]-b[0]);ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(xS(sorted[0][0]),yD(sorted[0][1]));let prev=sorted[0][1];
-    for(let i=1;i<sorted.length;i++){const[x,y]=sorted[i];ctx.lineTo(xS(x),yD(prev));ctx.lineTo(xS(x),yD(y));prev=y;}ctx.stroke();
-    if(getMedDots(medId)){for(const[x,y]of sorted){ctx.fillStyle=col;ctx.beginPath();ctx.arc(xS(x),yD(y),lerpF(2.8,3.5),0,Math.PI*2);ctx.fill();}}
-    if(showLabels){
-      const fx=xS(sorted[0][0]),fy=yD(sorted[0][1]);
-      const mtxt=getMedShortName(medId);
-      ctx.font=fMd;
-      const mtw=ctx.measureText(mtxt).width;
-      const mth=parseFloat(fMd);
-      const candidates=[
-        {lx:fx+6,ly:fy-10},
-        {lx:fx-mtw-6,ly:fy-10},
-        {lx:fx+6,ly:fy+mth+10},
-        {lx:fx-mtw-6,ly:fy+mth+10}
-      ];
-      let chosen=candidates[0];
-      for(const c of candidates){
-        const r1={x:c.lx,y:c.ly-mth,w:mtw,h:mth};
-        let hit=false;
-        for(const r2 of _placedLabels){
-          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
+  drawMedCurves();
+  // drawMedCurves: step-function dose lines, optional per-dose dots, the medication
+  // name label at the first dose, and dose-change value labels at every step.
+  function drawMedCurves(){
+    for(const medId of medsToShow){
+      const md=doses[medId];if(!md||!md.length)continue;
+      let mx=1;for(const[,mg]of md)if(mg>mx)mx=mg;
+      const dMax=Math.max(1,mx*1.4);
+      const dStep2=niceStep(dMax,6);
+      const col=getMedColor(medId);
+      ctx.fillStyle=col;
+      const yD=(y)=>H-margin.bottom-(y/dMax)*(H-margin.top-margin.bottom);
+      const showThisAxis=showAxesMaster&&shownAxes.includes('med:'+medId);
+      if(showThisAxis){for(let y=0;y<=dMax*1.5;y+=dStep2){const yy=yD(y);if(yy<margin.top-2)break;if(yy<=H-margin.bottom)ctx.fillText(String(Math.round(y*100)/100),margin.left-ctx.measureText(String(Math.round(y*100)/100)).width-4,yy+4);}}
+      // Step line connecting consecutive dose points (horizontal then vertical at each step).
+      const sorted=[...md].sort((a,b)=>a[0]-b[0]);
+      ctx.strokeStyle=col;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(xS(sorted[0][0]),yD(sorted[0][1]));
+      let prev=sorted[0][1];
+      for(let i=1;i<sorted.length;i++){const[x,y]=sorted[i];ctx.lineTo(xS(x),yD(prev));ctx.lineTo(xS(x),yD(y));prev=y;}
+      ctx.stroke();
+      if(getMedDots(medId)){for(const[x,y]of sorted){ctx.fillStyle=col;ctx.beginPath();ctx.arc(xS(x),yD(y),lerpF(2.8,3.5),0,Math.PI*2);ctx.fill();}}
+      // Medication name label at the first dose (simple 4-corner first-non-colliding — older
+      // pre-placeLabel logic, kept because behavior is dead simple and exhaustive scoring isn't
+      // worth it for a single label per med).
+      if(showLabels){
+        const fx=xS(sorted[0][0]),fy=yD(sorted[0][1]);
+        const mtxt=getMedShortName(medId);
+        ctx.font=fMd;
+        const mtw=ctx.measureText(mtxt).width;
+        const mth=parseFloat(fMd);
+        const candidates=[
+          {lx:fx+6,ly:fy-10},
+          {lx:fx-mtw-6,ly:fy-10},
+          {lx:fx+6,ly:fy+mth+10},
+          {lx:fx-mtw-6,ly:fy+mth+10}
+        ];
+        let chosen=candidates[0];
+        for(const c of candidates){
+          const r1={x:c.lx,y:c.ly-mth,w:mtw,h:mth};
+          let hit=false;
+          for(const r2 of _placedLabels){
+            if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){hit=true;break;}
+          }
+          if(!hit){chosen=c;break;}
         }
-        if(!hit){chosen=c;break;}
-      }
-      _placedLabels.push({x:chosen.lx,y:chosen.ly-mth,w:mtw,h:mth});
-      _pendingLabels.push({text:mtxt,lx:chosen.lx,ly:chosen.ly,color:col,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
-      ctx.font=fSm;
-    }
-    // Dose-change labels: show the new dose value at every point where it changes from the
-    // previous one. Each placement reuses the tiered/scored placement logic and the shared
-    // side-alternation counter, so dose labels and hormone labels coordinate visually.
-    if(showDoseChanges){
-      const u=getMedUnit(medId);
-      const dotR_med=lerpF(2.8,3.5);
-      const haloW=parseFloat(pT(2.5,3,3.5));
-      ctx.font=fSm;
-      const lineH=parseFloat(fSm)*1.05;
-      const tiersDose=[
-        {offX:lerp(5,7),offY:lerp(4,6)},
-        {offX:lerp(20,26),offY:lerp(16,20)},
-        {offX:lerp(38,50),offY:lerp(30,40)}
-      ];
-      for(let i=0;i<sorted.length;i++){
-        const day=sorted[i][0],mg=sorted[i][1];
-        if(i>0&&mg===sorted[i-1][1])continue;
-        const text=`${fmtNum(mg)} ${u}`;
+        _placedLabels.push({x:chosen.lx,y:chosen.ly-mth,w:mtw,h:mth});
+        _pendingLabels.push({text:mtxt,lx:chosen.lx,ly:chosen.ly,color:col,font:fMd,haloW:parseFloat(pT(3.5,4,4.5))});
         ctx.font=fSm;
-        const tw=ctx.measureText(text).width;
-        placeLabel({
-          lines:[{text,font:fSm,w:tw,haloW}],
-          anchor:{X:xS(day),Y:yD(mg),dotR:dotR_med},
-          color:col,
-          tiers:tiersDose,
-          includeMiddle:false,
-          excludeCurveHk:null
-        });
+      }
+      // Dose-change labels via the shared placeLabel scorer.
+      if(showDoseChanges){
+        const u=getMedUnit(medId);
+        const dotR_med=lerpF(2.8,3.5);
+        const haloW=parseFloat(pT(2.5,3,3.5));
+        const tiersDose=[
+          {offX:lerp(5,7),offY:lerp(4,6)},
+          {offX:lerp(20,26),offY:lerp(16,20)},
+          {offX:lerp(38,50),offY:lerp(30,40)}
+        ];
+        for(let i=0;i<sorted.length;i++){
+          const day=sorted[i][0],mg=sorted[i][1];
+          if(i>0&&mg===sorted[i-1][1])continue;
+          const text=`${fmtNum(mg)} ${u}`;
+          ctx.font=fSm;
+          const tw=ctx.measureText(text).width;
+          placeLabel({
+            lines:[{text,font:fSm,w:tw,haloW}],
+            anchor:{X:xS(day),Y:yD(mg),dotR:dotR_med},
+            color:col,
+            tiers:tiersDose,
+            includeMiddle:false,
+            excludeCurveHk:null
+          });
+        }
       }
     }
   }
