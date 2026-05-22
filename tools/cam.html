@@ -30,7 +30,6 @@ body[data-theme="light"]{
 html,body{height:100%;overflow:hidden;background:#000}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);font-size:15px;line-height:1.5}
 
-/* ── App shell ── */
 .app{
   display:flex;flex-direction:column;
   height:100dvh;height:100vh;
@@ -40,7 +39,6 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var
   padding-right:env(safe-area-inset-right);
 }
 
-/* cam-area wraps header + viewport */
 .cam-area{flex:1;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
 
 /* ── Header ── */
@@ -55,8 +53,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
 body[data-theme="light"] .header h1{
-  background:linear-gradient(135deg,#e89854,#f0c474);
-  -webkit-background-clip:text;background-clip:text;
+  background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text;background-clip:text;
 }
 .header-spacer{flex:1}
 .icon-btn{
@@ -74,10 +71,7 @@ body[data-theme="light"] .header h1{
   flex:1;display:flex;align-items:center;justify-content:center;
   background:#000;overflow:hidden;min-height:0;position:relative;
 }
-.viewport{
-  position:relative;background:#000;overflow:hidden;
-  max-width:100%;max-height:100%;
-}
+.viewport{position:relative;background:#000;overflow:hidden;max-width:100%;max-height:100%}
 .viewport[data-ratio="free"]{width:100%;height:100%}
 .viewport[data-ratio="1:1"] {aspect-ratio:1/1;  width:100%;height:auto;max-height:100%}
 .viewport[data-ratio="4:3"] {aspect-ratio:4/3;  width:100%;height:auto;max-height:100%}
@@ -102,6 +96,29 @@ body[data-theme="light"] .header h1{
 .rec-dot{width:7px;height:7px;border-radius:50%;background:#ff3333;animation:recBlink 1s ease-in-out infinite}
 @keyframes recBlink{0%,100%{opacity:1}50%{opacity:0}}
 
+/* ── Long exposure progress ── */
+.le-overlay{
+  position:absolute;inset:0;z-index:8;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.4);
+}
+.le-overlay.hidden{display:none}
+.le-card{
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  padding:24px 36px;border-radius:18px;color:#fff;min-width:180px;
+}
+.le-timer{font-family:'JetBrains Mono',monospace;font-size:40px;letter-spacing:2px}
+.le-label{font-size:12px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;margin-top:-8px}
+.le-bar-track{width:100%;height:3px;background:rgba(255,255,255,.15);border-radius:2px}
+.le-bar-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .15s linear}
+.le-cancel{
+  font-family:inherit;font-size:13px;color:rgba(255,255,255,.5);
+  background:none;border:1px solid rgba(255,255,255,.18);
+  border-radius:8px;padding:6px 18px;cursor:pointer;transition:all .15s;
+}
+.le-cancel:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+
 .overlay{
   position:absolute;inset:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -119,34 +136,29 @@ body[data-theme="light"] .header h1{
 }
 .perm-btn:active{opacity:.8}
 
-/* ── Right panel (controls + capture bar) ── */
-.right-panel{
-  display:flex;flex-direction:column;flex-shrink:0;
-  background:var(--bg);
-}
+/* ── Right panel ── */
+.right-panel{display:flex;flex-direction:column;flex-shrink:0;background:var(--bg)}
 
-/* ── Controls (collapsible) ── */
+/* ── Controls (collapsible, scrollable) ── */
 .controls{
   padding:10px 16px 12px;
   display:flex;flex-direction:column;gap:9px;
   border-top:1px solid var(--border);
-  overflow:hidden;max-height:540px;
+  overflow-x:hidden;overflow-y:auto;
+  max-height:52vh;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
   transition:max-height .3s ease,opacity .2s ease,padding .3s ease,border-color .3s ease;
 }
-.controls.hidden{
-  max-height:0;opacity:0;padding-top:0;padding-bottom:0;border-top-color:transparent;
-}
+.controls::-webkit-scrollbar{width:3px}
+.controls::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.controls.hidden{max-height:0;opacity:0;padding-top:0;padding-bottom:0;border-top-color:transparent}
 
 /* ── Capture bar (always visible) ── */
 .capture-bar{
-  flex-shrink:0;
-  padding:4px 16px 12px;
-  border-top:1px solid transparent;
-  transition:border-color .3s ease;
+  flex-shrink:0;padding:4px 16px 12px;
+  border-top:1px solid transparent;transition:border-color .3s ease;
 }
-.controls.hidden + .capture-bar{
-  border-top-color:var(--border);
-}
+.controls.hidden + .capture-bar{border-top-color:var(--border)}
 
 /* ── Toast ── */
 .toast{
@@ -171,6 +183,12 @@ body[data-theme="light"] .header h1{
 .pill:hover{border-color:var(--border-hover);color:var(--text)}
 .pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 
+/* ── Section label ── */
+.section-label{
+  font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+  color:var(--text-dim);padding-bottom:2px;border-bottom:1px solid var(--border);
+}
+
 /* ── Settings rows ── */
 .settings-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .toggle-group{display:flex;align-items:center;gap:8px}
@@ -187,7 +205,7 @@ body[data-theme="light"] .header h1{
 .slider-group{display:flex;align-items:center;gap:8px;flex:1;min-width:150px}
 .slider-label{font-size:13px;color:var(--text-muted);font-weight:500;white-space:nowrap}
 .slider-input{flex:1;height:4px;cursor:pointer;accent-color:var(--accent)}
-.slider-val{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);min-width:36px;text-align:right}
+.slider-val{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);min-width:44px;text-align:right}
 
 /* ── Swatches ── */
 .swatch-row{display:flex;gap:8px;align-items:center}
@@ -199,10 +217,7 @@ body[data-theme="light"] .header h1{
 }
 .swatch:hover{transform:scale(1.1)}
 .swatch.active{border-color:var(--accent);transform:scale(1.12)}
-.swatch-custom{
-  background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);
-  position:relative;overflow:hidden;
-}
+.swatch-custom{background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);position:relative;overflow:hidden}
 .swatch-custom.active{border-color:var(--accent);transform:scale(1.12)}
 .swatch-custom input[type="color"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:130%;height:130%;top:-15%;left:-15%}
 
@@ -226,10 +241,13 @@ body[data-theme="light"] .header h1{
 .shutter-btn.off{opacity:.35;cursor:not-allowed}
 .shutter-btn.ghost{opacity:.22;border-color:rgba(255,255,255,.3)}
 .shutter-btn.ghost::after{background:rgba(255,255,255,.6)}
-/* .off wins over .ghost when both present (source order) */
 .shutter-btn.off{opacity:.35;cursor:not-allowed}
 
-/* Hide/reveal toggle button (right of shutter) */
+/* Long exposure mode shutter ring */
+.shutter-btn.le-mode{border-color:#7eaad4}
+.shutter-btn.le-capturing{animation:lePulse 1s ease-in-out infinite}
+@keyframes lePulse{0%,100%{box-shadow:0 0 0 0 rgba(126,170,212,.4)}50%{box-shadow:0 0 0 8px rgba(126,170,212,0)}}
+
 .cap-hide-btn{
   width:36px;height:36px;border-radius:50%;
   border:1px solid var(--border);background:var(--surface2);
@@ -256,37 +274,21 @@ body[data-theme="light"] .header h1{
 .rec-timer{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--danger);display:none}
 .rec-timer.visible{display:block}
 
-/* ── Desktop / wide layout (≥640px) ── */
+/* ── Desktop ── */
 @media(min-width:640px){
   .app{flex-direction:row}
   .cam-area{flex:1;min-width:0}
-  .right-panel{
-    width:280px;flex-shrink:0;height:100%;
-    border-top:none;border-left:1px solid var(--border);
-  }
-  .controls{
-    flex:1;max-height:none;height:auto;
-    overflow-y:auto;overflow-x:hidden;
-    border-top:none;
-    transition:max-height .3s ease,opacity .2s ease,padding .3s ease;
-  }
-  .controls.hidden{
-    max-height:0;opacity:0;padding:0;overflow:hidden;
-    border-top-color:transparent;
-  }
-  .capture-bar{
-    border-top:1px solid var(--border);
-  }
-  .controls.hidden + .capture-bar{
-    border-top-color:var(--border);
-  }
+  .right-panel{width:280px;flex-shrink:0;height:100%;border-top:none;border-left:1px solid var(--border)}
+  .controls{flex:1;max-height:none;height:auto;overflow-y:auto;overflow-x:hidden;border-top:none;transition:max-height .3s ease,opacity .2s ease,padding .3s ease}
+  .controls.hidden{max-height:0;opacity:0;padding:0;overflow:hidden;border-top-color:transparent}
+  .capture-bar{border-top:1px solid var(--border)}
+  .controls.hidden + .capture-bar{border-top-color:var(--border)}
 }
 
-/* ── Small / short screens ── */
 @media(max-height:640px) and (max-width:639px){
   .header{padding:6px 12px 4px}
   .header h1{font-size:18px}
-  .controls{gap:6px;padding:8px 14px 10px}
+  .controls{gap:6px;padding:8px 14px 10px;max-height:40vh}
   .shutter-btn{width:58px;height:58px}
   .shutter-btn::after{width:46px;height:46px}
   .record-btn{width:44px;height:44px}
@@ -295,11 +297,10 @@ body[data-theme="light"] .header h1{
 </head>
 <body data-theme="dark">
 
-<!-- Face light overlay -->
-<div id="faceLightOverlay" style="position:fixed;inset:0;opacity:0;pointer-events:none;transition:opacity .1s;z-index:100"></div>
+<!-- Color frame overlay: full-screen colored light before capture -->
+<div id="colorFrameOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;opacity:0;pointer-events:none;transition:opacity 120ms ease;z-index:9999;background:#ffffff;"></div>
 
 <div class="app">
-
   <div class="cam-area">
     <div class="header">
       <h1>Cam</h1>
@@ -312,6 +313,16 @@ body[data-theme="light"] .header h1{
         <video id="preview" autoplay playsinline muted></video>
         <div class="capture-flash" id="captureFlash"></div>
         <div class="rec-badge" id="recBadge"><span class="rec-dot"></span>REC</div>
+
+        <!-- Long exposure progress -->
+        <div class="le-overlay hidden" id="leOverlay">
+          <div class="le-card">
+            <div class="le-timer" id="leTimer">5.0s</div>
+            <div class="le-label">Exposing</div>
+            <div class="le-bar-track"><div class="le-bar-fill" id="leBarFill"></div></div>
+            <button class="le-cancel" id="leCancelBtn">Cancel</button>
+          </div>
+        </div>
 
         <div class="overlay" id="permOverlay">
           <svg class="overlay-icon" viewBox="0 0 64 64" fill="none" stroke="white" stroke-width="2">
@@ -335,15 +346,15 @@ body[data-theme="light"] .header h1{
         </div>
       </div>
     </div>
-  </div><!-- /cam-area -->
+  </div>
 
-  <!-- Right panel: collapsible controls + always-visible capture bar -->
   <div class="right-panel">
-
     <div class="controls" id="controls">
 
+      <!-- Camera selector -->
       <div class="pill-row" id="cameraSelector"></div>
 
+      <!-- Aspect ratio -->
       <div class="pill-row" id="ratioSelector">
         <button class="pill active" data-ratio="free">Free</button>
         <button class="pill" data-ratio="1:1">1:1</button>
@@ -353,6 +364,7 @@ body[data-theme="light"] .header h1{
         <button class="pill" data-ratio="9:16">9:16</button>
       </div>
 
+      <!-- Zoom (hardware) -->
       <div class="settings-row" id="zoomRow" style="display:none">
         <div class="slider-group">
           <span class="slider-label">Zoom</span>
@@ -361,6 +373,22 @@ body[data-theme="light"] .header h1{
         </div>
       </div>
 
+      <!-- Manual focus (hardware) -->
+      <div class="settings-row" id="focusToggleRow" style="display:none">
+        <div class="toggle-group">
+          <span class="toggle-label">Manual Focus</span>
+          <button class="toggle-btn" id="focusToggle" aria-pressed="false"></button>
+        </div>
+      </div>
+      <div class="settings-row" id="focusSliderRow" style="display:none">
+        <div class="slider-group">
+          <span class="slider-label">Focus</span>
+          <input type="range" class="slider-input" id="focusSlider" min="0" max="1" step="0.01" value="0">
+          <span class="slider-val" id="focusVal">∞</span>
+        </div>
+      </div>
+
+      <!-- Basic toggles -->
       <div class="settings-row">
         <div class="toggle-group">
           <span class="toggle-label">Mirror</span>
@@ -371,11 +399,12 @@ body[data-theme="light"] .header h1{
           <button class="toggle-btn" id="torchToggle" aria-pressed="false"></button>
         </div>
         <div class="toggle-group">
-          <span class="toggle-label">Face Light</span>
-          <button class="toggle-btn" id="faceLightToggle" aria-pressed="false"></button>
+          <span class="toggle-label">Color Frame</span>
+          <button class="toggle-btn" id="colorFrameToggle" aria-pressed="false"></button>
         </div>
       </div>
 
+      <!-- Color frame swatches -->
       <div class="swatch-row" id="swatchRow" style="display:none">
         <button class="swatch active" data-color="#ffffff" style="background:#ffffff" title="White"></button>
         <button class="swatch" data-color="#fff5e0" style="background:#fff5e0" title="Warm"></button>
@@ -383,21 +412,63 @@ body[data-theme="light"] .header h1{
         <button class="swatch" data-color="#ffe0f0" style="background:#ffe0f0" title="Pink"></button>
         <button class="swatch" data-color="#e0ffe8" style="background:#e0ffe8" title="Green"></button>
         <label class="swatch swatch-custom" id="customSwatch" title="Custom color">
-          <input type="color" id="faceLightColorPicker" value="#ffffff">
+          <input type="color" id="colorFramePicker" value="#ffffff">
         </label>
       </div>
 
-      <div class="settings-row" id="exposureRow" style="display:none">
+      <!-- EV compensation (auto mode) -->
+      <div class="settings-row" id="evRow" style="display:none">
         <div class="slider-group">
           <span class="slider-label">EV</span>
-          <input type="range" class="slider-input" id="exposureSlider" min="-3" max="3" step="0.5" value="0">
-          <span class="slider-val" id="exposureVal">0</span>
+          <input type="range" class="slider-input" id="evSlider" min="-3" max="3" step="0.5" value="0">
+          <span class="slider-val" id="evVal">0</span>
         </div>
+      </div>
+
+      <!-- Manual exposure (hardware) -->
+      <div class="settings-row" id="manualExpToggleRow" style="display:none">
+        <div class="toggle-group">
+          <span class="toggle-label">Manual Exposure</span>
+          <button class="toggle-btn" id="manualExpToggle" aria-pressed="false"></button>
+        </div>
+      </div>
+      <div class="settings-row" id="expTimeRow" style="display:none">
+        <div class="slider-group">
+          <span class="slider-label">Shutter</span>
+          <input type="range" class="slider-input" id="expTimeSlider" min="0" max="1" step="0.01" value="0.5">
+          <span class="slider-val" id="expTimeVal">1/60s</span>
+        </div>
+      </div>
+      <div class="settings-row" id="isoRow" style="display:none">
+        <div class="slider-group">
+          <span class="slider-label">ISO</span>
+          <input type="range" class="slider-input" id="isoSlider" min="0" max="1" step="0.01" value="0">
+          <span class="slider-val" id="isoVal">100</span>
+        </div>
+      </div>
+
+      <!-- Slow shutter (software stacking) -->
+      <div class="settings-row">
+        <div class="toggle-group">
+          <span class="toggle-label">Slow Shutter</span>
+          <button class="toggle-btn" id="leToggle" aria-pressed="false"></button>
+        </div>
+      </div>
+      <div class="settings-row" id="leOptionsRow" style="display:none">
+        <div class="slider-group">
+          <span class="slider-label">Duration</span>
+          <input type="range" class="slider-input" id="leDurationSlider" min="0" max="11" step="1" value="4">
+          <span class="slider-val" id="leDurationVal">5s</span>
+        </div>
+      </div>
+      <div class="pill-row" id="leModeRow" style="display:none">
+        <button class="pill active" data-le-mode="average">Average</button>
+        <button class="pill" data-le-mode="trails">Light Trails</button>
+        <button class="pill" data-le-mode="darken">Dark Blend</button>
       </div>
 
     </div><!-- /controls -->
 
-    <!-- Capture bar: always visible even when controls are hidden -->
     <div class="capture-bar">
       <div class="capture-row">
         <div class="capture-row-left" id="recordCell">
@@ -419,81 +490,123 @@ body[data-theme="light"] .header h1{
       <div class="rec-timer-row">
         <span class="rec-timer" id="recTimer">0:00</span>
       </div>
-    </div><!-- /capture-bar -->
-
-  </div><!-- /right-panel -->
-
-</div><!-- /app -->
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <canvas id="captureCanvas" style="display:none"></canvas>
 <a id="dlLink" style="display:none"></a>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────────
-const THEMES = ['dark', 'light'];
+// ── Constants ──────────────────────────────────────────────────────────────
+const THEMES       = ['dark', 'light'];
 const THEME_COLORS = { dark: '#000000', light: '#f4f2ef' };
 const PRESET_COLORS = ['#ffffff','#fff5e0','#e0f0ff','#ffe0f0','#e0ffe8'];
+// Long exposure duration steps (seconds)
+const LE_DURATIONS = [0.5, 1, 2, 3, 5, 8, 10, 15, 20, 30, 60, 100];
 
 const SUN_ICON  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/></svg>`;
 const MOON_ICON = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 11.5A7 7 0 1 1 8.5 3a5.5 5.5 0 0 0 8.5 8.5z"/></svg>`;
 
-let themeIdx        = 0;
-let stream          = null;
-let devices         = [];
-let currentDeviceId = null;
-let isMirrored      = false;
-let currentRatio    = 'free';
-let isRecording     = false;
-let mediaRecorder   = null;
-let recordedChunks  = [];
-let recInterval     = null;
-let recSecs         = 0;
-let ready           = false;
-let controlsVisible = true;
-let toastTimer      = null;
-let isTorchOn       = false;
-let isFaceLight     = false;
-let faceLightColor  = '#ffffff';
+// ── State ──────────────────────────────────────────────────────────────────
+let themeIdx         = 0;
+let stream           = null;
+let devices          = [];
+let currentDeviceId  = null;
+let isMirrored       = false;
+let currentRatio     = 'free';
+let isRecording      = false;
+let mediaRecorder    = null;
+let recordedChunks   = [];
+let recInterval      = null;
+let recSecs          = 0;
+let ready            = false;
+let controlsVisible  = true;
+let toastTimer       = null;
+let isTorchOn        = false;
+// Color frame
+let isColorFrame     = false;
+let colorFrameColor  = '#ffffff';
+// Focus
+let isManualFocus    = false;
+let focusMin = 0, focusMax = 1;
+// Manual exposure (hardware)
+let isManualExp      = false;
+let expTimeMin = 0, expTimeMax = 0, expTimeLogMin = 0, expTimeLogRange = 1;
+let isoMin = 0, isoMax = 0;
+// Slow shutter (software)
+let isLongExposure   = false;
+let leDurationIdx    = 4; // index into LE_DURATIONS → 5s
+let leMode           = 'average';
+let leCapturing      = false;
+let leInterval       = null;
+let leAccum          = null; // Float32Array for average mode
+let leStackCanvas    = null, leStackCtx = null;
+let leFrameCount     = 0;
+let leWidth = 0, leHeight = 0;
+let leElapsed = 0, leTotalMs = 0;
 
 // ── DOM ────────────────────────────────────────────────────────────────────
-const body                 = document.body;
-const preview              = document.getElementById('preview');
-const viewport             = document.getElementById('viewport');
-const controlsEl           = document.getElementById('controls');
-const permOverlay          = document.getElementById('permOverlay');
-const errOverlay           = document.getElementById('errOverlay');
-const errMsg               = document.getElementById('errMsg');
-const permBtn              = document.getElementById('permBtn');
-const retryBtn             = document.getElementById('retryBtn');
-const shutterBtn           = document.getElementById('shutterBtn');
-const recordBtn            = document.getElementById('recordBtn');
-const recordCell           = document.getElementById('recordCell');
-const recordIcon           = document.getElementById('recordIcon');
-const mirrorToggle         = document.getElementById('mirrorToggle');
-const torchToggle          = document.getElementById('torchToggle');
-const torchGroup           = document.getElementById('torchGroup');
-const faceLightToggle      = document.getElementById('faceLightToggle');
-const swatchRow            = document.getElementById('swatchRow');
-const customSwatch         = document.getElementById('customSwatch');
-const faceLightColorPicker = document.getElementById('faceLightColorPicker');
-const themeBtn             = document.getElementById('themeBtn');
-const capHideBtn           = document.getElementById('capHideBtn');
-const zoomRow              = document.getElementById('zoomRow');
-const zoomSlider           = document.getElementById('zoomSlider');
-const zoomVal              = document.getElementById('zoomVal');
-const exposureRow          = document.getElementById('exposureRow');
-const exposureSlider       = document.getElementById('exposureSlider');
-const exposureVal          = document.getElementById('exposureVal');
-const camSelector          = document.getElementById('cameraSelector');
-const captureFlash         = document.getElementById('captureFlash');
-const recBadge             = document.getElementById('recBadge');
-const recTimer             = document.getElementById('recTimer');
-const captureCanvas        = document.getElementById('captureCanvas');
-const dlLink               = document.getElementById('dlLink');
-const toastEl              = document.getElementById('toast');
-const faceLightOverlay     = document.getElementById('faceLightOverlay');
-const themeColorMeta       = document.getElementById('themeColorMeta');
+const body               = document.body;
+const preview            = document.getElementById('preview');
+const viewport           = document.getElementById('viewport');
+const controlsEl         = document.getElementById('controls');
+const permOverlay        = document.getElementById('permOverlay');
+const errOverlay         = document.getElementById('errOverlay');
+const errMsg             = document.getElementById('errMsg');
+const permBtn            = document.getElementById('permBtn');
+const retryBtn           = document.getElementById('retryBtn');
+const shutterBtn         = document.getElementById('shutterBtn');
+const recordBtn          = document.getElementById('recordBtn');
+const recordCell         = document.getElementById('recordCell');
+const recordIcon         = document.getElementById('recordIcon');
+const mirrorToggle       = document.getElementById('mirrorToggle');
+const torchToggle        = document.getElementById('torchToggle');
+const torchGroup         = document.getElementById('torchGroup');
+const colorFrameToggle   = document.getElementById('colorFrameToggle');
+const swatchRow          = document.getElementById('swatchRow');
+const customSwatch       = document.getElementById('customSwatch');
+const colorFramePicker   = document.getElementById('colorFramePicker');
+const colorFrameOverlay  = document.getElementById('colorFrameOverlay');
+const themeBtn           = document.getElementById('themeBtn');
+const capHideBtn         = document.getElementById('capHideBtn');
+const camSelector        = document.getElementById('cameraSelector');
+const zoomRow            = document.getElementById('zoomRow');
+const zoomSlider         = document.getElementById('zoomSlider');
+const zoomVal            = document.getElementById('zoomVal');
+const focusToggleRow     = document.getElementById('focusToggleRow');
+const focusToggle        = document.getElementById('focusToggle');
+const focusSliderRow     = document.getElementById('focusSliderRow');
+const focusSlider        = document.getElementById('focusSlider');
+const focusVal           = document.getElementById('focusVal');
+const evRow              = document.getElementById('evRow');
+const evSlider           = document.getElementById('evSlider');
+const evVal              = document.getElementById('evVal');
+const manualExpToggleRow = document.getElementById('manualExpToggleRow');
+const manualExpToggle    = document.getElementById('manualExpToggle');
+const expTimeRow         = document.getElementById('expTimeRow');
+const expTimeSlider      = document.getElementById('expTimeSlider');
+const expTimeVal         = document.getElementById('expTimeVal');
+const isoRow             = document.getElementById('isoRow');
+const isoSlider          = document.getElementById('isoSlider');
+const isoVal             = document.getElementById('isoVal');
+const leToggle           = document.getElementById('leToggle');
+const leOptionsRow       = document.getElementById('leOptionsRow');
+const leDurationSlider   = document.getElementById('leDurationSlider');
+const leDurationVal      = document.getElementById('leDurationVal');
+const leModeRow          = document.getElementById('leModeRow');
+const leOverlay          = document.getElementById('leOverlay');
+const leTimer            = document.getElementById('leTimer');
+const leBarFill          = document.getElementById('leBarFill');
+const leCancelBtn        = document.getElementById('leCancelBtn');
+const captureFlash       = document.getElementById('captureFlash');
+const recBadge           = document.getElementById('recBadge');
+const recTimer           = document.getElementById('recTimer');
+const captureCanvas      = document.getElementById('captureCanvas');
+const dlLink             = document.getElementById('dlLink');
+const toastEl            = document.getElementById('toast');
+const themeColorMeta     = document.getElementById('themeColorMeta');
 
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
@@ -505,27 +618,32 @@ function init() {
     showError('Camera API not supported — try Safari or Chrome');
   }
 }
-
 window.addEventListener('beforeunload', () => stream?.getTracks().forEach(t => t.stop()));
 
 // ── Settings ───────────────────────────────────────────────────────────────
 function loadSettings() {
   try {
     const s = JSON.parse(localStorage.getItem('cam_prefs') || '{}');
-    const savedThemeIdx = THEMES.indexOf(s.theme);
-    applyTheme(savedThemeIdx >= 0 ? savedThemeIdx : 0, false);
+    applyTheme(THEMES.indexOf(s.theme) >= 0 ? THEMES.indexOf(s.theme) : 0, false);
     if (typeof s.mirrored === 'boolean') setMirror(s.mirrored, false);
     if (s.ratio) setRatio(s.ratio, false);
-    if (typeof s.faceLight === 'boolean') {
-      isFaceLight = s.faceLight;
-      faceLightToggle.setAttribute('aria-pressed', s.faceLight ? 'true' : 'false');
-      if (s.faceLight) swatchRow.style.display = '';
+    if (typeof s.colorFrame === 'boolean') {
+      isColorFrame = s.colorFrame;
+      colorFrameToggle.setAttribute('aria-pressed', isColorFrame ? 'true' : 'false');
+      if (isColorFrame) swatchRow.style.display = '';
     }
-    if (s.faceLightColor) {
-      faceLightColor = s.faceLightColor;
-      faceLightColorPicker.value = faceLightColor;
+    if (s.colorFrameColor) {
+      colorFrameColor = s.colorFrameColor;
+      colorFramePicker.value = colorFrameColor;
+      colorFrameOverlay.style.background = colorFrameColor;
       updateSwatchActive();
     }
+    if (typeof s.leDurationIdx === 'number') {
+      leDurationIdx = s.leDurationIdx;
+      leDurationSlider.value = leDurationIdx;
+      leDurationVal.textContent = formatLeDuration(LE_DURATIONS[leDurationIdx]);
+    }
+    if (s.leMode) setLeMode(s.leMode, false);
   } catch {
     applyTheme(0, false);
   }
@@ -535,7 +653,8 @@ function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio,
-      faceLight: isFaceLight, faceLightColor,
+      colorFrame: isColorFrame, colorFrameColor,
+      leDurationIdx, leMode,
     }));
   } catch {}
 }
@@ -545,21 +664,17 @@ function applyTheme(idx, save = true) {
   themeIdx = ((idx % THEMES.length) + THEMES.length) % THEMES.length;
   body.dataset.theme = THEMES[themeIdx];
   themeColorMeta.content = THEME_COLORS[THEMES[themeIdx]];
-  // In dark mode show sun (switch to light); in light mode show moon (switch to dark)
   themeBtn.innerHTML = THEMES[themeIdx] === 'dark' ? SUN_ICON : MOON_ICON;
   if (save) saveSettings();
 }
 
-// ── Hide / show controls ───────────────────────────────────────────────────
+// ── Toggle controls ────────────────────────────────────────────────────────
 function toggleControls() {
   controlsVisible = !controlsVisible;
   controlsEl.classList.toggle('hidden', !controlsVisible);
-  // Ghost shutter when hidden; normal when visible
   shutterBtn.classList.toggle('ghost', !controlsVisible);
-  // Record cell: invisible (layout preserved) when controls hidden
   recordCell.style.opacity       = controlsVisible ? '' : '0';
   recordCell.style.pointerEvents = controlsVisible ? '' : 'none';
-  // Arrow rotates 180° when controls are hidden (points up = "reveal")
   capHideBtn.classList.toggle('revealed', !controlsVisible);
 }
 
@@ -572,26 +687,19 @@ function showToast(msg, ms = 3000) {
 }
 
 // ── Camera ─────────────────────────────────────────────────────────────────
-
-// Build getUserMedia constraints for a given device.
-// Front cameras use facingMode (reliable on iOS).
-// All back cameras use exact deviceId — we never silently redirect to facingMode,
-// so different back lenses stay distinct.
 function buildConstraints(deviceId) {
   if (!deviceId) {
     const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     return {
-      video: mobile
-        ? { facingMode: { ideal: 'environment' } }
-        : { width: { ideal: 1920 }, height: { ideal: 1080 } },
+      video: mobile ? { facingMode: { ideal: 'environment' } } : { width: { ideal: 1920 }, height: { ideal: 1080 } },
       audio: false,
     };
   }
   const label = (devices.find(d => d.deviceId === deviceId)?.label || '').toLowerCase();
   const isFront = label.includes('front') || label.includes('facetime') ||
-                  label.includes('user')  || label.includes('facing front');
+                  label.includes('user') || label.includes('facing front');
   if (isFront) return { video: { facingMode: 'user' }, audio: false };
-  // Back / ultra / tele: exact deviceId so each stays distinct
+  // All back cameras: use exact deviceId so different lenses stay distinct
   return { video: { deviceId: { exact: deviceId } }, audio: false };
 }
 
@@ -601,7 +709,6 @@ async function startCamera(deviceId = null) {
     newStream = await navigator.mediaDevices.getUserMedia(buildConstraints(deviceId));
   } catch (err) {
     if (err.name === 'OverconstrainedError' && deviceId) {
-      // exact failed → try ideal as last resort
       try {
         newStream = await navigator.mediaDevices.getUserMedia({
           video: { deviceId: { ideal: deviceId } }, audio: false,
@@ -615,16 +722,18 @@ async function startCamera(deviceId = null) {
     }
   }
 
-  // Acquire new stream before stopping old (more reliable on iOS)
   if (stream) stream.getTracks().forEach(t => t.stop());
   stream = newStream;
 
-  // Resolve which device is actually active by matching track metadata
-  const trackSettings = stream.getVideoTracks()[0]?.getSettings() ?? {};
-  const trackLabel    = stream.getVideoTracks()[0]?.label ?? '';
+  const track         = stream.getVideoTracks()[0];
+  const trackSettings = track?.getSettings() ?? {};
+  const trackLabel    = track?.label ?? '';
   const matched = devices.find(d => d.deviceId === trackSettings.deviceId)
-               ?? devices.find(d => d.label    === trackLabel);
+               ?? devices.find(d => d.label === trackLabel);
   currentDeviceId = matched?.deviceId ?? deviceId ?? trackSettings.deviceId ?? null;
+
+  // Tell user which camera actually activated
+  if (deviceId && trackLabel) showToast(trackLabel, 2500);
 
   preview.srcObject = stream;
   ready = true;
@@ -641,8 +750,7 @@ async function enumerateDevices() {
   try {
     const all = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = all.filter(d => d.kind === 'videoinput');
-    // Deduplicate: if two entries share the same label they're the same physical camera.
-    // Keep the first occurrence of each unique label (or deviceId if label is empty).
+    // Deduplicate by label (same label = same physical camera)
     const seen = new Set();
     devices = videoDevices.filter(d => {
       const key = d.label.trim().toLowerCase() || d.deviceId;
@@ -654,15 +762,21 @@ async function enumerateDevices() {
   } catch {}
 }
 
-function cameraLabel(device, idx) {
+// Richer label matching including iOS-specific strings
+function cameraLabel(device) {
   const l = (device.label || '').toLowerCase();
-  if (!l) return `Cam ${idx + 1}`;
+  if (!l) return null; // unknown
+  if (l.includes('telephoto'))                                                  return 'Tele';
+  if (l.includes('ultra wide') || l.includes('ultrawide') || l.includes('ultra-wide')) return 'Ultra';
   if (l.includes('front') || l.includes('facetime') || l.includes('user') || l.includes('facing front')) return 'Selfie';
-  if (l.includes('ultra') || (l.includes('wide') && (l.includes('back') || l.includes('rear')))) return 'Ultra';
-  if (l.includes('tele') || l.includes('3x') || l.includes('zoom')) return 'Tele';
+  if (l.includes('dual wide'))                                                  return 'Wide';
+  if (l.includes('dual') || l.includes('triple') || l.includes('fusion'))      return 'Main';
+  if (l.includes('wide') && (l.includes('back') || l.includes('rear')))        return 'Ultra';
+  if (l.includes('tele') || l.includes('3x') || l.includes('zoom'))            return 'Tele';
   if (l.includes('back') || l.includes('rear') || l.includes('environment') || l.includes('facing back')) return 'Main';
+  // Clean up the raw label
   const clean = device.label.replace(/\s*\(.*?\)\s*/g, '').trim();
-  return clean.length > 14 ? `Cam ${idx + 1}` : clean;
+  return clean.length > 16 ? null : clean;
 }
 
 function renderCamSelector() {
@@ -671,7 +785,9 @@ function renderCamSelector() {
   devices.forEach((d, i) => {
     const btn = document.createElement('button');
     btn.className = 'pill' + (d.deviceId === currentDeviceId ? ' active' : '');
-    btn.textContent = cameraLabel(d, i);
+    const label = cameraLabel(d);
+    btn.textContent = label ?? `Cam ${i + 1}`;
+    if (d.label) btn.title = d.label; // full label as tooltip
     btn.addEventListener('click', () => {
       if (d.deviceId === currentDeviceId) return;
       if (isRecording) stopRecording();
@@ -684,14 +800,27 @@ function renderCamSelector() {
 // ── Capabilities ───────────────────────────────────────────────────────────
 function detectCapabilities() {
   const track = stream?.getVideoTracks()[0];
+  // Reset hardware controls
   isTorchOn = false;
   torchToggle.setAttribute('aria-pressed', 'false');
-  torchGroup.style.display  = 'none';
-  zoomRow.style.display     = 'none';
-  exposureRow.style.display = 'none';
+  torchGroup.style.display        = 'none';
+  zoomRow.style.display           = 'none';
+  focusToggleRow.style.display    = 'none';
+  focusSliderRow.style.display    = 'none';
+  evRow.style.display             = 'none';
+  manualExpToggleRow.style.display= 'none';
+  expTimeRow.style.display        = 'none';
+  isoRow.style.display            = 'none';
+  isManualFocus = false;
+  isManualExp   = false;
+  focusToggle.setAttribute('aria-pressed', 'false');
+  manualExpToggle.setAttribute('aria-pressed', 'false');
+
   if (!track?.getCapabilities) return;
   const caps = track.getCapabilities();
+
   if (caps.torch) torchGroup.style.display = '';
+
   if (caps.zoom) {
     zoomSlider.min   = caps.zoom.min  ?? 1;
     zoomSlider.max   = caps.zoom.max  ?? 10;
@@ -700,38 +829,139 @@ function detectCapabilities() {
     updateZoomDisplay(zoomSlider.value);
     zoomRow.style.display = '';
   }
+
+  if (caps.focusDistance && Array.isArray(caps.focusMode) && caps.focusMode.includes('manual')) {
+    focusMin = caps.focusDistance.min ?? 0;
+    focusMax = caps.focusDistance.max ?? 1;
+    focusSlider.min   = focusMin;
+    focusSlider.max   = focusMax;
+    focusSlider.step  = (focusMax - focusMin) / 100;
+    focusSlider.value = focusMax; // start at infinity (far end)
+    focusVal.textContent = formatFocusDist(parseFloat(focusSlider.value));
+    focusToggleRow.style.display = '';
+  }
+
   if (caps.exposureCompensation) {
-    exposureSlider.min   = caps.exposureCompensation.min  ?? -3;
-    exposureSlider.max   = caps.exposureCompensation.max  ?? 3;
-    exposureSlider.step  = caps.exposureCompensation.step ?? 0.5;
-    exposureSlider.value = 0;
-    exposureVal.textContent = '0';
-    exposureRow.style.display = '';
+    evSlider.min   = caps.exposureCompensation.min  ?? -3;
+    evSlider.max   = caps.exposureCompensation.max  ?? 3;
+    evSlider.step  = caps.exposureCompensation.step ?? 0.5;
+    evSlider.value = 0;
+    evVal.textContent = '0';
+    evRow.style.display = '';
+  }
+
+  if (Array.isArray(caps.exposureMode) && caps.exposureMode.includes('manual')) {
+    manualExpToggleRow.style.display = '';
+
+    if (caps.exposureTime) {
+      expTimeMin       = caps.exposureTime.min ?? 100;
+      expTimeMax       = caps.exposureTime.max ?? 1000000;
+      // Use log scale for intuitive slider
+      expTimeLogMin    = Math.log(expTimeMin);
+      expTimeLogRange  = Math.log(expTimeMax) - expTimeLogMin;
+      expTimeSlider.value = 0.5; // mid-point
+      expTimeVal.textContent = formatExpTime(logSliderToExpTime(0.5));
+    }
+
+    if (caps.iso) {
+      isoMin = caps.iso.min ?? 50;
+      isoMax = caps.iso.max ?? 3200;
+      isoSlider.value = 0;
+      isoVal.textContent = isoMin.toString();
+    }
   }
 }
 
+// ── Zoom ───────────────────────────────────────────────────────────────────
 function updateZoomDisplay(val) {
   zoomVal.textContent = parseFloat(val).toFixed(1) + '×';
 }
-
 async function applyZoom(val) {
   const track = stream?.getVideoTracks()[0];
   if (!track) return;
   try { await track.applyConstraints({ advanced: [{ zoom: parseFloat(val) }] }); } catch {}
 }
 
-async function applyExposure(val) {
+// ── Focus ──────────────────────────────────────────────────────────────────
+function formatFocusDist(m) {
+  if (m >= focusMax * 0.95) return '∞';
+  if (m >= 1) return m.toFixed(1) + 'm';
+  return Math.round(m * 100) + 'cm';
+}
+async function setManualFocus(on) {
+  isManualFocus = on;
+  focusToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+  focusSliderRow.style.display = on ? '' : 'none';
   const track = stream?.getVideoTracks()[0];
   if (!track) return;
-  try { await track.applyConstraints({ advanced: [{ exposureMode: 'manual', exposureCompensation: parseFloat(val) }] }); } catch {}
+  try {
+    if (on) {
+      await track.applyConstraints({ advanced: [{ focusMode: 'manual', focusDistance: parseFloat(focusSlider.value) }] });
+    } else {
+      await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+    }
+  } catch {}
+}
+async function applyFocus(val) {
+  const track = stream?.getVideoTracks()[0];
+  if (!track) return;
+  try { await track.applyConstraints({ advanced: [{ focusMode: 'manual', focusDistance: parseFloat(val) }] }); } catch {}
 }
 
-// ── Mirror ─────────────────────────────────────────────────────────────────
-function setMirror(val, save = true) {
-  isMirrored = val;
-  mirrorToggle.setAttribute('aria-pressed', val ? 'true' : 'false');
-  preview.classList.toggle('mirrored', val);
-  if (save) saveSettings();
+// ── EV compensation ────────────────────────────────────────────────────────
+async function applyEV(val) {
+  const track = stream?.getVideoTracks()[0];
+  if (!track) return;
+  try { await track.applyConstraints({ advanced: [{ exposureCompensation: parseFloat(val) }] }); } catch {}
+}
+
+// ── Manual exposure (hardware) ─────────────────────────────────────────────
+function logSliderToExpTime(t) {
+  return Math.exp(expTimeLogMin + t * expTimeLogRange);
+}
+function expTimeToLogSlider(us) {
+  return (Math.log(us) - expTimeLogMin) / expTimeLogRange;
+}
+function formatExpTime(us) {
+  const s = us / 1e6;
+  if (s >= 1) return s.toFixed(1) + 's';
+  const den = Math.round(1 / s);
+  return `1/${den}s`;
+}
+function logSliderToISO(t) {
+  return Math.round(isoMin + t * (isoMax - isoMin));
+}
+
+async function setManualExp(on) {
+  isManualExp = on;
+  manualExpToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+  expTimeRow.style.display = (on && expTimeMax > 0) ? '' : 'none';
+  isoRow.style.display     = (on && isoMax > 0)     ? '' : 'none';
+  const track = stream?.getVideoTracks()[0];
+  if (!track) return;
+  try {
+    if (on) {
+      await track.applyConstraints({ advanced: [{ exposureMode: 'manual' }] });
+    } else {
+      await track.applyConstraints({ advanced: [{ exposureMode: 'continuous' }] });
+    }
+  } catch {}
+}
+async function applyExpTime(sliderVal) {
+  if (!expTimeMax) return;
+  const us = logSliderToExpTime(parseFloat(sliderVal));
+  expTimeVal.textContent = formatExpTime(us);
+  const track = stream?.getVideoTracks()[0];
+  if (!track) return;
+  try { await track.applyConstraints({ advanced: [{ exposureMode: 'manual', exposureTime: us }] }); } catch {}
+}
+async function applyISO(sliderVal) {
+  if (!isoMax) return;
+  const iso = logSliderToISO(parseFloat(sliderVal));
+  isoVal.textContent = iso.toString();
+  const track = stream?.getVideoTracks()[0];
+  if (!track) return;
+  try { await track.applyConstraints({ advanced: [{ exposureMode: 'manual', iso }] }); } catch {}
 }
 
 // ── Torch ──────────────────────────────────────────────────────────────────
@@ -749,26 +979,35 @@ async function setTorch(on) {
   }
 }
 
-// ── Face light ─────────────────────────────────────────────────────────────
-function setFaceLight(on) {
-  isFaceLight = on;
-  faceLightToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+// ── Mirror ─────────────────────────────────────────────────────────────────
+function setMirror(val, save = true) {
+  isMirrored = val;
+  mirrorToggle.setAttribute('aria-pressed', val ? 'true' : 'false');
+  preview.classList.toggle('mirrored', val);
+  if (save) saveSettings();
+}
+
+// ── Color frame ────────────────────────────────────────────────────────────
+function setColorFrame(on) {
+  isColorFrame = on;
+  colorFrameToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
   swatchRow.style.display = on ? '' : 'none';
   saveSettings();
 }
 
 function updateSwatchActive() {
-  const isPreset = PRESET_COLORS.includes(faceLightColor);
+  const isPreset = PRESET_COLORS.includes(colorFrameColor);
   document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => {
-    s.classList.toggle('active', s.dataset.color === faceLightColor);
+    s.classList.toggle('active', s.dataset.color === colorFrameColor);
   });
   customSwatch.classList.toggle('active', !isPreset);
-  customSwatch.style.background = isPreset ? '' : faceLightColor;
+  customSwatch.style.background = isPreset ? '' : colorFrameColor;
 }
 
-function setFaceLightColor(color) {
-  faceLightColor = color;
-  faceLightColorPicker.value = color;
+function setColorFrameColor(color) {
+  colorFrameColor = color;
+  colorFramePicker.value = color;
+  colorFrameOverlay.style.background = color; // pre-set so it's ready instantly
   updateSwatchActive();
   saveSettings();
 }
@@ -783,18 +1022,163 @@ function setRatio(ratio, save = true) {
   if (save) saveSettings();
 }
 
+// ── Long exposure ──────────────────────────────────────────────────────────
+function formatLeDuration(s) {
+  return s < 1 ? '½s' : s + 's';
+}
+
+function setLeMode(mode, save = true) {
+  leMode = mode;
+  document.querySelectorAll('#leModeRow .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.leMode === mode);
+  });
+  if (save) saveSettings();
+}
+
+function setLongExposure(on) {
+  isLongExposure = on;
+  leToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+  leOptionsRow.style.display = on ? '' : 'none';
+  leModeRow.style.display    = on ? '' : 'none';
+  shutterBtn.classList.toggle('le-mode', on);
+}
+
+async function startLongExposure() {
+  if (!ready || leCapturing) return;
+  leCapturing = true;
+  shutterBtn.classList.add('le-capturing');
+  leOverlay.classList.remove('hidden');
+
+  const vw = preview.videoWidth, vh = preview.videoHeight;
+  // Cap at 1920px wide to keep memory reasonable
+  const scale = Math.min(1, 1920 / Math.max(vw, vh, 1));
+  leWidth  = Math.round(vw * scale);
+  leHeight = Math.round(vh * scale);
+
+  leTotalMs    = LE_DURATIONS[leDurationIdx] * 1000;
+  leElapsed    = 0;
+  leFrameCount = 0;
+
+  // Capture fps: faster for short exposures, slower for very long ones
+  const fps = leTotalMs <= 5000 ? 10 : leTotalMs <= 30000 ? 5 : 2;
+  const frameMs = 1000 / fps;
+
+  if (leMode === 'average') {
+    leAccum = new Float32Array(leWidth * leHeight * 4);
+  } else {
+    leStackCanvas = document.createElement('canvas');
+    leStackCanvas.width = leWidth; leStackCanvas.height = leHeight;
+    leStackCtx = leStackCanvas.getContext('2d');
+    if (leMode === 'trails') {
+      leStackCtx.fillStyle = '#000'; leStackCtx.fillRect(0, 0, leWidth, leHeight);
+    } else { // darken
+      leStackCtx.fillStyle = '#fff'; leStackCtx.fillRect(0, 0, leWidth, leHeight);
+    }
+  }
+
+  // Temp canvas reused each frame
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = leWidth; tmpCanvas.height = leHeight;
+  const tmpCtx = tmpCanvas.getContext('2d', { willReadFrequently: leMode === 'average' });
+
+  leInterval = setInterval(() => {
+    if (!leCapturing) return;
+    leElapsed += frameMs;
+    const progress = Math.min(leElapsed / leTotalMs, 1);
+    leBarFill.style.width = (progress * 100) + '%';
+    const remaining = Math.max(0, (leTotalMs - leElapsed) / 1000);
+    leTimer.textContent = remaining.toFixed(1) + 's';
+
+    // Draw current frame into temp canvas
+    tmpCtx.drawImage(preview, 0, 0, leWidth, leHeight);
+    leFrameCount++;
+
+    if (leMode === 'average') {
+      const data = tmpCtx.getImageData(0, 0, leWidth, leHeight).data;
+      const a = 1 / leFrameCount;
+      for (let i = 0; i < data.length; i++) {
+        leAccum[i] += (data[i] - leAccum[i]) * a;
+      }
+    } else if (leMode === 'trails') {
+      leStackCtx.globalCompositeOperation = 'screen';
+      leStackCtx.drawImage(tmpCanvas, 0, 0);
+    } else { // darken
+      leStackCtx.globalCompositeOperation = 'multiply';
+      leStackCtx.drawImage(tmpCanvas, 0, 0);
+    }
+
+    if (leElapsed >= leTotalMs) finishLongExposure();
+  }, frameMs);
+}
+
+function finishLongExposure() {
+  if (!leCapturing) return;
+  clearInterval(leInterval);
+  leCapturing = false;
+  shutterBtn.classList.remove('le-capturing');
+  leOverlay.classList.add('hidden');
+
+  captureCanvas.width  = leWidth;
+  captureCanvas.height = leHeight;
+  const ctx = captureCanvas.getContext('2d');
+
+  if (leMode === 'average' && leAccum) {
+    const imgData = ctx.createImageData(leWidth, leHeight);
+    for (let i = 0; i < leAccum.length; i++) imgData.data[i] = Math.round(leAccum[i]);
+    ctx.putImageData(imgData, 0, 0);
+  } else if (leStackCanvas) {
+    ctx.drawImage(leStackCanvas, 0, 0);
+  }
+
+  captureCanvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    dlLink.href = url;
+    dlLink.download = `cam_le_${LE_DURATIONS[leDurationIdx]}s_${leMode}_${timestamp()}.png`;
+    dlLink.click();
+    setTimeout(() => URL.revokeObjectURL(url), 15000);
+  }, 'image/png');
+
+  navigator.vibrate?.(70);
+  flash();
+  leAccum = null; leStackCanvas = null; leStackCtx = null;
+}
+
+function cancelLongExposure() {
+  clearInterval(leInterval);
+  leCapturing = false;
+  shutterBtn.classList.remove('le-capturing');
+  leOverlay.classList.add('hidden');
+  leAccum = null; leStackCanvas = null;
+  showToast('Exposure cancelled');
+}
+
 // ── Photo capture ──────────────────────────────────────────────────────────
 async function capturePhoto() {
   if (!ready || isRecording) return;
 
-  if (isFaceLight) {
-    faceLightOverlay.style.background = faceLightColor;
-    faceLightOverlay.style.opacity = '1';
-    await new Promise(r => setTimeout(r, 280));
+  // Long exposure mode: start stacking instead of instant capture
+  if (isLongExposure) {
+    if (leCapturing) {
+      cancelLongExposure();
+    } else {
+      startLongExposure();
+    }
+    return;
+  }
+
+  // Color frame: illuminate screen before capture
+  if (isColorFrame) {
+    // Pre-set background (already set in setColorFrameColor, but ensure it)
+    colorFrameOverlay.style.background = colorFrameColor;
+    // Force layout so the background is painted before opacity changes
+    colorFrameOverlay.getBoundingClientRect();
+    colorFrameOverlay.style.opacity = '1';
+    // Wait for transition + render to complete
+    await new Promise(r => setTimeout(r, 420));
   }
 
   const vw = preview.videoWidth, vh = preview.videoHeight;
-  if (!vw || !vh) { faceLightOverlay.style.opacity = '0'; return; }
+  if (!vw || !vh) { colorFrameOverlay.style.opacity = '0'; return; }
 
   let cw = vw, ch = vh;
   if (currentRatio !== 'free') {
@@ -816,11 +1200,11 @@ async function capturePhoto() {
     ctx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
   }
 
-  if (!isFaceLight) flash();
+  if (!isColorFrame) flash();
   navigator.vibrate?.(30);
   shutterBtn.classList.add('pressing');
   setTimeout(() => shutterBtn.classList.remove('pressing'), 120);
-  if (isFaceLight) setTimeout(() => { faceLightOverlay.style.opacity = '0'; }, 300);
+  if (isColorFrame) setTimeout(() => { colorFrameOverlay.style.opacity = '0'; }, 350);
 
   captureCanvas.toBlob(blob => {
     const url = URL.createObjectURL(blob);
@@ -829,7 +1213,7 @@ async function capturePhoto() {
     setTimeout(() => URL.revokeObjectURL(url), 10000);
     if (!localStorage.getItem('cam_save_noticed')) {
       localStorage.setItem('cam_save_noticed', '1');
-      showToast('Photos save directly to your device — nothing is stored here');
+      showToast('Photos save directly to your device — nothing stored here');
     }
   }, 'image/png');
 }
@@ -839,7 +1223,7 @@ function startRecording() {
   if (!ready || !stream) return;
   recordedChunks = [];
   const types = ['video/mp4;codecs=h264','video/mp4','video/webm;codecs=h264','video/webm'];
-  const mime   = types.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch { return false; } }) || '';
+  const mime = types.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch { return false; } }) || '';
   try { mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
   catch { mediaRecorder = new MediaRecorder(stream); }
   mediaRecorder.ondataavailable = e => { if (e.data?.size > 0) recordedChunks.push(e.data); };
@@ -886,11 +1270,9 @@ function flash() {
   captureFlash.classList.add('flash');
   setTimeout(() => captureFlash.classList.remove('flash'), 200);
 }
-
 function timestamp() {
   return new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
 }
-
 function showError(msg) {
   errMsg.textContent = msg;
   permOverlay.classList.add('hidden');
@@ -898,7 +1280,6 @@ function showError(msg) {
   shutterBtn.classList.add('off'); recordBtn.classList.add('off');
   ready = false;
 }
-
 function handleError(err) {
   if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
     showError('Camera access was denied — check your browser settings and reload');
@@ -920,12 +1301,16 @@ function bindControls() {
     isRecording ? stopRecording() : startRecording();
   });
 
-  mirrorToggle.addEventListener('click',    () => setMirror(!isMirrored));
-  torchToggle.addEventListener('click',     () => setTorch(!isTorchOn));
-  faceLightToggle.addEventListener('click', () => setFaceLight(!isFaceLight));
-  themeBtn.addEventListener('click',        () => applyTheme(themeIdx + 1));
-  capHideBtn.addEventListener('click',      toggleControls);
-  permBtn.addEventListener('click',         () => startCamera());
+  mirrorToggle.addEventListener('click',      () => setMirror(!isMirrored));
+  torchToggle.addEventListener('click',       () => setTorch(!isTorchOn));
+  colorFrameToggle.addEventListener('click',  () => setColorFrame(!isColorFrame));
+  focusToggle.addEventListener('click',       () => setManualFocus(!isManualFocus));
+  manualExpToggle.addEventListener('click',   () => setManualExp(!isManualExp));
+  leToggle.addEventListener('click',          () => setLongExposure(!isLongExposure));
+  leCancelBtn.addEventListener('click',       cancelLongExposure);
+  themeBtn.addEventListener('click',          () => applyTheme(themeIdx + 1));
+  capHideBtn.addEventListener('click',        toggleControls);
+  permBtn.addEventListener('click',           () => startCamera());
   retryBtn.addEventListener('click', () => {
     errOverlay.classList.add('hidden');
     permOverlay.classList.remove('hidden');
@@ -933,33 +1318,45 @@ function bindControls() {
   });
 
   zoomSlider.addEventListener('input', () => {
-    updateZoomDisplay(zoomSlider.value);
-    applyZoom(zoomSlider.value);
+    updateZoomDisplay(zoomSlider.value); applyZoom(zoomSlider.value);
   });
+  focusSlider.addEventListener('input', () => {
+    focusVal.textContent = formatFocusDist(parseFloat(focusSlider.value));
+    applyFocus(focusSlider.value);
+  });
+  evSlider.addEventListener('input', () => {
+    const v = parseFloat(evSlider.value);
+    evVal.textContent = v > 0 ? `+${v}` : `${v}`;
+    applyEV(v);
+  });
+  expTimeSlider.addEventListener('input', () => applyExpTime(expTimeSlider.value));
+  isoSlider.addEventListener('input',     () => applyISO(isoSlider.value));
 
-  exposureSlider.addEventListener('input', () => {
-    const v = parseFloat(exposureSlider.value);
-    exposureVal.textContent = v > 0 ? `+${v}` : `${v}`;
-    applyExposure(v);
+  leDurationSlider.addEventListener('input', () => {
+    leDurationIdx = parseInt(leDurationSlider.value);
+    leDurationVal.textContent = formatLeDuration(LE_DURATIONS[leDurationIdx]);
+    saveSettings();
   });
 
   document.querySelectorAll('#ratioSelector .pill').forEach(btn => {
     btn.addEventListener('click', () => setRatio(btn.dataset.ratio));
   });
-
-  document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => {
-    s.addEventListener('click', () => setFaceLightColor(s.dataset.color));
+  document.querySelectorAll('#leModeRow .pill').forEach(btn => {
+    btn.addEventListener('click', () => setLeMode(btn.dataset.leMode));
   });
-
-  faceLightColorPicker.addEventListener('input', () => {
-    faceLightColor = faceLightColorPicker.value;
-    customSwatch.style.background = faceLightColor;
+  document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => {
+    s.addEventListener('click', () => setColorFrameColor(s.dataset.color));
+  });
+  colorFramePicker.addEventListener('input', () => {
+    colorFrameColor = colorFramePicker.value;
+    colorFrameOverlay.style.background = colorFrameColor;
+    customSwatch.style.background = colorFrameColor;
     document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => s.classList.remove('active'));
     customSwatch.classList.add('active');
   });
-  faceLightColorPicker.addEventListener('change', () => saveSettings());
+  colorFramePicker.addEventListener('change', () => saveSettings());
 
-  // Volume rocker → shutter (Android Chrome / desktop; iOS handles volume at OS level)
+  // Volume rocker → shutter (Android / desktop; iOS intercepts at OS level)
   document.addEventListener('keydown', e => {
     if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown' ||
         e.code === 'AudioVolumeUp' || e.code === 'AudioVolumeDown') {
