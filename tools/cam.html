@@ -9,14 +9,22 @@
 <title>Cam — luci.cat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&family=Metamorphous&family=Cabin+Sketch:wght@400;700&family=Silkscreen:wght@400;700&family=Fascinate&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root,body[data-theme="dark"]{--bg:#000000;--surface:#0c0f15;--surface2:#181d27;--surface3:#2a3142;--border:#525a6c;--border-hover:#7a8294;--text:#ffffff;--text-muted:#c4ccd8;--text-dim:#8a92a0;--accent:#ffb070;--accent-dim:rgba(255,176,112,.18);--accent-glow:rgba(255,176,112,.55);--danger:#ff8a8a;--radius:12px;--radius-sm:8px;--shadow:0 4px 28px rgba(0,0,0,.85)}
-body[data-theme="dim"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#e89854;--accent-dim:rgba(232,152,84,.13);--accent-glow:rgba(232,152,84,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5)}
-body[data-theme="light"]{--bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08)}
-body[data-theme="cottage"]{--bg:#f3eadb;--surface:#fbf6ec;--surface2:#ebe0cd;--surface3:#dfd2bb;--border:#c9b896;--border-hover:#a89377;--text:#3d2f22;--text-muted:#7a6450;--text-dim:#a89377;--accent:#c79090;--accent-dim:rgba(199,144,144,.14);--accent-glow:rgba(199,144,144,.28);--danger:#b56b5a;--radius:16px;--radius-sm:12px;--shadow:0 4px 20px rgba(120,85,45,.1)}
-body[data-theme="evil"]{--bg:#08040a;--surface:#0e060c;--surface2:#180a14;--surface3:#22101c;--border:#3c1428;--border-hover:#5c1e3a;--text:#e8c0cc;--text-muted:#a87088;--text-dim:#6c3850;--accent:#dc2040;--accent-dim:rgba(220,32,64,.15);--accent-glow:rgba(220,32,64,.35);--danger:#ff2848;--radius:10px;--radius-sm:7px;--shadow:0 4px 30px rgba(220,0,40,.2)}
-body[data-theme="nonchalant"]{--bg:#1e2420;--surface:#262d28;--surface2:#2e3630;--surface3:#3a4238;--border:#3d4a3e;--border-hover:#556253;--text:#d4d9ce;--text-muted:#9aa696;--text-dim:#6b7668;--accent:#8fb380;--accent-dim:rgba(143,179,128,.14);--accent-glow:rgba(143,179,128,.25);--danger:#c78a6b;--radius:12px;--radius-sm:9px;--shadow:0 4px 20px rgba(20,30,20,.3)}
+:root,body[data-theme="dark"]{
+  --bg:#000000;--surface:#0c0f15;--surface2:#181d27;--surface3:#2a3142;
+  --border:#525a6c;--border-hover:#7a8294;
+  --text:#ffffff;--text-muted:#c4ccd8;--text-dim:#8a92a0;
+  --accent:#ffb070;--accent-dim:rgba(255,176,112,.18);--accent-glow:rgba(255,176,112,.55);
+  --danger:#ff8a8a;--radius:12px;--radius-sm:8px;--shadow:0 4px 28px rgba(0,0,0,.85)
+}
+body[data-theme="light"]{
+  --bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;
+  --border:#d4d0c8;--border-hover:#b8b4ac;
+  --text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;
+  --accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.2);
+  --danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08)
+}
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#000}
@@ -32,7 +40,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var
   padding-right:env(safe-area-inset-right);
 }
 
-/* cam-area wraps header + viewport so controls can sit beside both */
+/* cam-area wraps header + viewport */
 .cam-area{flex:1;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
 
 /* ── Header ── */
@@ -46,10 +54,10 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var
   background:linear-gradient(135deg,var(--accent),#7eaad4);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
 }
-body[data-theme="light"] .header h1{background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text;background-clip:text}
-body[data-theme="cottage"] .header h1{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:24px;background:linear-gradient(135deg,#c79090,#9caf88);-webkit-background-clip:text;background-clip:text}
-body[data-theme="evil"] .header h1{font-family:'Metamorphous',serif;font-size:20px;background:linear-gradient(135deg,#dc2040,#880020);-webkit-background-clip:text;background-clip:text}
-body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-size:18px;background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text;background-clip:text}
+body[data-theme="light"] .header h1{
+  background:linear-gradient(135deg,#e89854,#f0c474);
+  -webkit-background-clip:text;background-clip:text;
+}
 .header-spacer{flex:1}
 .icon-btn{
   width:34px;height:34px;flex-shrink:0;
@@ -94,18 +102,6 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 .rec-dot{width:7px;height:7px;border-radius:50%;background:#ff3333;animation:recBlink 1s ease-in-out infinite}
 @keyframes recBlink{0%,100%{opacity:1}50%{opacity:0}}
 
-.reveal-btn{
-  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
-  width:44px;height:44px;border-radius:50%;
-  border:1.5px solid rgba(255,255,255,.25);
-  background:rgba(0,0,0,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  color:rgba(255,255,255,.75);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;pointer-events:none;transition:opacity .2s;z-index:6;padding:0;
-}
-.reveal-btn.visible{opacity:1;pointer-events:auto}
-.reveal-btn svg{width:18px;height:18px;display:block}
-
 .overlay{
   position:absolute;inset:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -123,16 +119,34 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 }
 .perm-btn:active{opacity:.8}
 
-/* ── Controls ── */
-.controls{
+/* ── Right panel (controls + capture bar) ── */
+.right-panel{
+  display:flex;flex-direction:column;flex-shrink:0;
   background:var(--bg);
-  padding:10px 16px 12px;flex-shrink:0;
+}
+
+/* ── Controls (collapsible) ── */
+.controls{
+  padding:10px 16px 12px;
   display:flex;flex-direction:column;gap:9px;
   border-top:1px solid var(--border);
   overflow:hidden;max-height:540px;
   transition:max-height .3s ease,opacity .2s ease,padding .3s ease,border-color .3s ease;
 }
-.controls.hidden{max-height:0;opacity:0;padding-top:0;padding-bottom:0;border-top-color:transparent}
+.controls.hidden{
+  max-height:0;opacity:0;padding-top:0;padding-bottom:0;border-top-color:transparent;
+}
+
+/* ── Capture bar (always visible) ── */
+.capture-bar{
+  flex-shrink:0;
+  padding:4px 16px 12px;
+  border-top:1px solid transparent;
+  transition:border-color .3s ease;
+}
+.controls.hidden + .capture-bar{
+  border-top-color:var(--border);
+}
 
 /* ── Toast ── */
 .toast{
@@ -200,12 +214,32 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 .shutter-btn{
   width:68px;height:68px;flex-shrink:0;border-radius:50%;
   border:3px solid var(--accent);background:transparent;
-  cursor:pointer;position:relative;transition:all .12s;
+  cursor:pointer;position:relative;
   display:flex;align-items:center;justify-content:center;padding:0;
+  transition:opacity .25s,border-color .25s;
 }
-.shutter-btn::after{content:'';width:56px;height:56px;border-radius:50%;background:var(--text);transition:all .12s}
+.shutter-btn::after{
+  content:'';width:56px;height:56px;border-radius:50%;
+  background:var(--text);transition:width .12s,height .12s,background .25s;
+}
 .shutter-btn:active::after,.shutter-btn.pressing::after{width:48px;height:48px}
 .shutter-btn.off{opacity:.35;cursor:not-allowed}
+.shutter-btn.ghost{opacity:.22;border-color:rgba(255,255,255,.3)}
+.shutter-btn.ghost::after{background:rgba(255,255,255,.6)}
+/* .off wins over .ghost when both present (source order) */
+.shutter-btn.off{opacity:.35;cursor:not-allowed}
+
+/* Hide/reveal toggle button (right of shutter) */
+.cap-hide-btn{
+  width:36px;height:36px;border-radius:50%;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text-muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:border-color .15s,color .15s,background .15s;padding:0;
+}
+.cap-hide-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.cap-hide-btn svg{width:16px;height:16px;display:block;transition:transform .3s ease}
+.cap-hide-btn.revealed svg{transform:rotate(180deg)}
 
 .record-btn{
   width:50px;height:50px;flex-shrink:0;border-radius:50%;
@@ -226,16 +260,26 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 @media(min-width:640px){
   .app{flex-direction:row}
   .cam-area{flex:1;min-width:0}
-  .controls{
-    width:280px;flex-shrink:0;
-    max-height:none;height:100%;
-    overflow-y:auto;overflow-x:hidden;
+  .right-panel{
+    width:280px;flex-shrink:0;height:100%;
     border-top:none;border-left:1px solid var(--border);
-    padding:14px 16px 20px;
-    transition:width .3s ease,opacity .2s ease,padding .3s ease,border-color .3s ease;
   }
-  .controls.hidden{width:0;max-height:none;opacity:0;padding:0;border-left-color:transparent;overflow:hidden}
-  .reveal-btn{bottom:auto;top:50%;transform:translate(-50%,-50%)}
+  .controls{
+    flex:1;max-height:none;height:auto;
+    overflow-y:auto;overflow-x:hidden;
+    border-top:none;
+    transition:max-height .3s ease,opacity .2s ease,padding .3s ease;
+  }
+  .controls.hidden{
+    max-height:0;opacity:0;padding:0;overflow:hidden;
+    border-top-color:transparent;
+  }
+  .capture-bar{
+    border-top:1px solid var(--border);
+  }
+  .controls.hidden + .capture-bar{
+    border-top-color:var(--border);
+  }
 }
 
 /* ── Small / short screens ── */
@@ -251,28 +295,16 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 </head>
 <body data-theme="dark">
 
-<!-- Face light overlay — covers full screen to illuminate face before capture -->
+<!-- Face light overlay -->
 <div id="faceLightOverlay" style="position:fixed;inset:0;opacity:0;pointer-events:none;transition:opacity .1s;z-index:100"></div>
 
 <div class="app">
 
-  <!-- Camera area: header + viewport together -->
   <div class="cam-area">
-
     <div class="header">
       <h1>Cam</h1>
       <span class="header-spacer"></span>
-      <button class="icon-btn" id="hideBtn" title="Hide controls" aria-label="Hide controls">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path id="hidePath" d="M4 7l6 6 6-6"/>
-        </svg>
-      </button>
-      <button class="icon-btn" id="themeBtn" title="Cycle theme" aria-label="Cycle theme">
-        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="10" cy="10" r="3.5"/>
-          <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/>
-        </svg>
-      </button>
+      <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"></button>
     </div>
 
     <div class="viewport-wrap">
@@ -280,12 +312,6 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
         <video id="preview" autoplay playsinline muted></video>
         <div class="capture-flash" id="captureFlash"></div>
         <div class="rec-badge" id="recBadge"><span class="rec-dot"></span>REC</div>
-
-        <button class="reveal-btn" id="revealBtn" aria-label="Show controls">
-          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M4 13l6-6 6 6"/>
-          </svg>
-        </button>
 
         <div class="overlay" id="permOverlay">
           <svg class="overlay-icon" viewBox="0 0 64 64" fill="none" stroke="white" stroke-width="2">
@@ -309,89 +335,93 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
         </div>
       </div>
     </div>
-
   </div><!-- /cam-area -->
 
-  <!-- Controls sidebar / bottom panel -->
-  <div class="controls" id="controls">
+  <!-- Right panel: collapsible controls + always-visible capture bar -->
+  <div class="right-panel">
 
-    <!-- Camera selector -->
-    <div class="pill-row" id="cameraSelector"></div>
+    <div class="controls" id="controls">
 
-    <!-- Aspect ratio -->
-    <div class="pill-row" id="ratioSelector">
-      <button class="pill active" data-ratio="free">Free</button>
-      <button class="pill" data-ratio="1:1">1:1</button>
-      <button class="pill" data-ratio="4:3">4:3</button>
-      <button class="pill" data-ratio="3:4">3:4</button>
-      <button class="pill" data-ratio="16:9">16:9</button>
-      <button class="pill" data-ratio="9:16">9:16</button>
-    </div>
+      <div class="pill-row" id="cameraSelector"></div>
 
-    <!-- Zoom (shown when camera supports it) -->
-    <div class="settings-row" id="zoomRow" style="display:none">
-      <div class="slider-group">
-        <span class="slider-label">Zoom</span>
-        <input type="range" class="slider-input" id="zoomSlider" min="1" max="5" step="0.1" value="1">
-        <span class="slider-val" id="zoomVal">1.0×</span>
+      <div class="pill-row" id="ratioSelector">
+        <button class="pill active" data-ratio="free">Free</button>
+        <button class="pill" data-ratio="1:1">1:1</button>
+        <button class="pill" data-ratio="4:3">4:3</button>
+        <button class="pill" data-ratio="3:4">3:4</button>
+        <button class="pill" data-ratio="16:9">16:9</button>
+        <button class="pill" data-ratio="9:16">9:16</button>
       </div>
-    </div>
 
-    <!-- Toggles: Mirror | Flash (if torch available) | Face Light -->
-    <div class="settings-row">
-      <div class="toggle-group">
-        <span class="toggle-label">Mirror</span>
-        <button class="toggle-btn" id="mirrorToggle" aria-pressed="false"></button>
+      <div class="settings-row" id="zoomRow" style="display:none">
+        <div class="slider-group">
+          <span class="slider-label">Zoom</span>
+          <input type="range" class="slider-input" id="zoomSlider" min="1" max="5" step="0.1" value="1">
+          <span class="slider-val" id="zoomVal">1.0×</span>
+        </div>
       </div>
-      <div class="toggle-group" id="torchGroup" style="display:none">
-        <span class="toggle-label">Flash</span>
-        <button class="toggle-btn" id="torchToggle" aria-pressed="false"></button>
+
+      <div class="settings-row">
+        <div class="toggle-group">
+          <span class="toggle-label">Mirror</span>
+          <button class="toggle-btn" id="mirrorToggle" aria-pressed="false"></button>
+        </div>
+        <div class="toggle-group" id="torchGroup" style="display:none">
+          <span class="toggle-label">Flash</span>
+          <button class="toggle-btn" id="torchToggle" aria-pressed="false"></button>
+        </div>
+        <div class="toggle-group">
+          <span class="toggle-label">Face Light</span>
+          <button class="toggle-btn" id="faceLightToggle" aria-pressed="false"></button>
+        </div>
       </div>
-      <div class="toggle-group">
-        <span class="toggle-label">Face Light</span>
-        <button class="toggle-btn" id="faceLightToggle" aria-pressed="false"></button>
+
+      <div class="swatch-row" id="swatchRow" style="display:none">
+        <button class="swatch active" data-color="#ffffff" style="background:#ffffff" title="White"></button>
+        <button class="swatch" data-color="#fff5e0" style="background:#fff5e0" title="Warm"></button>
+        <button class="swatch" data-color="#e0f0ff" style="background:#e0f0ff" title="Cool"></button>
+        <button class="swatch" data-color="#ffe0f0" style="background:#ffe0f0" title="Pink"></button>
+        <button class="swatch" data-color="#e0ffe8" style="background:#e0ffe8" title="Green"></button>
+        <label class="swatch swatch-custom" id="customSwatch" title="Custom color">
+          <input type="color" id="faceLightColorPicker" value="#ffffff">
+        </label>
       </div>
-    </div>
 
-    <!-- Face light color picker -->
-    <div class="swatch-row" id="swatchRow" style="display:none">
-      <button class="swatch active" data-color="#ffffff" style="background:#ffffff" title="White"></button>
-      <button class="swatch" data-color="#fff5e0" style="background:#fff5e0" title="Warm"></button>
-      <button class="swatch" data-color="#e0f0ff" style="background:#e0f0ff" title="Cool"></button>
-      <button class="swatch" data-color="#ffe0f0" style="background:#ffe0f0" title="Pink"></button>
-      <button class="swatch" data-color="#e0ffe8" style="background:#e0ffe8" title="Green"></button>
-      <label class="swatch swatch-custom" id="customSwatch" title="Custom color">
-        <input type="color" id="faceLightColorPicker" value="#ffffff">
-      </label>
-    </div>
-
-    <!-- Exposure (shown when camera supports it) -->
-    <div class="settings-row" id="exposureRow" style="display:none">
-      <div class="slider-group">
-        <span class="slider-label">EV</span>
-        <input type="range" class="slider-input" id="exposureSlider" min="-3" max="3" step="0.5" value="0">
-        <span class="slider-val" id="exposureVal">0</span>
+      <div class="settings-row" id="exposureRow" style="display:none">
+        <div class="slider-group">
+          <span class="slider-label">EV</span>
+          <input type="range" class="slider-input" id="exposureSlider" min="-3" max="3" step="0.5" value="0">
+          <span class="slider-val" id="exposureVal">0</span>
+        </div>
       </div>
-    </div>
 
-    <!-- Capture buttons -->
-    <div class="capture-row">
-      <div class="capture-row-left">
-        <button class="record-btn off" id="recordBtn" aria-label="Record video">
-          <svg id="recordIcon" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="12" r="7"/>
-          </svg>
-        </button>
+    </div><!-- /controls -->
+
+    <!-- Capture bar: always visible even when controls are hidden -->
+    <div class="capture-bar">
+      <div class="capture-row">
+        <div class="capture-row-left" id="recordCell">
+          <button class="record-btn off" id="recordBtn" aria-label="Record video">
+            <svg id="recordIcon" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="12" cy="12" r="7"/>
+            </svg>
+          </button>
+        </div>
+        <button class="shutter-btn off" id="shutterBtn" aria-label="Take photo"></button>
+        <div class="capture-row-right">
+          <button class="cap-hide-btn" id="capHideBtn" aria-label="Toggle controls">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 7l6 6 6-6"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      <button class="shutter-btn off" id="shutterBtn" aria-label="Take photo"></button>
-      <div class="capture-row-right"></div>
-    </div>
+      <div class="rec-timer-row">
+        <span class="rec-timer" id="recTimer">0:00</span>
+      </div>
+    </div><!-- /capture-bar -->
 
-    <div class="rec-timer-row">
-      <span class="rec-timer" id="recTimer">0:00</span>
-    </div>
-
-  </div>
+  </div><!-- /right-panel -->
 
 </div><!-- /app -->
 
@@ -401,67 +431,69 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 
 <script>
 // ── State ──────────────────────────────────────────────────────────────────
-const THEMES = ['dark','dim','light','cottage','evil','nonchalant'];
-const THEME_COLORS = {dark:'#000000',dim:'#101216',light:'#f4f2ef',cottage:'#f3eadb',evil:'#08040a',nonchalant:'#1e2420'};
+const THEMES = ['dark', 'light'];
+const THEME_COLORS = { dark: '#000000', light: '#f4f2ef' };
 const PRESET_COLORS = ['#ffffff','#fff5e0','#e0f0ff','#ffe0f0','#e0ffe8'];
 
-let themeIdx       = 0;
-let stream         = null;
-let devices        = [];
+const SUN_ICON  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/></svg>`;
+const MOON_ICON = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 11.5A7 7 0 1 1 8.5 3a5.5 5.5 0 0 0 8.5 8.5z"/></svg>`;
+
+let themeIdx        = 0;
+let stream          = null;
+let devices         = [];
 let currentDeviceId = null;
-let isMirrored     = false;
-let currentRatio   = 'free';
-let isRecording    = false;
-let mediaRecorder  = null;
-let recordedChunks = [];
-let recInterval    = null;
-let recSecs        = 0;
-let ready          = false;
+let isMirrored      = false;
+let currentRatio    = 'free';
+let isRecording     = false;
+let mediaRecorder   = null;
+let recordedChunks  = [];
+let recInterval     = null;
+let recSecs         = 0;
+let ready           = false;
 let controlsVisible = true;
-let toastTimer     = null;
-let isTorchOn      = false;
-let isFaceLight    = false;
-let faceLightColor = '#ffffff';
+let toastTimer      = null;
+let isTorchOn       = false;
+let isFaceLight     = false;
+let faceLightColor  = '#ffffff';
 
 // ── DOM ────────────────────────────────────────────────────────────────────
-const body               = document.body;
-const preview            = document.getElementById('preview');
-const viewport           = document.getElementById('viewport');
-const controlsEl         = document.getElementById('controls');
-const permOverlay        = document.getElementById('permOverlay');
-const errOverlay         = document.getElementById('errOverlay');
-const errMsg             = document.getElementById('errMsg');
-const permBtn            = document.getElementById('permBtn');
-const retryBtn           = document.getElementById('retryBtn');
-const shutterBtn         = document.getElementById('shutterBtn');
-const recordBtn          = document.getElementById('recordBtn');
-const recordIcon         = document.getElementById('recordIcon');
-const mirrorToggle       = document.getElementById('mirrorToggle');
-const torchToggle        = document.getElementById('torchToggle');
-const torchGroup         = document.getElementById('torchGroup');
-const faceLightToggle    = document.getElementById('faceLightToggle');
-const swatchRow          = document.getElementById('swatchRow');
-const customSwatch       = document.getElementById('customSwatch');
+const body                 = document.body;
+const preview              = document.getElementById('preview');
+const viewport             = document.getElementById('viewport');
+const controlsEl           = document.getElementById('controls');
+const permOverlay          = document.getElementById('permOverlay');
+const errOverlay           = document.getElementById('errOverlay');
+const errMsg               = document.getElementById('errMsg');
+const permBtn              = document.getElementById('permBtn');
+const retryBtn             = document.getElementById('retryBtn');
+const shutterBtn           = document.getElementById('shutterBtn');
+const recordBtn            = document.getElementById('recordBtn');
+const recordCell           = document.getElementById('recordCell');
+const recordIcon           = document.getElementById('recordIcon');
+const mirrorToggle         = document.getElementById('mirrorToggle');
+const torchToggle          = document.getElementById('torchToggle');
+const torchGroup           = document.getElementById('torchGroup');
+const faceLightToggle      = document.getElementById('faceLightToggle');
+const swatchRow            = document.getElementById('swatchRow');
+const customSwatch         = document.getElementById('customSwatch');
 const faceLightColorPicker = document.getElementById('faceLightColorPicker');
-const themeBtn           = document.getElementById('themeBtn');
-const hideBtn            = document.getElementById('hideBtn');
-const hidePath           = document.getElementById('hidePath');
-const revealBtn          = document.getElementById('revealBtn');
-const zoomRow            = document.getElementById('zoomRow');
-const zoomSlider         = document.getElementById('zoomSlider');
-const zoomVal            = document.getElementById('zoomVal');
-const exposureRow        = document.getElementById('exposureRow');
-const exposureSlider     = document.getElementById('exposureSlider');
-const exposureVal        = document.getElementById('exposureVal');
-const camSelector        = document.getElementById('cameraSelector');
-const captureFlash       = document.getElementById('captureFlash');
-const recBadge           = document.getElementById('recBadge');
-const recTimer           = document.getElementById('recTimer');
-const captureCanvas      = document.getElementById('captureCanvas');
-const dlLink             = document.getElementById('dlLink');
-const toastEl            = document.getElementById('toast');
-const faceLightOverlay   = document.getElementById('faceLightOverlay');
-const themeColorMeta     = document.getElementById('themeColorMeta');
+const themeBtn             = document.getElementById('themeBtn');
+const capHideBtn           = document.getElementById('capHideBtn');
+const zoomRow              = document.getElementById('zoomRow');
+const zoomSlider           = document.getElementById('zoomSlider');
+const zoomVal              = document.getElementById('zoomVal');
+const exposureRow          = document.getElementById('exposureRow');
+const exposureSlider       = document.getElementById('exposureSlider');
+const exposureVal          = document.getElementById('exposureVal');
+const camSelector          = document.getElementById('cameraSelector');
+const captureFlash         = document.getElementById('captureFlash');
+const recBadge             = document.getElementById('recBadge');
+const recTimer             = document.getElementById('recTimer');
+const captureCanvas        = document.getElementById('captureCanvas');
+const dlLink               = document.getElementById('dlLink');
+const toastEl              = document.getElementById('toast');
+const faceLightOverlay     = document.getElementById('faceLightOverlay');
+const themeColorMeta       = document.getElementById('themeColorMeta');
 
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
@@ -480,7 +512,8 @@ window.addEventListener('beforeunload', () => stream?.getTracks().forEach(t => t
 function loadSettings() {
   try {
     const s = JSON.parse(localStorage.getItem('cam_prefs') || '{}');
-    if (s.theme && THEMES.includes(s.theme)) applyTheme(THEMES.indexOf(s.theme), false);
+    const savedThemeIdx = THEMES.indexOf(s.theme);
+    applyTheme(savedThemeIdx >= 0 ? savedThemeIdx : 0, false);
     if (typeof s.mirrored === 'boolean') setMirror(s.mirrored, false);
     if (s.ratio) setRatio(s.ratio, false);
     if (typeof s.faceLight === 'boolean') {
@@ -493,7 +526,9 @@ function loadSettings() {
       faceLightColorPicker.value = faceLightColor;
       updateSwatchActive();
     }
-  } catch {}
+  } catch {
+    applyTheme(0, false);
+  }
 }
 
 function saveSettings() {
@@ -507,9 +542,11 @@ function saveSettings() {
 
 // ── Theme ──────────────────────────────────────────────────────────────────
 function applyTheme(idx, save = true) {
-  themeIdx = idx;
-  body.dataset.theme = THEMES[idx];
-  themeColorMeta.content = THEME_COLORS[THEMES[idx]] || '#000000';
+  themeIdx = ((idx % THEMES.length) + THEMES.length) % THEMES.length;
+  body.dataset.theme = THEMES[themeIdx];
+  themeColorMeta.content = THEME_COLORS[THEMES[themeIdx]];
+  // In dark mode show sun (switch to light); in light mode show moon (switch to dark)
+  themeBtn.innerHTML = THEMES[themeIdx] === 'dark' ? SUN_ICON : MOON_ICON;
   if (save) saveSettings();
 }
 
@@ -517,8 +554,13 @@ function applyTheme(idx, save = true) {
 function toggleControls() {
   controlsVisible = !controlsVisible;
   controlsEl.classList.toggle('hidden', !controlsVisible);
-  revealBtn.classList.toggle('visible', !controlsVisible);
-  hidePath.setAttribute('d', controlsVisible ? 'M4 7l6 6 6-6' : 'M4 13l6-6 6 6');
+  // Ghost shutter when hidden; normal when visible
+  shutterBtn.classList.toggle('ghost', !controlsVisible);
+  // Record cell: invisible (layout preserved) when controls hidden
+  recordCell.style.opacity       = controlsVisible ? '' : '0';
+  recordCell.style.pointerEvents = controlsVisible ? '' : 'none';
+  // Arrow rotates 180° when controls are hidden (points up = "reveal")
+  capHideBtn.classList.toggle('revealed', !controlsVisible);
 }
 
 // ── Toast ──────────────────────────────────────────────────────────────────
@@ -531,49 +573,53 @@ function showToast(msg, ms = 3000) {
 
 // ── Camera ─────────────────────────────────────────────────────────────────
 
-// Build the most reliable constraints for a given device
+// Build getUserMedia constraints for a given device.
+// Front cameras use facingMode (reliable on iOS).
+// All back cameras use exact deviceId — we never silently redirect to facingMode,
+// so different back lenses stay distinct.
 function buildConstraints(deviceId) {
   if (!deviceId) {
     const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    return { video: mobile ? { facingMode: { ideal: 'environment' } } : { width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false };
+    return {
+      video: mobile
+        ? { facingMode: { ideal: 'environment' } }
+        : { width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false,
+    };
   }
-  const device = devices.find(d => d.deviceId === deviceId);
-  const label  = (device?.label || '').toLowerCase();
-  // Use facingMode for simple front/back — more reliable on iOS than deviceId
-  const isFront = label.includes('front') || label.includes('user') || label.includes('facing front') || label.includes('facetime');
-  const isSimpleBack = (label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('facing back'))
-    && !label.includes('ultra') && !label.includes('wide') && !label.includes('tele') && !label.includes('zoom');
-  if (isFront)      return { video: { facingMode: 'user' },        audio: false };
-  if (isSimpleBack) return { video: { facingMode: 'environment' }, audio: false };
-  // Ultra / tele / unknown: must use deviceId
+  const label = (devices.find(d => d.deviceId === deviceId)?.label || '').toLowerCase();
+  const isFront = label.includes('front') || label.includes('facetime') ||
+                  label.includes('user')  || label.includes('facing front');
+  if (isFront) return { video: { facingMode: 'user' }, audio: false };
+  // Back / ultra / tele: exact deviceId so each stays distinct
   return { video: { deviceId: { exact: deviceId } }, audio: false };
 }
 
 async function startCamera(deviceId = null) {
-  // Acquire the new stream BEFORE releasing the old one.
-  // This is more reliable on iOS — the system keeps one stream alive while
-  // handing off to the next, rather than forcing a cold re-init.
   let newStream;
-  const constraints = buildConstraints(deviceId);
-
   try {
-    newStream = await navigator.mediaDevices.getUserMedia(constraints);
+    newStream = await navigator.mediaDevices.getUserMedia(buildConstraints(deviceId));
   } catch (err) {
-    // OverconstrainedError with exact deviceId → fall back to ideal
     if (err.name === 'OverconstrainedError' && deviceId) {
+      // exact failed → try ideal as last resort
       try {
-        newStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { ideal: deviceId } }, audio: false });
-      } catch (err2) { return handleError(err2); }
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { ideal: deviceId } }, audio: false,
+        });
+      } catch {
+        showToast('This camera isn\'t accessible in this browser');
+        return;
+      }
     } else {
       return handleError(err);
     }
   }
 
-  // Release old stream now that the new one is ready
-  if (stream) { stream.getTracks().forEach(t => t.stop()); }
+  // Acquire new stream before stopping old (more reliable on iOS)
+  if (stream) stream.getTracks().forEach(t => t.stop());
   stream = newStream;
 
-  // Resolve which device is actually active
+  // Resolve which device is actually active by matching track metadata
   const trackSettings = stream.getVideoTracks()[0]?.getSettings() ?? {};
   const trackLabel    = stream.getVideoTracks()[0]?.label ?? '';
   const matched = devices.find(d => d.deviceId === trackSettings.deviceId)
@@ -594,7 +640,16 @@ async function startCamera(deviceId = null) {
 async function enumerateDevices() {
   try {
     const all = await navigator.mediaDevices.enumerateDevices();
-    devices = all.filter(d => d.kind === 'videoinput');
+    const videoDevices = all.filter(d => d.kind === 'videoinput');
+    // Deduplicate: if two entries share the same label they're the same physical camera.
+    // Keep the first occurrence of each unique label (or deviceId if label is empty).
+    const seen = new Set();
+    devices = videoDevices.filter(d => {
+      const key = d.label.trim().toLowerCase() || d.deviceId;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
     renderCamSelector();
   } catch {}
 }
@@ -629,20 +684,14 @@ function renderCamSelector() {
 // ── Capabilities ───────────────────────────────────────────────────────────
 function detectCapabilities() {
   const track = stream?.getVideoTracks()[0];
-
-  // Reset on each camera switch
   isTorchOn = false;
   torchToggle.setAttribute('aria-pressed', 'false');
-  torchGroup.style.display   = 'none';
-  zoomRow.style.display      = 'none';
-  exposureRow.style.display  = 'none';
-
+  torchGroup.style.display  = 'none';
+  zoomRow.style.display     = 'none';
+  exposureRow.style.display = 'none';
   if (!track?.getCapabilities) return;
   const caps = track.getCapabilities();
-
-  if (caps.torch) {
-    torchGroup.style.display = '';
-  }
+  if (caps.torch) torchGroup.style.display = '';
   if (caps.zoom) {
     zoomSlider.min   = caps.zoom.min  ?? 1;
     zoomSlider.max   = caps.zoom.max  ?? 10;
@@ -714,8 +763,7 @@ function updateSwatchActive() {
     s.classList.toggle('active', s.dataset.color === faceLightColor);
   });
   customSwatch.classList.toggle('active', !isPreset);
-  if (!isPreset) customSwatch.style.background = faceLightColor;
-  else customSwatch.style.background = '';
+  customSwatch.style.background = isPreset ? '' : faceLightColor;
 }
 
 function setFaceLightColor(color) {
@@ -729,7 +777,9 @@ function setFaceLightColor(color) {
 function setRatio(ratio, save = true) {
   currentRatio = ratio;
   viewport.dataset.ratio = ratio;
-  document.querySelectorAll('#ratioSelector .pill').forEach(p => p.classList.toggle('active', p.dataset.ratio === ratio));
+  document.querySelectorAll('#ratioSelector .pill').forEach(p => {
+    p.classList.toggle('active', p.dataset.ratio === ratio);
+  });
   if (save) saveSettings();
 }
 
@@ -862,18 +912,30 @@ function handleError(err) {
 
 // ── Bindings ───────────────────────────────────────────────────────────────
 function bindControls() {
-  shutterBtn.addEventListener('click', () => { if (!shutterBtn.classList.contains('off')) capturePhoto(); });
-  recordBtn.addEventListener('click',  () => { if (recordBtn.classList.contains('off')) return; isRecording ? stopRecording() : startRecording(); });
+  shutterBtn.addEventListener('click', () => {
+    if (!shutterBtn.classList.contains('off')) capturePhoto();
+  });
+  recordBtn.addEventListener('click', () => {
+    if (recordBtn.classList.contains('off')) return;
+    isRecording ? stopRecording() : startRecording();
+  });
+
   mirrorToggle.addEventListener('click',    () => setMirror(!isMirrored));
   torchToggle.addEventListener('click',     () => setTorch(!isTorchOn));
   faceLightToggle.addEventListener('click', () => setFaceLight(!isFaceLight));
-  themeBtn.addEventListener('click',  () => applyTheme((themeIdx + 1) % THEMES.length));
-  hideBtn.addEventListener('click',   toggleControls);
-  revealBtn.addEventListener('click', toggleControls);
-  permBtn.addEventListener('click',   () => startCamera());
-  retryBtn.addEventListener('click',  () => { errOverlay.classList.add('hidden'); permOverlay.classList.remove('hidden'); startCamera(); });
+  themeBtn.addEventListener('click',        () => applyTheme(themeIdx + 1));
+  capHideBtn.addEventListener('click',      toggleControls);
+  permBtn.addEventListener('click',         () => startCamera());
+  retryBtn.addEventListener('click', () => {
+    errOverlay.classList.add('hidden');
+    permOverlay.classList.remove('hidden');
+    startCamera();
+  });
 
-  zoomSlider.addEventListener('input', () => { updateZoomDisplay(zoomSlider.value); applyZoom(zoomSlider.value); });
+  zoomSlider.addEventListener('input', () => {
+    updateZoomDisplay(zoomSlider.value);
+    applyZoom(zoomSlider.value);
+  });
 
   exposureSlider.addEventListener('input', () => {
     const v = parseFloat(exposureSlider.value);
@@ -897,7 +959,7 @@ function bindControls() {
   });
   faceLightColorPicker.addEventListener('change', () => saveSettings());
 
-  // Volume rocker → shutter (Android Chrome / desktop; iOS Safari handles volume at OS level)
+  // Volume rocker → shutter (Android Chrome / desktop; iOS handles volume at OS level)
   document.addEventListener('keydown', e => {
     if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown' ||
         e.code === 'AudioVolumeUp' || e.code === 'AudioVolumeDown') {
