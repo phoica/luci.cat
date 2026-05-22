@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000" id="themeColorMeta">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>cam — luci.cat</title>
+<title>Cam — luci.cat</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&family=Metamorphous&family=Cabin+Sketch:wght@400;700&family=Silkscreen:wght@400;700&family=Fascinate&display=swap" rel="stylesheet">
@@ -76,7 +76,7 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 #preview{width:100%;height:100%;object-fit:cover;display:block;background:#000}
 #preview.mirrored{transform:scaleX(-1)}
 
-/* Flash */
+/* Post-capture flash */
 .capture-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5;transition:opacity .05s}
 .capture-flash.flash{opacity:.85}
 
@@ -105,7 +105,7 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 .reveal-btn.visible{opacity:1;pointer-events:auto}
 .reveal-btn svg{width:18px;height:18px;display:block}
 
-/* Overlay (permission / error) */
+/* Permission / error overlays */
 .overlay{
   position:absolute;inset:0;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -130,21 +130,16 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
   padding:10px 16px 12px;flex-shrink:0;
   display:flex;flex-direction:column;gap:9px;
   border-top:1px solid var(--border);
-  overflow:hidden;
-  max-height:400px;
-  transition:max-height .3s ease, opacity .2s ease, padding .3s ease, border-color .3s ease;
+  overflow:hidden;max-height:520px;
+  transition:max-height .3s ease,opacity .2s ease,padding .3s ease,border-color .3s ease;
 }
-.controls.hidden{
-  max-height:0;opacity:0;
-  padding-top:0;padding-bottom:0;
-  border-top-color:transparent;
-}
+.controls.hidden{max-height:0;opacity:0;padding-top:0;padding-bottom:0;border-top-color:transparent}
 
 /* Toast */
 .toast{
   position:fixed;bottom:calc(env(safe-area-inset-bottom) + 80px);left:50%;
   transform:translateX(-50%) translateY(16px);
-  background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  background:rgba(0,0,0,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   color:#fff;font-size:13px;padding:10px 18px;border-radius:20px;
   white-space:nowrap;opacity:0;pointer-events:none;
   transition:opacity .25s,transform .25s;z-index:20;
@@ -152,10 +147,7 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* Pill rows */
-.pill-row{
-  display:flex;gap:6px;flex-wrap:nowrap;
-  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
-}
+.pill-row{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .pill-row::-webkit-scrollbar{display:none}
 .pill{
   flex-shrink:0;padding:6px 14px;border-radius:20px;
@@ -166,10 +158,9 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 .pill:hover{border-color:var(--border-hover);color:var(--text)}
 .pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 
-/* Settings row */
+/* Settings rows */
 .settings-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 
-/* Toggle */
 .toggle-group{display:flex;align-items:center;gap:8px}
 .toggle-label{font-size:13px;color:var(--text-muted);font-weight:500;white-space:nowrap;user-select:none}
 .toggle-btn{
@@ -186,16 +177,33 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 .toggle-btn[aria-pressed="true"]::after{background:var(--accent);transform:translateX(18px)}
 
 /* Exposure */
-.exposure-group{display:flex;align-items:center;gap:8px;flex:1;min-width:160px}
+.exposure-group{display:flex;align-items:center;gap:8px;flex:1;min-width:150px}
 .exposure-label{font-size:13px;color:var(--text-muted);font-weight:500;white-space:nowrap}
 #exposureSlider{flex:1;height:4px;cursor:pointer;accent-color:var(--accent)}
 .exposure-val{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);min-width:30px;text-align:right}
 
-/* Capture row — grid so shutter stays centered with record on left */
-.capture-row{
-  display:grid;grid-template-columns:1fr auto 1fr;
-  align-items:center;padding:4px 0 2px;
+/* Face light color swatches */
+.swatch-row{display:flex;gap:8px;align-items:center;flex-wrap:nowrap}
+.swatch{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  border:2.5px solid transparent;
+  cursor:pointer;transition:border-color .15s,transform .12s;
+  outline:1px solid rgba(128,128,128,.25);
 }
+.swatch:hover{transform:scale(1.1)}
+.swatch.active{border-color:var(--accent);transform:scale(1.12)}
+.swatch-custom{
+  position:relative;overflow:hidden;
+  background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);
+}
+.swatch-custom.active-custom{border-color:var(--accent);transform:scale(1.12)}
+.swatch-custom input[type="color"]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;
+  width:130%;height:130%;top:-15%;left:-15%;
+}
+
+/* Capture row — grid keeps shutter centered */
+.capture-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:4px 0 2px}
 .capture-row-left{display:flex;justify-content:flex-start;padding-left:8px}
 .capture-row-right{display:flex;justify-content:flex-end;padding-right:8px}
 
@@ -205,10 +213,7 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
   cursor:pointer;position:relative;transition:all .12s;
   display:flex;align-items:center;justify-content:center;padding:0;
 }
-.shutter-btn::after{
-  content:'';width:56px;height:56px;border-radius:50%;
-  background:var(--text);transition:all .12s;
-}
+.shutter-btn::after{content:'';width:56px;height:56px;border-radius:50%;background:var(--text);transition:all .12s}
 .shutter-btn:active::after,.shutter-btn.pressing::after{width:48px;height:48px}
 .shutter-btn.off{opacity:.35;cursor:not-allowed}
 
@@ -223,7 +228,6 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 .record-btn.off{opacity:.35;cursor:not-allowed}
 .record-btn svg{width:22px;height:22px;color:var(--danger);display:block}
 
-/* Rec timer */
 .rec-timer-row{display:flex;justify-content:center;height:16px}
 .rec-timer{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--danger);display:none}
 .rec-timer.visible{display:block}
@@ -234,11 +238,10 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
   .header{flex-direction:column;width:56px;padding:12px 8px;border-right:1px solid var(--border);border-top:none}
   .header-spacer{flex:1}
   .viewport-wrap{flex:1}
-  .controls{width:190px;border-top:none;border-left:1px solid var(--border);overflow-y:auto;padding:12px 14px;max-height:none}
+  .controls{width:200px;border-top:none;border-left:1px solid var(--border);overflow-y:auto;padding:12px 14px;max-height:none}
   .controls.hidden{max-height:none;width:0;padding:0;border-left-color:transparent}
 }
 
-/* Smaller screens */
 @media(max-height:640px){
   .header{padding:6px 12px 4px}
   .header h1{font-size:18px}
@@ -250,18 +253,22 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 </style>
 </head>
 <body data-theme="dark">
+
+<!-- Face light overlay — covers full screen to illuminate face before capture -->
+<div id="faceLightOverlay" style="position:fixed;inset:0;opacity:0;pointer-events:none;transition:opacity .1s;z-index:100"></div>
+
 <div class="app">
 
   <!-- Header -->
   <div class="header">
-    <h1>cam</h1>
+    <h1>Cam</h1>
     <span class="header-spacer"></span>
-    <button class="icon-btn" id="hideBtn" title="hide controls" aria-label="hide controls">
+    <button class="icon-btn" id="hideBtn" title="Hide controls" aria-label="Hide controls">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
         <path d="M4 7l6 6 6-6"/>
       </svg>
     </button>
-    <button class="icon-btn" id="themeBtn" title="cycle theme" aria-label="cycle theme">
+    <button class="icon-btn" id="themeBtn" title="Cycle theme" aria-label="Cycle theme">
       <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
         <circle cx="10" cy="10" r="3.5"/>
         <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/>
@@ -276,8 +283,7 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
       <div class="capture-flash" id="captureFlash"></div>
       <div class="rec-badge" id="recBadge"><span class="rec-dot"></span>REC</div>
 
-      <!-- Floating reveal button -->
-      <button class="reveal-btn" id="revealBtn" aria-label="show controls">
+      <button class="reveal-btn" id="revealBtn" aria-label="Show controls">
         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M4 13l6-6 6 6"/>
         </svg>
@@ -292,8 +298,8 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
           <rect x="23" y="13" width="18" height="9" rx="4"/>
           <circle cx="50" cy="26" r="2.5" fill="white" opacity=".6"/>
         </svg>
-        <p>tap to enable your camera</p>
-        <button class="perm-btn" id="permBtn">enable camera</button>
+        <p>Tap to enable your camera</p>
+        <button class="perm-btn" id="permBtn">Enable Camera</button>
       </div>
 
       <!-- Error overlay -->
@@ -302,8 +308,8 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
           <circle cx="32" cy="32" r="26"/>
           <path d="M32 20v16M32 42v2"/>
         </svg>
-        <p id="errMsg">something went wrong</p>
-        <button class="perm-btn" id="retryBtn">try again</button>
+        <p id="errMsg">Something went wrong</p>
+        <button class="perm-btn" id="retryBtn">Try Again</button>
       </div>
     </div>
   </div>
@@ -311,12 +317,12 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
   <!-- Controls -->
   <div class="controls" id="controls">
 
-    <!-- Camera selector (populated by JS) -->
+    <!-- Camera selector -->
     <div class="pill-row" id="cameraSelector"></div>
 
     <!-- Aspect ratio -->
     <div class="pill-row" id="ratioSelector">
-      <button class="pill active" data-ratio="free">free</button>
+      <button class="pill active" data-ratio="free">Free</button>
       <button class="pill" data-ratio="1:1">1:1</button>
       <button class="pill" data-ratio="4:3">4:3</button>
       <button class="pill" data-ratio="3:4">3:4</button>
@@ -324,14 +330,38 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
       <button class="pill" data-ratio="9:16">9:16</button>
     </div>
 
-    <!-- Mirror + Exposure -->
+    <!-- Toggles row: Mirror | Flash (if torch available) | Face Light -->
     <div class="settings-row">
       <div class="toggle-group">
-        <span class="toggle-label">mirror</span>
-        <button class="toggle-btn" id="mirrorToggle" aria-pressed="false" title="toggle mirror"></button>
+        <span class="toggle-label">Mirror</span>
+        <button class="toggle-btn" id="mirrorToggle" aria-pressed="false"></button>
       </div>
-      <div class="exposure-group" id="exposureGroup" style="display:none">
-        <span class="exposure-label">exp</span>
+      <div class="toggle-group" id="torchGroup" style="display:none">
+        <span class="toggle-label">Flash</span>
+        <button class="toggle-btn" id="torchToggle" aria-pressed="false"></button>
+      </div>
+      <div class="toggle-group">
+        <span class="toggle-label">Face Light</span>
+        <button class="toggle-btn" id="faceLightToggle" aria-pressed="false"></button>
+      </div>
+    </div>
+
+    <!-- Face light color picker (hidden until face light is on) -->
+    <div class="swatch-row" id="swatchRow" style="display:none">
+      <button class="swatch active" data-color="#ffffff" style="background:#ffffff" title="White"></button>
+      <button class="swatch" data-color="#fff5e0" style="background:#fff5e0" title="Warm"></button>
+      <button class="swatch" data-color="#e0f0ff" style="background:#e0f0ff" title="Cool"></button>
+      <button class="swatch" data-color="#ffe0f0" style="background:#ffe0f0" title="Pink"></button>
+      <button class="swatch" data-color="#e0ffe8" style="background:#e0ffe8" title="Green"></button>
+      <label class="swatch swatch-custom" id="customSwatch" title="Custom color">
+        <input type="color" id="faceLightColorPicker" value="#ffffff">
+      </label>
+    </div>
+
+    <!-- Exposure (shown only when device supports it) -->
+    <div class="settings-row" id="exposureRow" style="display:none">
+      <div class="exposure-group">
+        <span class="exposure-label">EV</span>
         <input type="range" id="exposureSlider" min="-3" max="3" step="0.5" value="0">
         <span class="exposure-val" id="exposureVal">0</span>
       </div>
@@ -340,13 +370,13 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
     <!-- Capture buttons -->
     <div class="capture-row">
       <div class="capture-row-left">
-        <button class="record-btn off" id="recordBtn" aria-label="record video">
+        <button class="record-btn off" id="recordBtn" aria-label="Record video">
           <svg id="recordIcon" viewBox="0 0 24 24" fill="currentColor">
             <circle cx="12" cy="12" r="7"/>
           </svg>
         </button>
       </div>
-      <button class="shutter-btn off" id="shutterBtn" aria-label="take photo"></button>
+      <button class="shutter-btn off" id="shutterBtn" aria-label="Take photo"></button>
       <div class="capture-row-right"></div>
     </div>
 
@@ -357,9 +387,7 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
   </div>
 </div>
 
-<!-- Toast notification -->
 <div class="toast" id="toast"></div>
-
 <canvas id="captureCanvas" style="display:none"></canvas>
 <a id="dlLink" style="display:none"></a>
 
@@ -367,50 +395,62 @@ body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-si
 // ── State ──────────────────────────────────────────────────────────────────
 const THEMES = ['dark','dim','light','cottage','evil','nonchalant'];
 const THEME_COLORS = {dark:'#000000',dim:'#101216',light:'#f4f2ef',cottage:'#f3eadb',evil:'#08040a',nonchalant:'#1e2420'};
-let themeIdx = 0;
-let stream = null;
-let devices = [];
+const PRESET_COLORS = ['#ffffff','#fff5e0','#e0f0ff','#ffe0f0','#e0ffe8'];
+
+let themeIdx      = 0;
+let stream        = null;
+let devices       = [];
 let currentDeviceId = null;
-let isMirrored = false;
-let currentRatio = 'free';
-let isRecording = false;
+let isMirrored    = false;
+let currentRatio  = 'free';
+let isRecording   = false;
 let mediaRecorder = null;
 let recordedChunks = [];
-let recInterval = null;
-let recSecs = 0;
+let recInterval   = null;
+let recSecs       = 0;
 let exposureSupport = 'none';
-let ready = false;
+let ready         = false;
 let controlsVisible = true;
-let toastTimer = null;
+let toastTimer    = null;
+let isTorchOn     = false;
+let isFaceLight   = false;
+let faceLightColor = '#ffffff';
 
 // ── DOM ────────────────────────────────────────────────────────────────────
-const body           = document.body;
-const preview        = document.getElementById('preview');
-const viewport       = document.getElementById('viewport');
-const controlsEl     = document.getElementById('controls');
-const permOverlay    = document.getElementById('permOverlay');
-const errOverlay     = document.getElementById('errOverlay');
-const errMsg         = document.getElementById('errMsg');
-const permBtn        = document.getElementById('permBtn');
-const retryBtn       = document.getElementById('retryBtn');
-const shutterBtn     = document.getElementById('shutterBtn');
-const recordBtn      = document.getElementById('recordBtn');
-const recordIcon     = document.getElementById('recordIcon');
-const mirrorToggle   = document.getElementById('mirrorToggle');
-const themeBtn       = document.getElementById('themeBtn');
-const hideBtn        = document.getElementById('hideBtn');
-const revealBtn      = document.getElementById('revealBtn');
-const exposureGroup  = document.getElementById('exposureGroup');
-const exposureSlider = document.getElementById('exposureSlider');
-const exposureVal    = document.getElementById('exposureVal');
-const camSelector    = document.getElementById('cameraSelector');
-const captureFlash   = document.getElementById('captureFlash');
-const recBadge       = document.getElementById('recBadge');
-const recTimer       = document.getElementById('recTimer');
-const captureCanvas  = document.getElementById('captureCanvas');
-const dlLink         = document.getElementById('dlLink');
-const toastEl        = document.getElementById('toast');
-const themeColorMeta = document.getElementById('themeColorMeta');
+const body              = document.body;
+const preview           = document.getElementById('preview');
+const viewport          = document.getElementById('viewport');
+const controlsEl        = document.getElementById('controls');
+const permOverlay       = document.getElementById('permOverlay');
+const errOverlay        = document.getElementById('errOverlay');
+const errMsg            = document.getElementById('errMsg');
+const permBtn           = document.getElementById('permBtn');
+const retryBtn          = document.getElementById('retryBtn');
+const shutterBtn        = document.getElementById('shutterBtn');
+const recordBtn         = document.getElementById('recordBtn');
+const recordIcon        = document.getElementById('recordIcon');
+const mirrorToggle      = document.getElementById('mirrorToggle');
+const torchToggle       = document.getElementById('torchToggle');
+const torchGroup        = document.getElementById('torchGroup');
+const faceLightToggle   = document.getElementById('faceLightToggle');
+const swatchRow         = document.getElementById('swatchRow');
+const customSwatch      = document.getElementById('customSwatch');
+const faceLightColorPicker = document.getElementById('faceLightColorPicker');
+const themeBtn          = document.getElementById('themeBtn');
+const hideBtn           = document.getElementById('hideBtn');
+const revealBtn         = document.getElementById('revealBtn');
+const exposureRow       = document.getElementById('exposureRow');
+const exposureSlider    = document.getElementById('exposureSlider');
+const exposureVal       = document.getElementById('exposureVal');
+const camSelector       = document.getElementById('cameraSelector');
+const captureFlash      = document.getElementById('captureFlash');
+const recBadge          = document.getElementById('recBadge');
+const recTimer          = document.getElementById('recTimer');
+const captureCanvas     = document.getElementById('captureCanvas');
+const dlLink            = document.getElementById('dlLink');
+const toastEl           = document.getElementById('toast');
+const faceLightOverlay  = document.getElementById('faceLightOverlay');
+const themeColorMeta    = document.getElementById('themeColorMeta');
 
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
@@ -419,7 +459,7 @@ function init() {
   if (navigator.mediaDevices?.getUserMedia) {
     startCamera();
   } else {
-    showError('camera API not supported — try Safari or Chrome');
+    showError('Camera API not supported — try Safari or Chrome');
   }
 }
 
@@ -430,6 +470,8 @@ function loadSettings() {
     if (s.theme && THEMES.includes(s.theme)) applyTheme(THEMES.indexOf(s.theme), false);
     if (typeof s.mirrored === 'boolean') setMirror(s.mirrored, false);
     if (s.ratio) setRatio(s.ratio, false);
+    if (typeof s.faceLight === 'boolean') { isFaceLight = s.faceLight; faceLightToggle.setAttribute('aria-pressed', s.faceLight ? 'true' : 'false'); if (s.faceLight) swatchRow.style.display = ''; }
+    if (s.faceLightColor) { faceLightColor = s.faceLightColor; faceLightColorPicker.value = faceLightColor; updateSwatchActive(); }
   } catch {}
 }
 
@@ -437,6 +479,7 @@ function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio,
+      faceLight: isFaceLight, faceLightColor,
     }));
   } catch {}
 }
@@ -471,7 +514,6 @@ async function stopStream() {
   preview.srcObject = null;
   stream.getTracks().forEach(t => t.stop());
   stream = null;
-  // Give the OS a moment to release the hardware before opening a new stream
   await new Promise(r => setTimeout(r, 200));
 }
 
@@ -494,7 +536,6 @@ async function startCamera(deviceId = null) {
     onStreamReady(deviceId);
   } catch (err) {
     if (err.name === 'OverconstrainedError' && deviceId) {
-      // exact deviceId failed — try ideal (looser match, still prefers this camera)
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { ideal: deviceId } }, audio: false });
         onStreamReady(deviceId);
@@ -507,7 +548,6 @@ async function startCamera(deviceId = null) {
 
 function onStreamReady(intendedDeviceId) {
   preview.srcObject = stream;
-  // Use the intended deviceId for matching; fall back to what the track reports
   currentDeviceId = intendedDeviceId ?? stream.getVideoTracks()[0].getSettings().deviceId ?? null;
   ready = true;
 
@@ -517,7 +557,7 @@ function onStreamReady(intendedDeviceId) {
   recordBtn.classList.remove('off');
 
   enumerateDevices();
-  detectExposure();
+  detectCapabilities();
 }
 
 async function enumerateDevices() {
@@ -530,13 +570,13 @@ async function enumerateDevices() {
 
 function cameraLabel(device, idx) {
   const l = (device.label || '').toLowerCase();
-  if (!l) return `cam ${idx + 1}`;
-  if (l.includes('front') || l.includes('facetime') || l.includes('user') || l.includes('facing front')) return 'selfie';
-  if (l.includes('ultra') || (l.includes('wide') && (l.includes('back') || l.includes('rear')))) return 'ultra';
-  if (l.includes('tele') || l.includes('3x') || l.includes('zoom')) return 'tele';
-  if (l.includes('back') || l.includes('rear') || l.includes('environment') || l.includes('facing back')) return 'main';
+  if (!l) return `Cam ${idx + 1}`;
+  if (l.includes('front') || l.includes('facetime') || l.includes('user') || l.includes('facing front')) return 'Selfie';
+  if (l.includes('ultra') || (l.includes('wide') && (l.includes('back') || l.includes('rear')))) return 'Ultra';
+  if (l.includes('tele') || l.includes('3x') || l.includes('zoom')) return 'Tele';
+  if (l.includes('back') || l.includes('rear') || l.includes('environment') || l.includes('facing back')) return 'Main';
   const clean = device.label.replace(/\s*\(.*?\)\s*/g, '').trim();
-  return clean.length > 14 ? `cam ${idx + 1}` : clean;
+  return clean.length > 14 ? `Cam ${idx + 1}` : clean;
 }
 
 function renderCamSelector() {
@@ -555,11 +595,24 @@ function renderCamSelector() {
   });
 }
 
-// ── Exposure ───────────────────────────────────────────────────────────────
-function detectExposure() {
+// ── Device capabilities ────────────────────────────────────────────────────
+function detectCapabilities() {
   const track = stream?.getVideoTracks()[0];
+
+  // Reset torch when switching cameras
+  isTorchOn = false;
+  torchToggle.setAttribute('aria-pressed', 'false');
+  torchGroup.style.display = 'none';
+  exposureRow.style.display = 'none';
+  exposureSupport = 'none';
+
   if (!track?.getCapabilities) return;
   const caps = track.getCapabilities();
+
+  if (caps.torch) {
+    torchGroup.style.display = '';
+  }
+
   if (caps.exposureCompensation) {
     exposureSupport = 'compensation';
     exposureSlider.min   = caps.exposureCompensation.min  ?? -3;
@@ -567,10 +620,7 @@ function detectExposure() {
     exposureSlider.step  = caps.exposureCompensation.step ?? 0.5;
     exposureSlider.value = 0;
     exposureVal.textContent = '0';
-    exposureGroup.style.display = '';
-  } else {
-    exposureSupport = 'none';
-    exposureGroup.style.display = 'none';
+    exposureRow.style.display = '';
   }
 }
 
@@ -590,6 +640,46 @@ function setMirror(val, save = true) {
   if (save) saveSettings();
 }
 
+// ── Torch ──────────────────────────────────────────────────────────────────
+async function setTorch(on) {
+  isTorchOn = on;
+  torchToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+  const track = stream?.getVideoTracks()[0];
+  if (!track) return;
+  try {
+    await track.applyConstraints({ advanced: [{ torch: on }] });
+  } catch {
+    isTorchOn = false;
+    torchToggle.setAttribute('aria-pressed', 'false');
+    showToast('Torch not available on this camera');
+  }
+}
+
+// ── Face light ─────────────────────────────────────────────────────────────
+function setFaceLight(on) {
+  isFaceLight = on;
+  faceLightToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+  swatchRow.style.display = on ? '' : 'none';
+  saveSettings();
+}
+
+function updateSwatchActive() {
+  const isPreset = PRESET_COLORS.includes(faceLightColor);
+  document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => {
+    s.classList.toggle('active', s.dataset.color === faceLightColor);
+  });
+  customSwatch.classList.toggle('active-custom', !isPreset);
+  if (!isPreset) customSwatch.style.background = faceLightColor;
+  else customSwatch.style.background = '';
+}
+
+function setFaceLightColor(color) {
+  faceLightColor = color;
+  faceLightColorPicker.value = color;
+  updateSwatchActive();
+  saveSettings();
+}
+
 // ── Aspect ratio ───────────────────────────────────────────────────────────
 function setRatio(ratio, save = true) {
   currentRatio = ratio;
@@ -599,10 +689,21 @@ function setRatio(ratio, save = true) {
 }
 
 // ── Photo capture ──────────────────────────────────────────────────────────
-function capturePhoto() {
+async function capturePhoto() {
   if (!ready || isRecording) return;
+
+  // Face light: illuminate before capture, skip the post-capture flash
+  if (isFaceLight) {
+    faceLightOverlay.style.background = faceLightColor;
+    faceLightOverlay.style.opacity = '1';
+    await new Promise(r => setTimeout(r, 280));
+  }
+
   const vw = preview.videoWidth, vh = preview.videoHeight;
-  if (!vw || !vh) return;
+  if (!vw || !vh) {
+    faceLightOverlay.style.opacity = '0';
+    return;
+  }
 
   let cw = vw, ch = vh;
   if (currentRatio !== 'free') {
@@ -625,10 +726,11 @@ function capturePhoto() {
     ctx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
   }
 
-  flash();
+  if (!isFaceLight) flash();
   navigator.vibrate?.(30);
   shutterBtn.classList.add('pressing');
   setTimeout(() => shutterBtn.classList.remove('pressing'), 120);
+  if (isFaceLight) setTimeout(() => { faceLightOverlay.style.opacity = '0'; }, 300);
 
   captureCanvas.toBlob(blob => {
     const url = URL.createObjectURL(blob);
@@ -636,11 +738,9 @@ function capturePhoto() {
     dlLink.download = `cam_${timestamp()}.png`;
     dlLink.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
-
-    // One-time notice so the user knows where photos go
     if (!localStorage.getItem('cam_save_noticed')) {
       localStorage.setItem('cam_save_noticed', '1');
-      showToast('photos save directly to your device — nothing is stored here');
+      showToast('Photos save directly to your device — nothing is stored here');
     }
   }, 'image/png');
 }
@@ -651,11 +751,8 @@ function startRecording() {
   recordedChunks = [];
   const types = ['video/mp4;codecs=h264', 'video/mp4', 'video/webm;codecs=h264', 'video/webm'];
   const mime   = types.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch { return false; } }) || '';
-  try {
-    mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {});
-  } catch {
-    mediaRecorder = new MediaRecorder(stream);
-  }
+  try { mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
+  catch { mediaRecorder = new MediaRecorder(stream); }
   mediaRecorder.ondataavailable = e => { if (e.data?.size > 0) recordedChunks.push(e.data); };
   mediaRecorder.onstop = saveVideo;
   mediaRecorder.start(250);
@@ -690,8 +787,7 @@ function saveVideo() {
   const ext  = mime.includes('mp4') ? 'mp4' : 'webm';
   const blob = new Blob(recordedChunks, { type: mime });
   const url  = URL.createObjectURL(blob);
-  dlLink.href     = url;
-  dlLink.download = `cam_${timestamp()}.${ext}`;
+  dlLink.href = url; dlLink.download = `cam_${timestamp()}.${ext}`;
   dlLink.click();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
@@ -722,13 +818,13 @@ function showError(msg) {
 
 function handleError(err) {
   if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-    showError('camera access was denied — check your browser settings and reload');
+    showError('Camera access was denied — check your browser settings and reload');
   } else if (err.name === 'NotFoundError') {
-    showError('no camera found on this device');
+    showError('No camera found on this device');
   } else if (err.name === 'NotReadableError') {
-    showError('camera is busy — close other apps using it and try again');
+    showError('Camera is busy — close other apps using it and try again');
   } else {
-    showError(`couldn't start camera: ${err.message || err.name}`);
+    showError(`Couldn't start camera: ${err.message || err.name}`);
   }
 }
 
@@ -737,10 +833,12 @@ function bindControls() {
   shutterBtn.addEventListener('click', () => { if (!shutterBtn.classList.contains('off')) capturePhoto(); });
   recordBtn.addEventListener('click',  () => { if (recordBtn.classList.contains('off')) return; isRecording ? stopRecording() : startRecording(); });
   mirrorToggle.addEventListener('click', () => setMirror(!isMirrored));
+  torchToggle.addEventListener('click',  () => setTorch(!isTorchOn));
+  faceLightToggle.addEventListener('click', () => setFaceLight(!isFaceLight));
   themeBtn.addEventListener('click', () => applyTheme((themeIdx + 1) % THEMES.length));
   hideBtn.addEventListener('click', toggleControls);
   revealBtn.addEventListener('click', toggleControls);
-  permBtn.addEventListener('click', () => startCamera());
+  permBtn.addEventListener('click',  () => startCamera());
   retryBtn.addEventListener('click', () => { errOverlay.classList.add('hidden'); permOverlay.classList.remove('hidden'); startCamera(); });
 
   exposureSlider.addEventListener('input', () => {
@@ -753,8 +851,21 @@ function bindControls() {
     btn.addEventListener('click', () => setRatio(btn.dataset.ratio));
   });
 
-  // Volume rocker / media keys → shutter (works on Android Chrome and some desktop browsers;
-  // iOS Safari intercepts hardware volume keys at the OS level and cannot be overridden)
+  // Preset swatches
+  document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => {
+    s.addEventListener('click', () => setFaceLightColor(s.dataset.color));
+  });
+
+  // Custom color picker
+  faceLightColorPicker.addEventListener('input', () => {
+    faceLightColor = faceLightColorPicker.value;
+    customSwatch.style.background = faceLightColor;
+    document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => s.classList.remove('active'));
+    customSwatch.classList.add('active-custom');
+  });
+  faceLightColorPicker.addEventListener('change', () => saveSettings());
+
+  // Volume rocker → shutter (Android Chrome / desktop; iOS Safari intercepts at OS level)
   document.addEventListener('keydown', e => {
     if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown' ||
         e.code === 'AudioVolumeUp' || e.code === 'AudioVolumeDown') {
