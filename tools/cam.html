@@ -298,7 +298,7 @@ body[data-theme="light"] .header h1{
 <body data-theme="dark">
 
 <!-- Color frame overlay: full-screen colored light before capture -->
-<div id="colorFrameOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;opacity:0;pointer-events:none;transition:opacity 120ms ease;z-index:9999;background:#ffffff;"></div>
+<div id="colorFrameOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:2147483647;"></div>
 
 <div class="app">
   <div class="cam-area">
@@ -635,7 +635,6 @@ function loadSettings() {
     if (s.colorFrameColor) {
       colorFrameColor = s.colorFrameColor;
       colorFramePicker.value = colorFrameColor;
-      colorFrameOverlay.style.background = colorFrameColor;
       updateSwatchActive();
     }
     if (typeof s.leDurationIdx === 'number') {
@@ -750,33 +749,61 @@ async function enumerateDevices() {
   try {
     const all = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = all.filter(d => d.kind === 'videoinput');
-    // Deduplicate by label (same label = same physical camera)
+
+    // Deduplicate by normalized label (same label = same physical camera)
     const seen = new Set();
-    devices = videoDevices.filter(d => {
+    const unique = videoDevices.filter(d => {
       const key = d.label.trim().toLowerCase() || d.deviceId;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
     });
+
+    // If we have 2+ labeled cameras, drop any that have empty labels.
+    // Empty-label entries after permission are virtual/duplicate entries browsers sometimes expose.
+    const labeled = unique.filter(d => d.label.trim() !== '');
+    devices = labeled.length >= 2 ? labeled : unique;
+
     renderCamSelector();
   } catch {}
 }
 
-// Richer label matching including iOS-specific strings
 function cameraLabel(device) {
-  const l = (device.label || '').toLowerCase();
-  if (!l) return null; // unknown
-  if (l.includes('telephoto'))                                                  return 'Tele';
-  if (l.includes('ultra wide') || l.includes('ultrawide') || l.includes('ultra-wide')) return 'Ultra';
-  if (l.includes('front') || l.includes('facetime') || l.includes('user') || l.includes('facing front')) return 'Selfie';
-  if (l.includes('dual wide'))                                                  return 'Wide';
-  if (l.includes('dual') || l.includes('triple') || l.includes('fusion'))      return 'Main';
-  if (l.includes('wide') && (l.includes('back') || l.includes('rear')))        return 'Ultra';
-  if (l.includes('tele') || l.includes('3x') || l.includes('zoom'))            return 'Tele';
-  if (l.includes('back') || l.includes('rear') || l.includes('environment') || l.includes('facing back')) return 'Main';
-  // Clean up the raw label
-  const clean = device.label.replace(/\s*\(.*?\)\s*/g, '').trim();
-  return clean.length > 16 ? null : clean;
+  const raw = device.label || '';
+  // Normalize: strip accents so é→e, â→a, etc. for multilingual matching
+  const l = raw.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  if (!l) return null;
+
+  // Telephoto / Zoom (EN + PT + ES + FR + DE + IT)
+  if (l.includes('telephoto') || l.includes('telefoto') || l.includes('tele') ||
+      l.includes('periscop') || /\b[2345]x\b/.test(l))                          return 'Tele';
+
+  // Ultra wide (EN + PT "grande angular" + ES "gran angular" + FR "grand angle" + DE "weitwinkel" + IT "grandangolo" + NL "groothoek")
+  if (l.includes('ultra') || l.includes('ultrawide') || l.includes('ultra-wide') ||
+      l.includes('grande angular') || l.includes('gran angular') ||
+      l.includes('grand angle') || l.includes('weitwinkel') ||
+      l.includes('grandangol') || l.includes('groothoek') ||
+      l.includes('szerokok') || l.includes('wide angle'))                        return 'Ultra';
+
+  // Front / Selfie (EN + PT "frontal" + ES + FR "avant" + DE "vorder" + IT "anteriore")
+  if (l.includes('front') || l.includes('frontal') || l.includes('selfie') ||
+      l.includes('facetime') || l.includes('user') || l.includes('facing front') ||
+      l.includes('avant') || l.includes('delantera') || l.includes('anteriore') ||
+      l.includes('vorder'))                                                       return 'Selfie';
+
+  // Wide back (after ultra check — remaining wide cameras are "Wide" not ultra)
+  if (l.includes('wide'))                                                         return 'Wide';
+
+  // Main / Rear / Back — catch-all including PT "traseira/traseiro", ES "trasero", FR "arriere", DE "hinten"
+  if (l.includes('back') || l.includes('rear') || l.includes('environment') ||
+      l.includes('facing back') || l.includes('traseira') || l.includes('traseiro') ||
+      l.includes('trasero') || l.includes('arriere') || l.includes('hinten') ||
+      l.includes('posteriore') || l.includes('principal') || l.includes('main') ||
+      l.includes('dual') || l.includes('triple') || l.includes('fusion'))        return 'Main';
+
+  // Last resort: use the first meaningful word(s) of the raw label
+  const clean = raw.replace(/\s*\(.*?\)\s*/g, '').trim();
+  return clean.length > 18 ? null : (clean || null);
 }
 
 function renderCamSelector() {
@@ -786,8 +813,10 @@ function renderCamSelector() {
     const btn = document.createElement('button');
     btn.className = 'pill' + (d.deviceId === currentDeviceId ? ' active' : '');
     const label = cameraLabel(d);
-    btn.textContent = label ?? `Cam ${i + 1}`;
-    if (d.label) btn.title = d.label; // full label as tooltip
+    // Fallback: first word of raw label, then index
+    const fallback = d.label ? d.label.split(/\s+/)[0].slice(0, 12) : `Cam ${i + 1}`;
+    btn.textContent = label ?? fallback;
+    btn.title = d.label || ''; // full raw label as tooltip
     btn.addEventListener('click', () => {
       if (d.deviceId === currentDeviceId) return;
       if (isRecording) stopRecording();
@@ -830,15 +859,21 @@ function detectCapabilities() {
     zoomRow.style.display = '';
   }
 
-  if (caps.focusDistance && Array.isArray(caps.focusMode) && caps.focusMode.includes('manual')) {
-    focusMin = caps.focusDistance.min ?? 0;
-    focusMax = caps.focusDistance.max ?? 1;
-    focusSlider.min   = focusMin;
-    focusSlider.max   = focusMax;
-    focusSlider.step  = (focusMax - focusMin) / 100;
-    focusSlider.value = focusMax; // start at infinity (far end)
-    focusVal.textContent = formatFocusDist(parseFloat(focusSlider.value));
+  const focusModes = caps.focusMode ?? [];
+  const supportsManualFocus = (Array.isArray(focusModes) ? focusModes : Object.values(focusModes))
+    .includes('manual');
+  if (supportsManualFocus) {
     focusToggleRow.style.display = '';
+    if (caps.focusDistance?.max !== undefined) {
+      focusMin = caps.focusDistance.min ?? 0;
+      focusMax = caps.focusDistance.max ?? 1;
+      focusSlider.min   = focusMin;
+      focusSlider.max   = focusMax;
+      focusSlider.step  = Math.max(0.001, (focusMax - focusMin) / 200);
+      focusSlider.value = focusMax;
+      focusVal.textContent = formatFocusDist(parseFloat(focusSlider.value));
+      focusSliderRow.style.display = ''; // show slider immediately if we have range
+    }
   }
 
   if (caps.exposureCompensation) {
@@ -891,7 +926,8 @@ function formatFocusDist(m) {
 async function setManualFocus(on) {
   isManualFocus = on;
   focusToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-  focusSliderRow.style.display = on ? '' : 'none';
+  // Only show slider if we have a valid range from getCapabilities
+  if (focusMax > focusMin) focusSliderRow.style.display = on ? '' : 'none';
   const track = stream?.getVideoTracks()[0];
   if (!track) return;
   try {
@@ -1007,7 +1043,6 @@ function updateSwatchActive() {
 function setColorFrameColor(color) {
   colorFrameColor = color;
   colorFramePicker.value = color;
-  colorFrameOverlay.style.background = color; // pre-set so it's ready instantly
   updateSwatchActive();
   saveSettings();
 }
@@ -1168,13 +1203,11 @@ async function capturePhoto() {
 
   // Color frame: illuminate screen before capture
   if (isColorFrame) {
-    // Pre-set background (already set in setColorFrameColor, but ensure it)
-    colorFrameOverlay.style.background = colorFrameColor;
-    // Force layout so the background is painted before opacity changes
-    colorFrameOverlay.getBoundingClientRect();
-    colorFrameOverlay.style.opacity = '1';
-    // Wait for transition + render to complete
-    await new Promise(r => setTimeout(r, 420));
+    colorFrameOverlay.style.backgroundColor = colorFrameColor;
+    colorFrameOverlay.style.display = 'block';
+    // Two rAF calls guarantee the browser has painted the new frame before we snap
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise(r => setTimeout(r, 260));
   }
 
   const vw = preview.videoWidth, vh = preview.videoHeight;
@@ -1204,7 +1237,7 @@ async function capturePhoto() {
   navigator.vibrate?.(30);
   shutterBtn.classList.add('pressing');
   setTimeout(() => shutterBtn.classList.remove('pressing'), 120);
-  if (isColorFrame) setTimeout(() => { colorFrameOverlay.style.opacity = '0'; }, 350);
+  if (isColorFrame) setTimeout(() => { colorFrameOverlay.style.display = 'none'; }, 400);
 
   captureCanvas.toBlob(blob => {
     const url = URL.createObjectURL(blob);
