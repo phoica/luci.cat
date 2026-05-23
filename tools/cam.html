@@ -1324,31 +1324,31 @@ function playShutterBlip() {
     if (!audioCtx) audioCtx = new Ctx();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const t0 = audioCtx.currentTime;
+    const sr = audioCtx.sampleRate;
 
-    // Noise transient — the hard "gl" click at the front
-    const bufLen = Math.ceil(audioCtx.sampleRate * 0.004);
-    const buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < bufLen; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / bufLen);
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buf;
-    const noiseGain = audioCtx.createGain();
-    noiseGain.gain.value = 0.09;
-    noise.connect(noiseGain).connect(audioCtx.destination);
-    noise.start(t0);
+    // Low body pulse — physical weight / the "gl"
+    const body = audioCtx.createOscillator();
+    const bodyGain = audioCtx.createGain();
+    body.type = 'sine';
+    body.frequency.value = 310;
+    bodyGain.gain.setValueAtTime(0.0001, t0);
+    bodyGain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.0008);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.016);
+    body.connect(bodyGain).connect(audioCtx.destination);
+    body.start(t0); body.stop(t0 + 0.02);
 
-    // Rising sine — the "ick" tail
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(1100, t0);
-    osc.frequency.exponentialRampToValueAtTime(3200, t0 + 0.045);
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(0.17, t0 + 0.002);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.055);
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(t0);
-    osc.stop(t0 + 0.06);
+    // High-freq bandpassed noise — the crisp "ick" texture
+    const n = Math.ceil(sr * 0.022);
+    const nbuf = audioCtx.createBuffer(1, n, sr);
+    const nd = nbuf.getChannelData(0);
+    for (let i = 0; i < n; i++) nd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (n * 0.28));
+    const nsrc = audioCtx.createBufferSource();
+    nsrc.buffer = nbuf;
+    const bp = audioCtx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 4800; bp.Q.value = 1.8;
+    const ng = audioCtx.createGain(); ng.gain.value = 0.2;
+    nsrc.connect(bp).connect(ng).connect(audioCtx.destination);
+    nsrc.start(t0);
   } catch {}
 }
 
