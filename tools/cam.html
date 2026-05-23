@@ -534,17 +534,9 @@ body[data-theme="light"] .gallery-hdr-title{
 }
 .gallery-clear:active{opacity:.7}
 
-/* ── Desktop ── */
+/* ── Desktop: same vertical layout as phone, just more control height ── */
 @media(min-width:640px){
-  .app-main{flex-direction:row}
-  .cam-area{flex:1;min-width:0}
-  .right-panel{
-    width:260px;flex-shrink:0;height:100%;
-    border-top:none;border-left:1px solid var(--border);overflow-y:auto;
-  }
-  .controls{max-height:none;height:100%;overflow-y:auto;flex:1}
-  .controls.hidden{max-height:0;opacity:0;padding:0;overflow:hidden}
-  .capture-bar{border-top:1px solid var(--border)}
+  .controls{max-height:36vh}
 }
 
 @media(max-height:620px) and (max-width:639px){
@@ -1211,7 +1203,7 @@ function toggleControls() {
   ctrlVisible = !ctrlVisible;
   controlsEl.classList.toggle('hidden', !ctrlVisible);
   shutterBtn.classList.toggle('ghost', !ctrlVisible);
-  recordCell.style.display = ctrlVisible ? '' : 'none';
+  recordCell.style.visibility = ctrlVisible ? '' : 'hidden';
   capHideBtn.classList.toggle('revealed', !ctrlVisible);
 }
 
