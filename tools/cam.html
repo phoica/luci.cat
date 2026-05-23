@@ -21,19 +21,18 @@
   --danger:#ff3d5a;--r:3px;--rs:2px
 }
 body[data-theme="light"]{
-  --bg:#ddd4c0;--surface:#ede3ce;--surface2:#e4d8c0;
-  --glass:rgba(228,216,194,.68);--glass2:rgba(220,208,186,.6);
-  --border:rgba(100,76,38,.2);--border-s:#8a7050;--border-h:#604828;
-  --text:#180e02;--text-m:#5a4018;--text-d:#8a7050;
-  --accent:#b85e18;--accent-dim:rgba(184,94,24,.12);--accent-glow:rgba(184,94,24,.35);
-  --cx:#1a5080;--cx-dim:rgba(26,80,128,.1);
-  --danger:#b82030;--r:3px;--rs:2px
+  --bg:#e6ecf2;--surface:#f0f4f9;--surface2:#dde4ed;
+  --glass:rgba(240,244,249,.7);--glass2:rgba(225,232,240,.62);
+  --border:rgba(28,60,100,.2);--border-s:#6a82a0;--border-h:#3a5878;
+  --text:#0a1828;--text-m:#3a5878;--text-d:#6a82a0;
+  --accent:#c64a18;--accent-dim:rgba(198,74,24,.18);--accent-glow:rgba(198,74,24,.4);
+  --cx:#0f4e80;--cx-dim:rgba(15,78,128,.12);
+  --danger:#b82040;--r:3px;--rs:2px
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:#000}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);font-size:15px;line-height:1.5}
-html{background:var(--bg)}
 
 /* ── App shell ── */
 .app{
@@ -82,23 +81,24 @@ body[data-theme="light"] .header h1{
 #blindExitBtn{display:none}
 .lang-btn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px}
 
-/* ── Blind mode ── */
-body.blind-mode .header h1,
-body.blind-mode .hdr-space,
-body.blind-mode #blindBtn,
-body.blind-mode #themeBtn{display:none}
+/* ── Blind mode: same hide-controls behaviour as V, the rest stays put
+   but more translucent so the camera dominates. Tap-to-shoot. ── */
+body.blind-mode #blindBtn{display:none}
 body.blind-mode #blindExitBtn{display:flex}
-body.blind-mode .right-panel{display:none}
-body.blind-mode .capture-bar{display:none}
+body.blind-mode .header,
+body.blind-mode .capture-bar,
+body.blind-mode .right-panel{opacity:.55;transition:opacity .2s}
+body.blind-mode .header:hover,
+body.blind-mode .capture-bar:hover,
+body.blind-mode .right-panel:hover{opacity:1}
 body.blind-mode .viewport-wrap{cursor:crosshair}
-body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparent}
 
 /* ── Viewport ── */
 .viewport-wrap{
   flex:1;display:flex;align-items:center;justify-content:center;
-  background:#000;overflow:hidden;min-height:0;position:relative;
+  background:var(--bg);overflow:hidden;min-height:0;position:relative;
 }
-.viewport{position:relative;background:#000;overflow:hidden;max-width:100%;max-height:100%}
+.viewport{position:relative;background:var(--bg);overflow:hidden;max-width:100%;max-height:100%}
 .viewport[data-ratio="free"]{width:100%;height:100%}
 .viewport[data-ratio="1:1"] {aspect-ratio:1/1}
 .viewport[data-ratio="4:3"] {aspect-ratio:4/3}
@@ -107,7 +107,7 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
 .viewport[data-ratio="9:16"]{aspect-ratio:9/16}
 .viewport:not([data-ratio="free"]){width:auto;height:auto;max-width:100%;max-height:100%}
 
-#preview{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+#preview{width:100%;height:100%;object-fit:cover;display:block;background:var(--bg)}
 #preview.mirrored{transform:scaleX(-1)}
 
 /* Color frame: persistent border on viewport */
@@ -266,7 +266,8 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
   cursor:pointer;transition:all .15s;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;
 }
 .pill:hover{border-color:var(--cx);color:var(--cx)}
-.pill.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.pill.active{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+body[data-theme="light"] .pill.active{color:#fff}
 
 /* ── Toggle pills ── */
 .tgl-row{display:flex;gap:5px;flex-wrap:wrap}
@@ -278,7 +279,8 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
   cursor:pointer;transition:all .15s;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;
 }
 .tgl svg{width:11px;height:11px;display:block;flex-shrink:0}
-.tgl.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.tgl.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+body[data-theme="light"] .tgl.on{color:#fff}
 
 /* ── Color swatches ── */
 .swatch-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding-left:2px}
@@ -512,6 +514,16 @@ body[data-theme="light"] .gallery-hdr-title{
   position:absolute;bottom:4px;left:5px;
   font-size:10px;font-family:'JetBrains Mono',monospace;
   color:rgba(255,255,255,.7);text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+.gthumb video{width:100%;height:100%;object-fit:cover;display:block;background:#000}
+.gthumb .gplay{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;
+}
+.gthumb .gplay svg{
+  width:28px;height:28px;color:#fff;
+  filter:drop-shadow(0 1px 4px rgba(0,0,0,.6));
+  background:rgba(0,0,0,.45);border-radius:50%;padding:7px;
 }
 
 .gallery-footer{
@@ -798,7 +810,7 @@ body[data-theme="light"] .gallery-hdr-title{
 <script>
 // ── Constants ──────────────────────────────────────────────────────────────
 const THEMES        = ['dark','light'];
-const THEME_COLORS  = { dark:'#000000', light:'#f4f2ef' };
+const THEME_COLORS  = { dark:'#010c16', light:'#e6ecf2' };
 const PRESET_COLORS = ['#ffffff','#fff5e0','#e0f0ff','#ffe0f0','#e0ffe8','#ffeecc'];
 // index 0 = off, 1-12 = durations in seconds
 const LE_DURS = [null, 0.5, 1, 2, 3, 5, 8, 10, 15, 20, 30, 60, 100];
@@ -1105,10 +1117,9 @@ function triggerCaptureAnim() {
 function toggleSessionMode() {
   isSessionMode = !isSessionMode;
   sessionBtn.classList.toggle('on', isSessionMode);
-  // 'on' class works like .tgl.on — reuse accent style via same rule
-  sessionBtn.style.borderColor  = isSessionMode ? 'var(--accent)' : '';
-  sessionBtn.style.color        = isSessionMode ? 'var(--accent)' : '';
-  sessionBtn.style.background   = isSessionMode ? 'var(--accent-dim)' : '';
+  sessionBtn.style.borderColor = isSessionMode ? 'var(--accent)' : '';
+  sessionBtn.style.background  = isSessionMode ? 'var(--accent)' : '';
+  sessionBtn.style.color       = isSessionMode ? 'var(--bg)' : '';
   shutterBtn.classList.toggle('session-mode', isSessionMode);
   updateSessionPill();
   if (isSessionMode) showToast(t('sessionOn'), 3000);
@@ -1126,9 +1137,9 @@ function updateSessionPill() {
   gallerySave.disabled = sessionPhotos.filter(p => p.selected).length === 0;
 }
 
-function addToSession(blob) {
+function addToSession(blob, meta = {}) {
   const url = URL.createObjectURL(blob);
-  sessionPhotos.push({ blob, url, selected: true });
+  sessionPhotos.push({ blob, url, selected: true, isVideo: !!meta.isVideo, ext: meta.ext || 'png' });
   updateSessionPill();
   renderGalleryGrid();
   if (sessionPhotos.length >= SESSION_MAX) {
@@ -1150,9 +1161,13 @@ function renderGalleryGrid() {
   galleryGrid.innerHTML = '';
   sessionPhotos.forEach((photo, i) => {
     const div = document.createElement('div');
-    div.className = 'gthumb' + (photo.selected ? '' : ' off');
+    div.className = 'gthumb' + (photo.selected ? '' : ' off') + (photo.isVideo ? ' gvid' : '');
+    const media = photo.isVideo
+      ? `<video src="${photo.url}" muted playsinline preload="metadata"></video>
+         <div class="gplay"><svg viewBox="0 0 14 14" fill="currentColor"><path d="M3 2l9 5-9 5z"/></svg></div>`
+      : `<img src="${photo.url}" loading="lazy">`;
     div.innerHTML = `
-      <img src="${photo.url}" loading="lazy">
+      ${media}
       <div class="gcheck"><svg viewBox="0 0 10 10" fill="none"><polyline points="1.5,5 4,7.5 8.5,2" stroke="inherit" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
       <span class="gnum">${i + 1}</span>`;
     div.addEventListener('click', () => {
@@ -1179,7 +1194,10 @@ async function saveSessionPhotos() {
   const toSave = sessionPhotos.filter(p => p.selected);
   if (!toSave.length) return;
   const ts = timestamp();
-  const items = toSave.map((p, i) => ({ blob: p.blob, filename: `cam_session_${ts}_${i + 1}.png` }));
+  const items = toSave.map((p, i) => ({
+    blob: p.blob,
+    filename: `cam_session_${ts}_${i + 1}.${p.ext || 'png'}`,
+  }));
   const ok = await saveBlobsBatch(items);
   if (!ok) return;
   const kept = sessionPhotos.filter(p => !p.selected);
@@ -1204,10 +1222,15 @@ function clearSession() {
 const FS_ENTER = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>`;
 const FS_EXIT  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v4H3M17 7h-4V3M13 17v-4h4M3 13h4v4"/></svg>`;
 
+function fullscreenSupported() {
+  const el = document.documentElement;
+  return !!(el.requestFullscreen || el.webkitRequestFullscreen);
+}
 function isFullscreen() {
   return !!(document.fullscreenElement || document.webkitFullscreenElement);
 }
 function updateFsBtn() {
+  if (!fullscreenSupported()) { fsBtn.style.display = 'none'; return; }
   fsBtn.innerHTML = isFullscreen() ? FS_EXIT : FS_ENTER;
 }
 function toggleFullscreen() {
@@ -1377,15 +1400,20 @@ function toggleControls() {
 }
 
 // ── Blind mode ─────────────────────────────────────────────────────────────
+let blindCollapsedCtrls = false;
 function enterBlindMode() {
   isBlindMode = true;
   body.classList.add('blind-mode');
+  blindCollapsedCtrls = ctrlVisible;
+  if (ctrlVisible) toggleControls();
   vpWrap.addEventListener('click', blindTap);
   showToast(t('blindToast'), 2500);
 }
 function exitBlindMode() {
   isBlindMode = false;
   body.classList.remove('blind-mode');
+  if (blindCollapsedCtrls && !ctrlVisible) toggleControls();
+  blindCollapsedCtrls = false;
   vpWrap.removeEventListener('click', blindTap);
 }
 function blindTap(e) {
@@ -2039,7 +2067,18 @@ function saveVideo() {
   const mime = mediaRecorder?.mimeType || 'video/webm';
   const ext  = mime.includes('mp4') ? 'mp4' : 'webm';
   const blob = new Blob(recordedChunks, { type: mime });
-  saveBlob(blob, `cam_${timestamp()}.${ext}`);
+  const filename = `cam_${timestamp()}.${ext}`;
+  if (isSessionMode) {
+    if (sessionPhotos.length >= SESSION_MAX) {
+      showToast(t('sessionFullSave'), 3000);
+      openGallery();
+      saveBlob(blob, filename);
+      return;
+    }
+    addToSession(blob, { isVideo: true, ext, filename });
+  } else {
+    saveBlob(blob, filename);
+  }
 }
 function updateRecTimer() {
   const m = Math.floor(recSecs / 60), s = recSecs % 60;
