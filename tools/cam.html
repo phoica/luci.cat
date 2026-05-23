@@ -80,6 +80,7 @@ body[data-theme="light"] .header h1{
 .icon-btn:hover,.icon-btn:active{border-color:var(--cx);color:var(--cx);background:var(--cx-dim)}
 .icon-btn svg{width:16px;height:16px;display:block}
 #blindExitBtn{display:none}
+.lang-btn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px}
 
 /* ── Blind mode ── */
 body.blind-mode .header h1,
@@ -561,10 +562,11 @@ body[data-theme="light"] .gallery-hdr-title{
     <div class="cam-area">
 
       <div class="header">
-        <h1>Cam</h1>
+        <h1 data-i18n="title">Cam</h1>
         <span class="hdr-space"></span>
-        <!-- Blind mode enter -->
-        <button class="icon-btn" id="sessionBtn" title="Session mode — collect photos before saving" aria-label="Toggle session mode">
+        <button class="icon-btn lang-btn" id="langBtn" data-i18n-title="language" aria-label="Language" title="Language">EN</button>
+        <!-- Session mode -->
+        <button class="icon-btn" id="sessionBtn" data-i18n-title="sessionTitle" data-i18n-aria="toggleSession">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="2" y="2" width="7" height="7" rx="1.5"/>
             <rect x="11" y="2" width="7" height="7" rx="1.5"/>
@@ -572,21 +574,21 @@ body[data-theme="light"] .gallery-hdr-title{
             <rect x="11" y="11" width="7" height="7" rx="1.5"/>
           </svg>
         </button>
-        <button class="icon-btn" id="fsBtn" title="Fullscreen" aria-label="Toggle fullscreen"></button>
-        <button class="icon-btn" id="blindBtn" title="Blind mode — tap anywhere to shoot" aria-label="Blind mode">
+        <button class="icon-btn" id="fsBtn" data-i18n-title="toggleFullscreen" data-i18n-aria="toggleFullscreen"></button>
+        <button class="icon-btn" id="blindBtn" data-i18n-title="blindModeTitle" data-i18n-aria="blindModeTitle">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="4" y="4" width="16" height="16" rx="3"/>
             <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
           </svg>
         </button>
         <!-- Blind mode exit -->
-        <button class="icon-btn" id="blindExitBtn" title="Exit blind mode" aria-label="Exit blind mode">
+        <button class="icon-btn" id="blindExitBtn" data-i18n-title="blindExit" data-i18n-aria="blindExit">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
         </button>
-        <button class="icon-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme"></button>
+        <button class="icon-btn" id="themeBtn" data-i18n-title="toggleTheme" data-i18n-aria="toggleTheme"></button>
       </div>
 
       <div class="viewport-wrap" id="viewportWrap">
@@ -603,14 +605,14 @@ body[data-theme="light"] .gallery-hdr-title{
             <div class="crop-v" id="cdRight"  style="right:0;transform:translate(50%,-50%)"></div>
           </div>
           <div class="capture-flash" id="captureFlash"></div>
-          <div class="rec-badge" id="recBadge"><span class="rec-dot"></span>REC</div>
+          <div class="rec-badge" id="recBadge"><span class="rec-dot"></span><span data-i18n="rec">REC</span></div>
 
           <div class="le-overlay hidden" id="leOverlay">
             <div class="le-card">
               <div class="le-timer" id="leTimer">5.0s</div>
-              <div class="le-label">Exposing</div>
+              <div class="le-label" data-i18n="exposing">Exposing</div>
               <div class="le-bar-track"><div class="le-bar-fill" id="leBarFill"></div></div>
-              <button class="le-cancel" id="leCancelBtn">Cancel</button>
+              <button class="le-cancel" id="leCancelBtn" data-i18n="cancel">Cancel</button>
             </div>
           </div>
 
@@ -622,8 +624,8 @@ body[data-theme="light"] .gallery-hdr-title{
               <rect x="23" y="13" width="18" height="9" rx="4"/>
               <circle cx="50" cy="26" r="2.5" fill="white" opacity=".6"/>
             </svg>
-            <p>Tap to enable your camera</p>
-            <button class="perm-btn" id="permBtn">Enable Camera</button>
+            <p data-i18n="enableCam">Tap to enable your camera</p>
+            <button class="perm-btn" id="permBtn" data-i18n="enableCamBtn">Enable Camera</button>
           </div>
 
           <div class="overlay hidden" id="errOverlay">
@@ -631,8 +633,8 @@ body[data-theme="light"] .gallery-hdr-title{
               <circle cx="32" cy="32" r="26"/>
               <path d="M32 20v16M32 42v2"/>
             </svg>
-            <p id="errMsg">Something went wrong</p>
-            <button class="perm-btn" id="retryBtn">Try Again</button>
+            <p id="errMsg" data-i18n="somethingWrong">Something went wrong</p>
+            <button class="perm-btn" id="retryBtn" data-i18n="tryAgain">Try Again</button>
           </div>
         </div>
       </div>
@@ -642,29 +644,29 @@ body[data-theme="light"] .gallery-hdr-title{
     <div class="right-panel" id="rightPanel">
       <div class="controls" id="controls">
 
-        <div class="sec">Camera</div>
+        <div class="sec" data-i18n="camera">Camera</div>
         <div class="pill-row" id="cameraSelector"></div>
 
-        <div class="sec">Ratio</div>
+        <div class="sec" data-i18n="ratio">Ratio</div>
         <div class="pill-row" id="ratioSelector">
-          <button class="pill active" data-ratio="free">Free</button>
+          <button class="pill active" data-ratio="free" data-i18n="free">Free</button>
           <button class="pill" data-ratio="1:1">1:1</button>
           <button class="pill" data-ratio="4:3">4:3</button>
           <button class="pill" data-ratio="3:4">3:4</button>
           <button class="pill" data-ratio="16:9">16:9</button>
           <button class="pill" data-ratio="9:16">9:16</button>
-          <button class="pill" data-ratio="custom">Custom</button>
+          <button class="pill" data-ratio="custom" data-i18n="custom">Custom</button>
         </div>
         <div class="custom-ratio-row" id="customRatioRow" style="display:none">
           <input type="number" id="customW" min="1" max="99" value="16">
           <span class="cr-sep">:</span>
           <input type="number" id="customH" min="1" max="99" value="9">
-          <span class="cr-hint">ratio</span>
+          <span class="cr-hint" data-i18n="ratioHint">ratio</span>
         </div>
 
         <!-- Zoom (hardware) -->
         <div class="crow ctrl-bump" id="zoomRow" style="display:none">
-          <span class="clbl"><i class="cdot" style="--d:#7ed1ff"></i>Zoom</span>
+          <span class="clbl"><i class="cdot" style="--d:#7ed1ff"></i><span data-i18n="zoom">Zoom</span></span>
           <input type="range" class="cslider" id="zoomSlider" min="1" max="5" step="0.1" value="1">
           <span class="cval" id="zoomVal">1.0×</span>
         </div>
@@ -672,15 +674,15 @@ body[data-theme="light"] .gallery-hdr-title{
         <div class="tgl-row ctrl-bump">
           <button class="tgl" id="mirrorTgl">
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 2v10M3 5l-2 2 2 2M11 5l2 2-2 2"/></svg>
-            Mirror
+            <span data-i18n="mirror">Mirror</span>
           </button>
           <button class="tgl" id="torchTgl" style="display:none">
             <svg viewBox="0 0 14 14" fill="currentColor"><path d="M8 1L3 8h3l-1 5 5-7H7l1-5z"/></svg>
-            Flash
+            <span data-i18n="flash">Flash</span>
           </button>
           <button class="tgl" id="cfTgl">
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="10" height="10" rx="1.2"/><rect x="4.5" y="4.5" width="5" height="5"/></svg>
-            Color Frame
+            <span data-i18n="colorFrame">Color Frame</span>
           </button>
         </div>
         <div class="swatch-row" id="swatchRow" style="display:none">
@@ -697,40 +699,40 @@ body[data-theme="light"] .gallery-hdr-title{
 
         <!-- EV compensation -->
         <div class="crow ctrl-bump" id="evRow" style="display:none">
-          <span class="clbl"><i class="cdot" style="--d:#ffd060"></i>EV</span>
+          <span class="clbl"><i class="cdot" style="--d:#ffd060"></i><span data-i18n="ev">EV</span></span>
           <input type="range" class="cslider" id="evSlider" min="-3" max="3" step="0.5" value="0">
           <span class="cval" id="evVal">0</span>
         </div>
 
         <!-- Shutter — left=auto, right=manual (hardware) -->
         <div class="crow ctrl-bump" id="expTimeRow" style="display:none">
-          <span class="clbl"><i class="cdot" style="--d:#ff8c30"></i>Shutter</span>
+          <span class="clbl"><i class="cdot" style="--d:#ff8c30"></i><span data-i18n="shutter">Shutter</span></span>
           <input type="range" class="cslider" id="expTimeSlider" min="0" max="1" step="0.01" value="0">
           <span class="cval" id="expTimeVal">Auto</span>
         </div>
 
         <!-- ISO — left=auto, right=manual (hardware) -->
         <div class="crow ctrl-bump" id="isoRow" style="display:none">
-          <span class="clbl"><i class="cdot" style="--d:#ff5a8c"></i>ISO</span>
+          <span class="clbl"><i class="cdot" style="--d:#ff5a8c"></i><span data-i18n="iso">ISO</span></span>
           <input type="range" class="cslider" id="isoSlider" min="0" max="1" step="0.01" value="0">
           <span class="cval" id="isoVal">Auto</span>
         </div>
 
         <!-- Exp (long exposure) — index 0 = off -->
         <div class="crow ctrl-bump">
-          <span class="clbl"><i class="cdot" style="--d:#a070ff"></i>Exp</span>
+          <span class="clbl"><i class="cdot" style="--d:#a070ff"></i><span data-i18n="exp">Exp</span></span>
           <input type="range" class="cslider" id="leDurSlider" min="0" max="12" step="1" value="0">
           <span class="cval" id="leDurVal">Off</span>
         </div>
         <div class="pill-row" id="leModeRow" style="display:none">
-          <button class="pill active" data-le-mode="average">Average</button>
-          <button class="pill" data-le-mode="trails">Trails</button>
-          <button class="pill" data-le-mode="darken">Dark</button>
+          <button class="pill active" data-le-mode="average" data-i18n="average">Average</button>
+          <button class="pill" data-le-mode="trails" data-i18n="trails">Trails</button>
+          <button class="pill" data-le-mode="darken" data-i18n="dark">Dark</button>
         </div>
 
         <!-- Focus -->
         <div class="crow ctrl-bump" id="focusRow" style="display:none">
-          <span class="clbl"><i class="cdot" style="--d:#70e0c0"></i>Focus</span>
+          <span class="clbl"><i class="cdot" style="--d:#70e0c0"></i><span data-i18n="focus">Focus</span></span>
           <input type="range" class="cslider" id="focusSlider" min="0" max="1" step="0.01" value="0">
           <span class="cval" id="focusVal">Auto</span>
         </div>
@@ -744,7 +746,7 @@ body[data-theme="light"] .gallery-hdr-title{
   <div class="capture-bar">
     <div class="session-pill" id="sessionPill">
       <span class="session-pill-count" id="sessionCount">0 / 10</span>
-      <button class="session-view-btn" id="sessionViewBtn">View →</button>
+      <button class="session-view-btn" id="sessionViewBtn" data-i18n="view">View →</button>
     </div>
     <div class="capture-row">
       <div class="cap-left" id="recordCell">
@@ -771,10 +773,10 @@ body[data-theme="light"] .gallery-hdr-title{
 <!-- Session gallery overlay -->
 <div class="gallery-ov hidden" id="galleryOv">
   <div class="gallery-hdr">
-    <span class="gallery-hdr-title">Session</span>
+    <span class="gallery-hdr-title" data-i18n="session">Session</span>
     <span class="gallery-hdr-sub" id="galleryHdrSub">0 photos</span>
     <span class="gallery-hdr-space"></span>
-    <button class="gallery-selall" id="gallerySelAll">Select all</button>
+    <button class="gallery-selall" id="gallerySelAll" data-i18n="selectAll">Select all</button>
     <button class="gallery-close" id="galleryClose" aria-label="Close gallery">
       <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M1 1l12 12M13 1L1 13"/>
@@ -783,8 +785,8 @@ body[data-theme="light"] .gallery-hdr-title{
   </div>
   <div class="gallery-grid" id="galleryGrid"></div>
   <div class="gallery-footer">
-    <button class="gallery-save" id="gallerySave">Save selected</button>
-    <button class="gallery-clear" id="galleryClear">Clear all</button>
+    <button class="gallery-save" id="gallerySave" data-i18n="saveSelected">Save selected</button>
+    <button class="gallery-clear" id="galleryClear" data-i18n="clearAll">Clear all</button>
   </div>
 </div>
 
@@ -803,6 +805,161 @@ const LE_DURS = [null, 0.5, 1, 2, 3, 5, 8, 10, 15, 20, 30, 60, 100];
 
 const SUN  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="3.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"/></svg>`;
 const MOON = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 11.5A7 7 0 1 1 8.5 3a5.5 5.5 0 0 0 8.5 8.5z"/></svg>`;
+
+// ── i18n ───────────────────────────────────────────────────────────────────
+const LANGS = ['en','pt','ca'];
+const I18N = {
+  en: {
+    title:'Cam', camera:'Camera', ratio:'Ratio', free:'Free', custom:'Custom', ratioHint:'ratio',
+    zoom:'Zoom', ev:'EV', shutter:'Shutter', iso:'ISO', exp:'Exp', focus:'Focus',
+    mirror:'Mirror', flash:'Flash', colorFrame:'Color Frame',
+    average:'Average', trails:'Trails', dark:'Dark',
+    off:'Off', auto:'Auto', cancel:'Cancel', exposing:'Exposing',
+    enableCam:'Tap to enable your camera', enableCamBtn:'Enable Camera',
+    somethingWrong:'Something went wrong', tryAgain:'Try Again',
+    session:'Session', selectAll:'Select all', deselectAll:'Deselect all',
+    saveSelected:'Save selected', clearAll:'Clear all', view:'View →', rec:'REC',
+    toggleTheme:'Toggle theme', toggleFullscreen:'Toggle fullscreen',
+    toggleSession:'Toggle session mode', sessionTitle:'Session mode — collect photos before saving',
+    blindModeTitle:'Blind mode — tap anywhere to shoot', blindExit:'Exit blind mode',
+    language:'Language',
+    photos:(n)=>`${n} photo${n===1?'':'s'}`,
+    selectedOf:(s,n)=>`${s} of ${n} selected`,
+    savePhotos:(n)=>`Save ${n} photo${n>1?'s':''}`,
+    savedPhotos:(n)=>`Saved ${n} photo${n>1?'s':''}`,
+    sessionOn:'Session mode on — photos held until you save them',
+    sessionOff:'Session mode off',
+    sessionFull:'Session full (10/10) — save what you like, then clear',
+    sessionFullSave:'Session full — save or clear before shooting more',
+    sessionCleared:'Session cleared',
+    blindToast:'Blind mode — tap anywhere to shoot',
+    expCancelled:'Exposure cancelled',
+    micBlocked:'Mic blocked — recording video without audio',
+    noMic:'No mic available — recording silent',
+    camNotAccessible:"Camera isn't accessible in this browser",
+    photoReady:'Photo ready — pick "Save to Photos" if prompted',
+    apiNotSupported:'Camera API not supported — try Safari or Chrome',
+    torchNotAvail:'Torch not available on this camera',
+    camDenied:'Camera access denied — check browser settings and reload',
+    noCamFound:'No camera found on this device',
+    camBusy:'Camera is busy — close other apps using it and try again',
+    camStartFail:(msg)=>`Couldn't start camera: ${msg}`,
+  },
+  pt: {
+    title:'Câm', camera:'Câmera', ratio:'Proporção', free:'Livre', custom:'Personalizada', ratioHint:'proporção',
+    zoom:'Zoom', ev:'EV', shutter:'Obturador', iso:'ISO', exp:'Exp', focus:'Foco',
+    mirror:'Espelhar', flash:'Flash', colorFrame:'Moldura Cor',
+    average:'Média', trails:'Rastros', dark:'Escuro',
+    off:'Off', auto:'Auto', cancel:'Cancelar', exposing:'Expondo',
+    enableCam:'Toque para ativar a câmera', enableCamBtn:'Ativar câmera',
+    somethingWrong:'Algo deu errado', tryAgain:'Tentar de novo',
+    session:'Sessão', selectAll:'Selecionar tudo', deselectAll:'Desmarcar tudo',
+    saveSelected:'Salvar selecionadas', clearAll:'Limpar tudo', view:'Ver →', rec:'REC',
+    toggleTheme:'Alternar tema', toggleFullscreen:'Tela cheia',
+    toggleSession:'Modo sessão', sessionTitle:'Modo sessão — junte fotos antes de salvar',
+    blindModeTitle:'Modo cego — toque em qualquer lugar pra fotografar', blindExit:'Sair do modo cego',
+    language:'Idioma',
+    photos:(n)=>`${n} foto${n===1?'':'s'}`,
+    selectedOf:(s,n)=>`${s} de ${n} selecionada${s>1?'s':''}`,
+    savePhotos:(n)=>`Salvar ${n} foto${n>1?'s':''}`,
+    savedPhotos:(n)=>`${n} foto${n>1?'s':''} salva${n>1?'s':''}`,
+    sessionOn:'Modo sessão ativo — fotos guardadas até você salvar',
+    sessionOff:'Modo sessão desativado',
+    sessionFull:'Sessão cheia (10/10) — salve as que quiser e limpe',
+    sessionFullSave:'Sessão cheia — salve ou limpe antes de continuar',
+    sessionCleared:'Sessão limpa',
+    blindToast:'Modo cego — toque em qualquer lugar pra fotografar',
+    expCancelled:'Exposição cancelada',
+    micBlocked:'Mic bloqueado — gravando sem áudio',
+    noMic:'Sem mic — gravando sem som',
+    camNotAccessible:'Câmera não acessível neste navegador',
+    photoReady:'Foto pronta — escolha "Salvar em Fotos" se aparecer',
+    apiNotSupported:'API da câmera não suportada — tente Safari ou Chrome',
+    torchNotAvail:'Lanterna indisponível nesta câmera',
+    camDenied:'Acesso negado — verifique as permissões e recarregue',
+    noCamFound:'Nenhuma câmera encontrada',
+    camBusy:'Câmera ocupada — feche outros apps e tente de novo',
+    camStartFail:(msg)=>`Não foi possível iniciar a câmera: ${msg}`,
+  },
+  ca: {
+    title:'Càm', camera:'Càmera', ratio:'Relació', free:'Lliure', custom:'Personal', ratioHint:'relació',
+    zoom:'Zoom', ev:'EV', shutter:'Obturador', iso:'ISO', exp:'Exp', focus:'Focus',
+    mirror:'Mirall', flash:'Flaix', colorFrame:'Marc Color',
+    average:'Mitjana', trails:'Rastres', dark:'Fosc',
+    off:'Off', auto:'Auto', cancel:'Cancel·la', exposing:'Exposant',
+    enableCam:'Toca per activar la càmera', enableCamBtn:'Activa càmera',
+    somethingWrong:'Alguna cosa ha fallat', tryAgain:'Torna-ho a provar',
+    session:'Sessió', selectAll:'Selecciona-ho tot', deselectAll:'Desselecciona-ho tot',
+    saveSelected:'Desa seleccionades', clearAll:'Buida tot', view:'Veure →', rec:'REC',
+    toggleTheme:'Canvia tema', toggleFullscreen:'Pantalla completa',
+    toggleSession:'Mode sessió', sessionTitle:'Mode sessió — recull fotos abans de desar-les',
+    blindModeTitle:'Mode cec — toca on sigui per disparar', blindExit:'Surt del mode cec',
+    language:'Idioma',
+    photos:(n)=>`${n} foto${n===1?'':'s'}`,
+    selectedOf:(s,n)=>`${s} de ${n} seleccionada${s>1?'es':''}`,
+    savePhotos:(n)=>`Desa ${n} foto${n>1?'s':''}`,
+    savedPhotos:(n)=>`${n} foto${n>1?'s':''} desada${n>1?'es':''}`,
+    sessionOn:'Mode sessió actiu — fotos guardades fins que les desis',
+    sessionOff:'Mode sessió desactivat',
+    sessionFull:'Sessió plena (10/10) — desa el que vulguis i buida',
+    sessionFullSave:'Sessió plena — desa o buida abans de seguir',
+    sessionCleared:'Sessió buidada',
+    blindToast:'Mode cec — toca on sigui per disparar',
+    expCancelled:'Exposició cancel·lada',
+    micBlocked:'Mic bloquejat — gravant sense àudio',
+    noMic:'Sense mic — gravant sense so',
+    camNotAccessible:'Càmera no accessible en aquest navegador',
+    photoReady:'Foto a punt — tria "Desa a Fotos" si surt',
+    apiNotSupported:'API de càmera no suportada — prova Safari o Chrome',
+    torchNotAvail:'Llanterna no disponible en aquesta càmera',
+    camDenied:"Accés denegat — comprova els permisos i recarrega",
+    noCamFound:'No s\'ha trobat cap càmera',
+    camBusy:'Càmera ocupada — tanca altres apps i torna-ho a provar',
+    camStartFail:(msg)=>`No s'ha pogut obrir la càmera: ${msg}`,
+  },
+};
+
+let curLang = 'en';
+function t(key, ...args) {
+  const dict = I18N[curLang] || I18N.en;
+  const v = dict[key] ?? I18N.en[key] ?? key;
+  return typeof v === 'function' ? v(...args) : v;
+}
+function applyI18n() {
+  document.title = t('title') + ' — luci.cat';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.dataset.i18n;
+    const v = t(k);
+    if (typeof v === 'string') el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    el.title = t(el.dataset.i18nTitle);
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    el.setAttribute('aria-label', t(el.dataset.i18nAria));
+  });
+  // Dynamic re-renders
+  if (typeof renderCamSelector === 'function' && devices.length) renderCamSelector();
+  if (typeof updateSessionPill === 'function') updateSessionPill();
+  if (typeof updateGalleryHeader === 'function') updateGalleryHeader();
+  if (typeof updateLeDurDisplay === 'function') updateLeDurDisplay();
+  if (typeof langBtn !== 'undefined' && langBtn) langBtn.textContent = curLang.toUpperCase();
+}
+function detectLang() {
+  const stored = (() => {
+    try { return JSON.parse(localStorage.getItem('cam_prefs') || '{}').lang; } catch { return null; }
+  })();
+  if (stored && LANGS.includes(stored)) return stored;
+  const nav = (navigator.language || 'en').toLowerCase();
+  if (nav.startsWith('pt')) return 'pt';
+  if (nav.startsWith('ca')) return 'ca';
+  return 'en';
+}
+function cycleLang() {
+  curLang = LANGS[(LANGS.indexOf(curLang) + 1) % LANGS.length];
+  applyI18n();
+  saveSettings();
+}
 
 // ── State ──────────────────────────────────────────────────────────────────
 let themeIdx       = 0;
@@ -873,6 +1030,7 @@ const cfPicker     = $('cfPicker');
 const cfOverlay    = $('cfOverlay');
 const cfBorder     = $('cfBorder');
 const themeBtn     = $('themeBtn');
+const langBtn      = $('langBtn');
 const sessionBtn    = $('sessionBtn');
 const sessionPill   = $('sessionPill');
 const sessionCount  = $('sessionCount');
@@ -953,8 +1111,8 @@ function toggleSessionMode() {
   sessionBtn.style.background   = isSessionMode ? 'var(--accent-dim)' : '';
   shutterBtn.classList.toggle('session-mode', isSessionMode);
   updateSessionPill();
-  if (isSessionMode) showToast('Session mode on — photos held until you save them', 3000);
-  else               showToast('Session mode off');
+  if (isSessionMode) showToast(t('sessionOn'), 3000);
+  else               showToast(t('sessionOff'));
 }
 
 function updateSessionPill() {
@@ -963,7 +1121,7 @@ function updateSessionPill() {
   sessionPill.classList.add('visible');
   sessionCount.textContent = `${n} / ${SESSION_MAX}`;
   sessionCount.classList.toggle('full', n >= SESSION_MAX);
-  sessionViewBtn.textContent = n > 0 ? 'View →' : '';
+  sessionViewBtn.textContent = n > 0 ? t('view') : '';
   sessionViewBtn.style.display = n > 0 ? '' : 'none';
   gallerySave.disabled = sessionPhotos.filter(p => p.selected).length === 0;
 }
@@ -974,7 +1132,7 @@ function addToSession(blob) {
   updateSessionPill();
   renderGalleryGrid();
   if (sessionPhotos.length >= SESSION_MAX) {
-    showToast('Session full (10/10) — save what you like, then clear', 3500);
+    showToast(t('sessionFull'), 3500);
     openGallery();
   }
 }
@@ -1011,10 +1169,10 @@ function renderGalleryGrid() {
 function updateGalleryHeader() {
   const n = sessionPhotos.length;
   const sel = sessionPhotos.filter(p => p.selected).length;
-  galleryHdrSub.textContent = `${sel} of ${n} selected`;
-  gallerySave.textContent = sel > 0 ? `Save ${sel} photo${sel > 1 ? 's' : ''}` : 'Save selected';
+  galleryHdrSub.textContent = t('selectedOf', sel, n);
+  gallerySave.textContent = sel > 0 ? t('savePhotos', sel) : t('saveSelected');
   gallerySave.disabled = sel === 0;
-  gallerySelAll.textContent = sel === n ? 'Deselect all' : 'Select all';
+  gallerySelAll.textContent = sel === n && n > 0 ? t('deselectAll') : t('selectAll');
 }
 
 async function saveSessionPhotos() {
@@ -1030,7 +1188,7 @@ async function saveSessionPhotos() {
   updateSessionPill();
   renderGalleryGrid();
   if (sessionPhotos.length === 0) closeGallery();
-  showToast(`Saved ${toSave.length} photo${toSave.length > 1 ? 's' : ''}`);
+  showToast(t('savedPhotos', toSave.length));
 }
 
 function clearSession() {
@@ -1039,7 +1197,7 @@ function clearSession() {
   updateSessionPill();
   renderGalleryGrid();
   closeGallery();
-  showToast('Session cleared');
+  showToast(t('sessionCleared'));
 }
 
 // ── Fullscreen ─────────────────────────────────────────────────────────────
@@ -1136,13 +1294,15 @@ function initCrop() {
 
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
+  curLang = detectLang();
   loadSettings();
+  applyI18n();
   bindControls();
   initCrop();
   updateFsBtn();
   navigator.mediaDevices?.getUserMedia
     ? startCamera()
-    : showError('Camera API not supported — try Safari or Chrome');
+    : showError(t('apiNotSupported'));
 }
 window.addEventListener('beforeunload', () => {
   stream?.getTracks().forEach(t => t.stop());
@@ -1184,7 +1344,7 @@ function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
-      cf: isCF, cfColor, leDurIdx, leMode,
+      cf: isCF, cfColor, leDurIdx, leMode, lang: curLang,
     }));
   } catch {}
 }
@@ -1221,7 +1381,7 @@ function enterBlindMode() {
   isBlindMode = true;
   body.classList.add('blind-mode');
   vpWrap.addEventListener('click', blindTap);
-  showToast('Blind mode — tap anywhere to shoot', 2500);
+  showToast(t('blindToast'), 2500);
 }
 function exitBlindMode() {
   isBlindMode = false;
@@ -1302,7 +1462,7 @@ async function startCamera(deviceId = null) {
   } catch (err) {
     if (err.name === 'OverconstrainedError' && deviceId) {
       try { ns = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { ideal: deviceId } }, audio: false }); }
-      catch { showToast("Camera isn't accessible in this browser"); return; }
+      catch { showToast(t('camNotAccessible')); return; }
     } else { return handleError(err); }
   }
 
@@ -1429,9 +1589,9 @@ function detectCapabilities() {
   focusMin = 0; focusMax = 0;
   expTimeMin = 0; expTimeMax = 0;
   isoMin = 0; isoMax = 0;
-  expTimeSldr.value = 0; expTimeVal.textContent = 'Auto';
-  isoSldr.value     = 0; isoVal.textContent     = 'Auto';
-  focusSldr.value   = 0; focusVal.textContent   = 'Auto';
+  expTimeSldr.value = 0; expTimeVal.textContent = t('auto');
+  isoSldr.value     = 0; isoVal.textContent     = t('auto');
+  focusSldr.value   = 0; focusVal.textContent   = t('auto');
 
   if (!track?.getCapabilities) return;
   const caps = track.getCapabilities();
@@ -1490,7 +1650,7 @@ async function applyZoom(val) {
 
 // ── Focus (0 = auto) ───────────────────────────────────────────────────────
 function fmtFocus(v) {
-  if (v <= 0.01) return 'Auto';
+  if (v <= 0.01) return t('auto');
   const m = focusMax - v * (focusMax - focusMin);
   if (m >= focusMax * 0.95) return '∞';
   if (m >= 1) return m.toFixed(1) + 'm';
@@ -1522,7 +1682,7 @@ function logSliderToExpTime(t) {
   return Math.exp(expTimeLogMin + t * expTimeLogRange);
 }
 function fmtExpTime(us) {
-  if (us === null) return 'Auto';
+  if (us === null) return t('auto');
   const s = us / 1e6;
   if (s >= 1) return s.toFixed(1) + 's';
   return `1/${Math.round(1 / s)}s`;
@@ -1546,7 +1706,7 @@ function logSliderToISO(t) {
 }
 async function applyISO(t) {
   const iso = logSliderToISO(parseFloat(t));
-  isoVal.textContent = iso === null ? 'Auto' : iso.toString();
+  isoVal.textContent = iso === null ? t('auto') : iso.toString();
   pct(isoSldr);
   const track = stream?.getVideoTracks()[0];
   if (!track) return;
@@ -1566,7 +1726,7 @@ async function setTorch(on) {
     await track.applyConstraints({ advanced: [{ torch: on }] });
   } catch {
     isTorchOn = false; torchTgl.classList.remove('on');
-    showToast('Torch not available on this camera');
+    showToast(t('torchNotAvail'));
   }
 }
 
@@ -1638,7 +1798,7 @@ function setRatio(ratio, save = true) {
 function updateLeDurDisplay() {
   const dur = LE_DURS[leDurIdx];
   if (dur === null) {
-    leDurVal.textContent = 'Off';
+    leDurVal.textContent = t('off');
     leModeRow.style.display = 'none';
     shutterBtn.classList.remove('le-mode');
   } else {
@@ -1734,7 +1894,7 @@ function cancelLongExposure() {
   shutterBtn.classList.remove('le-capturing');
   leOverlay.classList.add('hidden');
   leAccum = null; leStackCanvas = null;
-  showToast('Exposure cancelled');
+  showToast(t('expCancelled'));
 }
 
 // ── Photo capture ──────────────────────────────────────────────────────────
@@ -1800,7 +1960,7 @@ async function capturePhoto() {
   capCanvas.toBlob(blob => {
     if (isSessionMode) {
       if (sessionPhotos.length >= SESSION_MAX) {
-        showToast('Session full — save or clear before shooting more', 3000);
+        showToast(t('sessionFullSave'), 3000);
         openGallery();
         return;
       }
@@ -1809,7 +1969,7 @@ async function capturePhoto() {
       saveBlob(blob, `cam_${timestamp()}.png`);
       if (!localStorage.getItem('cam_save_ok')) {
         localStorage.setItem('cam_save_ok', '1');
-        showToast('Photo ready — pick "Save to Photos" if prompted');
+        showToast(t('photoReady'));
       }
     }
   }, 'image/png');
@@ -1833,8 +1993,8 @@ async function startRecording() {
       video: false,
     });
   } catch (err) {
-    if (err.name === 'NotAllowedError') { showToast('Mic blocked — recording video without audio', 3000); }
-    else { showToast('No mic available — recording silent', 2400); }
+    if (err.name === 'NotAllowedError') { showToast(t('micBlocked'), 3000); }
+    else { showToast(t('noMic'), 2400); }
   }
 
   const tracks = [...stream.getVideoTracks(), ...(audioStream?.getAudioTracks() ?? [])];
@@ -1903,13 +2063,13 @@ function showError(msg) {
 }
 function handleError(err) {
   if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError')
-    showError('Camera access denied — check browser settings and reload');
+    showError(t('camDenied'));
   else if (err.name === 'NotFoundError')
-    showError('No camera found on this device');
+    showError(t('noCamFound'));
   else if (err.name === 'NotReadableError')
-    showError('Camera is busy — close other apps using it and try again');
+    showError(t('camBusy'));
   else
-    showError(`Couldn't start camera: ${err.message || err.name}`);
+    showError(t('camStartFail', err.message || err.name));
 }
 
 // ── Key handler (volume rocker) ────────────────────────────────────────────
@@ -1949,6 +2109,7 @@ function bindControls() {
   });
   fsBtn.addEventListener('click',         toggleFullscreen);
   themeBtn.addEventListener('click',      () => applyTheme(themeIdx + 1));
+  langBtn.addEventListener('click',       cycleLang);
   capHideBtn.addEventListener('click',    toggleControls);
   permBtn.addEventListener('click',       () => startCamera());
   blindBtn.addEventListener('click',      enterBlindMode);
