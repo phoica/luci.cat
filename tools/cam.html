@@ -1435,6 +1435,7 @@ function init() {
   updateFsBtn();
   updateSoundBtn();
   updateReviewModeBtn();
+  toggleControls(); // start with UI docked
   if (!navigator.mediaDevices?.getUserMedia) showError(t('apiNotSupported'));
 }
 window.addEventListener('beforeunload', () => {
