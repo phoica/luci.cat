@@ -215,6 +215,10 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
   color:var(--cx);font-family:'JetBrains Mono',monospace;
   margin-top:6px;flex-shrink:0;opacity:.75;
 }
+.ratio-flip-hint{
+  margin-left:auto;font-size:8px;font-weight:400;letter-spacing:.5px;
+  text-transform:none;opacity:.7;color:var(--text-m);font-family:inherit;
+}
 .sec::before{
   content:'';display:inline-block;width:5px;height:5px;
   background:var(--cx);transform:rotate(45deg);flex-shrink:0;opacity:.85;
@@ -321,7 +325,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 /* ── Capture bar (full width, always at bottom of .app) ── */
 .capture-bar{
   flex-shrink:0;
-  padding:5px 16px calc(env(safe-area-inset-bottom) + 2px);
+  padding:5px 16px env(safe-area-inset-bottom);
   background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   border-top:1px solid var(--border);position:relative;
 }
@@ -700,14 +704,14 @@ body[data-theme="light"] .gallery-hdr-title{
         <div class="sec" data-i18n="camera">Camera</div>
         <div class="pill-row" id="cameraSelector"></div>
 
-        <div class="sec" data-i18n="ratio">Ratio</div>
+        <div class="sec" data-i18n="ratio">Ratio<span id="ratioFlipHint" class="ratio-flip-hint" style="display:none"></span></div>
         <div class="pill-row" id="ratioSelector">
           <button class="pill active" data-ratio="free" data-i18n="free">Free</button>
           <button class="pill" data-ratio="1:1">1:1</button>
           <button class="pill" data-ratio="4:3">4:3</button>
           <button class="pill" data-ratio="16:9">16:9</button>
-          <button class="pill" data-ratio="9:19.5">iPhone</button>
-          <button class="pill" data-ratio="9:20">Phone</button>
+          <button class="pill" data-ratio="9:19.5">9:19.5</button>
+          <button class="pill" data-ratio="9:20">9:20</button>
           <button class="pill" data-ratio="custom" data-i18n="custom">Custom</button>
         </div>
         <div class="custom-ratio-row" id="customRatioRow" style="display:none">
@@ -2015,8 +2019,23 @@ function setRatio(ratio, save = true) {
     customRatioRow.style.display = 'none';
     viewport.style.aspectRatio = '';
   }
-  document.querySelectorAll('#ratioSelector .pill').forEach(p =>
-    p.classList.toggle('active', p.dataset.ratio === ratio || RATIO_FLIP[ratio] === p.dataset.ratio));
+  document.querySelectorAll('#ratioSelector .pill').forEach(p => {
+    const base = p.dataset.ratio;
+    const isActive = base === ratio || RATIO_FLIP[ratio] === base;
+    p.classList.toggle('active', isActive);
+    if (!p.dataset.i18n) p.textContent = isActive ? ratio : base;
+  });
+  const hint = document.getElementById('ratioFlipHint');
+  if (hint) {
+    const flip = RATIO_FLIP[ratio];
+    if (flip) {
+      const [rw, rh] = ratio.split(':').map(Number);
+      hint.textContent = rw < rh ? 'tap again for landscape' : 'tap again for portrait';
+      hint.style.display = '';
+    } else {
+      hint.style.display = 'none';
+    }
+  }
   resetCrop();
   if (save) saveSettings();
 }
