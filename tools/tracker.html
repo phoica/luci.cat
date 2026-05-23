@@ -3167,10 +3167,12 @@ function drawChart(canvas,opts){
       }
       _rows+=row+1;
     }
-    // Each extra wrapped row needs ~rowH px more bottom margin
-    const _rowH=lerp(15,22);const _baseRows=2;// margin.bottom comfortably fits ~2 single-line legend rows
-    const _extra=Math.max(0,_rows-_baseRows);
-    if(_extra>0)margin.bottom+=_extra*_rowH;
+    // Adjust margin.bottom by the row delta: more rows than the base => add space; fewer
+    // rows => shrink the bottom area so a 1-row legend doesn't leave a big empty band
+    // below it inside the canvas.
+    const _rowH=lerp(15,22);const _baseRows=2;// margin.bottom defaults to comfortably fitting ~2 single-line rows
+    const _delta=_rows-_baseRows;
+    if(_delta!==0)margin.bottom=Math.max(48,margin.bottom+_delta*_rowH);
     ctx.restore();
   }
   // If container has an explicit height set, use that; otherwise fall back to opts.height
