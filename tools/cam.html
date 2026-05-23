@@ -98,12 +98,16 @@ body.blind-mode .viewport-wrap{cursor:crosshair}
 }
 body.controls-open .viewport-wrap{transform:translateY(-11%)}
 .viewport{position:relative;background:var(--bg);overflow:hidden;max-width:100%;max-height:100%}
-.viewport[data-ratio="free"]{width:100%;height:100%}
-.viewport[data-ratio="1:1"] {aspect-ratio:1/1}
-.viewport[data-ratio="4:3"] {aspect-ratio:4/3}
-.viewport[data-ratio="3:4"] {aspect-ratio:3/4}
-.viewport[data-ratio="16:9"]{aspect-ratio:16/9}
-.viewport[data-ratio="9:16"]{aspect-ratio:9/16}
+.viewport[data-ratio="free"]    {width:100%;height:100%}
+.viewport[data-ratio="1:1"]    {aspect-ratio:1/1}
+.viewport[data-ratio="4:3"]    {aspect-ratio:4/3}
+.viewport[data-ratio="3:4"]    {aspect-ratio:3/4}
+.viewport[data-ratio="16:9"]   {aspect-ratio:16/9}
+.viewport[data-ratio="9:16"]   {aspect-ratio:9/16}
+.viewport[data-ratio="9:19.5"] {aspect-ratio:9/19.5}
+.viewport[data-ratio="19.5:9"] {aspect-ratio:19.5/9}
+.viewport[data-ratio="9:20"]   {aspect-ratio:9/20}
+.viewport[data-ratio="20:9"]   {aspect-ratio:20/9}
 .viewport:not([data-ratio="free"]){width:auto;height:auto;max-width:100%;max-height:100%}
 
 #preview{width:100%;height:100%;object-fit:cover;display:block;background:var(--bg)}
@@ -317,7 +321,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 /* ── Capture bar (full width, always at bottom of .app) ── */
 .capture-bar{
   flex-shrink:0;
-  padding:2px 16px calc(env(safe-area-inset-bottom) + 4px);
+  padding:5px 16px calc(env(safe-area-inset-bottom) + 2px);
   background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   border-top:1px solid var(--border);position:relative;
 }
@@ -399,7 +403,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Horizontal handles (top/bottom) */
 .crop-h{
-  position:absolute;left:50%;transform:translateX(-50%);
+  position:absolute;transform:translate(-50%,-50%);
   width:52px;height:22px;cursor:row-resize;pointer-events:all;
   display:flex;align-items:center;justify-content:center;
 }
@@ -409,7 +413,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Vertical handles (left/right) */
 .crop-v{
-  position:absolute;top:50%;transform:translateY(-50%);
+  position:absolute;transform:translate(-50%,-50%);
   width:22px;height:52px;cursor:col-resize;pointer-events:all;
   display:flex;align-items:center;justify-content:center;
 }
@@ -568,9 +572,12 @@ body[data-theme="light"] .gallery-hdr-title{
 }
 .gallery-clear:active{opacity:.7}
 
-/* ── Desktop: same vertical layout as phone, just more control height ── */
+/* ── Desktop: tighter spacing to match phone density ── */
 @media(min-width:640px){
-  .controls{max-height:36vh}
+  .controls{max-height:36vh;gap:5px;padding:7px 14px 9px}
+  .ctrl-bump{margin-top:0}
+  .sec{margin-top:3px}
+  .crow{gap:5px}
 }
 
 @media(max-height:620px) and (max-width:639px){
@@ -637,10 +644,10 @@ body[data-theme="light"] .gallery-hdr-title{
           <!-- Free-mode crop UI -->
           <div class="crop-ui" id="cropUI">
             <div class="crop-region" id="cropRegion"></div>
-            <div class="crop-h" id="cdTop"    style="top:0;transform:translate(-50%,-50%)"></div>
-            <div class="crop-h" id="cdBottom" style="bottom:0;transform:translate(-50%,50%)"></div>
-            <div class="crop-v" id="cdLeft"   style="left:0;transform:translate(-50%,-50%)"></div>
-            <div class="crop-v" id="cdRight"  style="right:0;transform:translate(50%,-50%)"></div>
+            <div class="crop-h" id="cdTop"></div>
+            <div class="crop-h" id="cdBottom"></div>
+            <div class="crop-v" id="cdLeft"></div>
+            <div class="crop-v" id="cdRight"></div>
           </div>
           <div class="capture-flash" id="captureFlash"></div>
           <div class="rec-badge" id="recBadge"><span class="rec-dot"></span><span data-i18n="rec">REC</span></div>
@@ -698,9 +705,9 @@ body[data-theme="light"] .gallery-hdr-title{
           <button class="pill active" data-ratio="free" data-i18n="free">Free</button>
           <button class="pill" data-ratio="1:1">1:1</button>
           <button class="pill" data-ratio="4:3">4:3</button>
-          <button class="pill" data-ratio="3:4">3:4</button>
           <button class="pill" data-ratio="16:9">16:9</button>
-          <button class="pill" data-ratio="9:16">9:16</button>
+          <button class="pill" data-ratio="9:19.5">iPhone</button>
+          <button class="pill" data-ratio="9:20">Phone</button>
           <button class="pill" data-ratio="custom" data-i18n="custom">Custom</button>
         </div>
         <div class="custom-ratio-row" id="customRatioRow" style="display:none">
@@ -849,6 +856,7 @@ body[data-theme="light"] .gallery-hdr-title{
 const THEMES        = ['dark','light'];
 const THEME_COLORS  = { dark:'#010c16', light:'#e6ecf2' };
 const PRESET_COLORS = ['#ffffff','#fff5e0','#e0f0ff','#ffe0f0','#e0ffe8','#ffeecc'];
+const RATIO_FLIP    = {'4:3':'3:4','3:4':'4:3','16:9':'9:16','9:16':'16:9','9:19.5':'19.5:9','19.5:9':'9:19.5','9:20':'20:9','20:9':'9:20'};
 // index 0 = off, 1-12 = durations in seconds
 const LE_DURS = [null, 0.5, 1, 2, 3, 5, 8, 10, 15, 20, 30, 60, 100];
 
@@ -1392,10 +1400,17 @@ function updateCropRegion() {
   cropRegion.style.right  = cropR + 'px';
   cropRegion.style.bottom = cropB + 'px';
 
-  cdTop.style.top       = cropT + 'px';
-  cdBottom.style.bottom = cropB + 'px';
-  cdLeft.style.left     = cropL + 'px';
-  cdRight.style.right   = cropR + 'px';
+  const midX = cropL + (w - cropL - cropR) / 2;
+  const midY = cropT + (h - cropT - cropB) / 2;
+
+  cdTop.style.top    = cropT + 'px';
+  cdTop.style.left   = midX + 'px';
+  cdBottom.style.top = (h - cropB) + 'px';
+  cdBottom.style.left = midX + 'px';
+  cdLeft.style.left  = cropL + 'px';
+  cdLeft.style.top   = midY + 'px';
+  cdRight.style.left = (w - cropR) + 'px';
+  cdRight.style.top  = midY + 'px';
 }
 
 function resetCrop() {
@@ -2001,7 +2016,7 @@ function setRatio(ratio, save = true) {
     viewport.style.aspectRatio = '';
   }
   document.querySelectorAll('#ratioSelector .pill').forEach(p =>
-    p.classList.toggle('active', p.dataset.ratio === ratio));
+    p.classList.toggle('active', p.dataset.ratio === ratio || RATIO_FLIP[ratio] === p.dataset.ratio));
   resetCrop();
   if (save) saveSettings();
 }
@@ -2392,7 +2407,11 @@ function bindControls() {
   });
 
   document.querySelectorAll('#ratioSelector .pill').forEach(b =>
-    b.addEventListener('click', () => setRatio(b.dataset.ratio)));
+    b.addEventListener('click', () => {
+      const r = b.dataset.ratio;
+      if (currentRatio === r && RATIO_FLIP[r]) setRatio(RATIO_FLIP[r]);
+      else setRatio(r);
+    }));
   customWInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
   customHInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
   document.querySelectorAll('#leModeRow .pill').forEach(b =>
