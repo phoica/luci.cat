@@ -1323,9 +1323,7 @@ function init() {
   bindControls();
   initCrop();
   updateFsBtn();
-  navigator.mediaDevices?.getUserMedia
-    ? startCamera()
-    : showError(t('apiNotSupported'));
+  if (!navigator.mediaDevices?.getUserMedia) showError(t('apiNotSupported'));
 }
 window.addEventListener('beforeunload', () => {
   stream?.getTracks().forEach(t => t.stop());
