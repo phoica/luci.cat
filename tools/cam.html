@@ -568,9 +568,12 @@ body[data-theme="light"] .gallery-hdr-title{
 }
 .gallery-clear:active{opacity:.7}
 
-/* ── Desktop: same vertical layout as phone, just more control height ── */
+/* ── Desktop: tighter spacing to match phone density ── */
 @media(min-width:640px){
-  .controls{max-height:36vh}
+  .controls{max-height:36vh;gap:5px;padding:7px 14px 9px}
+  .ctrl-bump{margin-top:0}
+  .sec{margin-top:3px}
+  .crow{gap:5px}
 }
 
 @media(max-height:620px) and (max-width:639px){
