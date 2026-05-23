@@ -352,6 +352,20 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   background:rgba(255,255,255,.85);box-shadow:1px 0 4px rgba(0,0,0,.4);
 }
 
+/* ── Custom ratio row ── */
+.custom-ratio-row{display:flex;align-items:center;gap:8px;padding:2px 0}
+.custom-ratio-row input{
+  width:46px;padding:5px 6px;text-align:center;
+  background:var(--glass2);border:1px solid var(--border);border-radius:var(--rs);
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;
+  -moz-appearance:textfield;outline:none;transition:border-color .15s;
+}
+.custom-ratio-row input::-webkit-inner-spin-button,
+.custom-ratio-row input::-webkit-outer-spin-button{-webkit-appearance:none}
+.custom-ratio-row input:focus{border-color:var(--accent)}
+.cr-sep{font-size:15px;color:var(--text-d);font-family:'JetBrains Mono',monospace}
+.cr-hint{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-d)}
+
 /* ── Capture animations ── */
 /* Expanding ring from shutter button */
 @keyframes shutterRing{
@@ -601,6 +615,13 @@ body[data-theme="light"] .gallery-hdr-title{
           <button class="pill" data-ratio="3:4">3:4</button>
           <button class="pill" data-ratio="16:9">16:9</button>
           <button class="pill" data-ratio="9:16">9:16</button>
+          <button class="pill" data-ratio="custom">Custom</button>
+        </div>
+        <div class="custom-ratio-row" id="customRatioRow" style="display:none">
+          <input type="number" id="customW" min="1" max="99" value="16">
+          <span class="cr-sep">:</span>
+          <input type="number" id="customH" min="1" max="99" value="9">
+          <span class="cr-hint">ratio</span>
         </div>
 
         <!-- Zoom (hardware) -->
@@ -756,6 +777,7 @@ let ready          = false;
 let ctrlVisible    = true;
 let toastTimer     = null;
 let isTorchOn      = false;
+let customW        = 16, customH = 9;
 let isBlindMode    = false;
 // Session mode
 let isSessionMode  = false;
@@ -834,6 +856,9 @@ const expTimeVal   = $('expTimeVal');
 const isoRow       = $('isoRow');
 const isoSldr      = $('isoSlider');
 const isoVal       = $('isoVal');
+const customRatioRow = $('customRatioRow');
+const customWInput   = $('customW');
+const customHInput   = $('customH');
 const leDurSldr    = $('leDurSlider');
 const leDurVal     = $('leDurVal');
 const leModeRow    = $('leModeRow');
@@ -1086,6 +1111,8 @@ function loadSettings() {
     const s = JSON.parse(localStorage.getItem('cam_prefs') || '{}');
     applyTheme(THEMES.indexOf(s.theme) >= 0 ? THEMES.indexOf(s.theme) : 0, false);
     if (typeof s.mirrored === 'boolean') setMirror(s.mirrored, false);
+    if (typeof s.customW === 'number') { customW = s.customW; customWInput.value = customW; }
+    if (typeof s.customH === 'number') { customH = s.customH; customHInput.value = customH; }
     if (s.ratio) setRatio(s.ratio, false);
     if (typeof s.cf === 'boolean') {
       isCF = s.cf;
@@ -1112,7 +1139,7 @@ function loadSettings() {
 function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
-      theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio,
+      theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leDurIdx, leMode,
     }));
   } catch {}
@@ -1123,7 +1150,7 @@ function applyTheme(idx, save = true) {
   themeIdx = ((idx % 2) + 2) % 2;
   body.dataset.theme = THEMES[themeIdx];
   themeColorMeta.content = THEME_COLORS[THEMES[themeIdx]];
-  themeBtn.innerHTML = themeIdx === 0 ? SUN : MOON;
+  themeBtn.innerHTML = themeIdx === 0 ? MOON : SUN;
   if (save) saveSettings();
 }
 
@@ -1502,9 +1529,23 @@ function setCFColor(color) {
 }
 
 // ── Aspect ratio ───────────────────────────────────────────────────────────
+function applyCustomRatio() {
+  customW = Math.max(1, Math.min(99, parseInt(customWInput.value) || 16));
+  customH = Math.max(1, Math.min(99, parseInt(customHInput.value) || 9));
+  customWInput.value = customW;
+  customHInput.value = customH;
+  viewport.style.aspectRatio = `${customW}/${customH}`;
+}
 function setRatio(ratio, save = true) {
   currentRatio = ratio;
   viewport.dataset.ratio = ratio;
+  if (ratio === 'custom') {
+    customRatioRow.style.display = '';
+    applyCustomRatio();
+  } else {
+    customRatioRow.style.display = 'none';
+    viewport.style.aspectRatio = '';
+  }
   document.querySelectorAll('#ratioSelector .pill').forEach(p =>
     p.classList.toggle('active', p.dataset.ratio === ratio));
   resetCrop();
@@ -1649,7 +1690,9 @@ async function capturePhoto() {
     cw = Math.round((vpRect.width  - cropL - cropR) * scaleX);
     ch = Math.round((vpRect.height - cropT - cropB) * scaleY);
   } else if (currentRatio !== 'free') {
-    const [rw, rh] = currentRatio.split(':').map(Number);
+    const [rw, rh] = currentRatio === 'custom'
+      ? [customW, customH]
+      : currentRatio.split(':').map(Number);
     const ar = rw / rh, vAR = vw / vh;
     if (ar > vAR) { cw = vw; ch = Math.round(vw / ar); }
     else          { ch = vh; cw = Math.round(vh * ar); }
@@ -1841,6 +1884,8 @@ function bindControls() {
 
   document.querySelectorAll('#ratioSelector .pill').forEach(b =>
     b.addEventListener('click', () => setRatio(b.dataset.ratio)));
+  customWInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
+  customHInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
   document.querySelectorAll('#leModeRow .pill').forEach(b =>
     b.addEventListener('click', () => setLeMode(b.dataset.leMode)));
   document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s =>
