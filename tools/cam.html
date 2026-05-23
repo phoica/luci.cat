@@ -1823,10 +1823,8 @@ async function startRecording() {
   try {
     audioStream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        // Keep echo cancel + noise suppress (good for voice), drop AGC
-        // (it pumps/breathes and destroys dynamics in music & ambient)
-        echoCancellation: true,
-        noiseSuppression: true,
+        echoCancellation: false,
+        noiseSuppression: false,
         autoGainControl:  false,
         sampleRate:       48000,
         sampleSize:       16,
