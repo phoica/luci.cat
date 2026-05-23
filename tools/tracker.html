@@ -3146,15 +3146,15 @@ function drawChart(canvas,opts){
     }
     if(_hasMed)_walkRow(t('doseMg'),_meds,mid=>{if(!doses[mid]||!doses[mid].length)return null;const sn=getMedShortName(mid);const u=getMedUnit(mid);return _showU?`${sn} (${u})`:sn;});
     if(_hasHorm)_walkRow(t('hormonesLabel'),_horms,hk=>{const h=getHormone(hk);if(!h)return null;const has=labs.some(l=>!l.isBaseline&&l.values[hk]!=null);if(!has)return null;return _showU?`${h.name} (${h.unit})`:h.name;});
-    // Bands row — only shown when hormone data is on the chart
-    if(_hasHorm&&(showRanges||showError)){
+    // Bands row — only shown when hormone data is on the chart AND something inside it renders.
+    if(_hasHorm&&((showRanges&&showAxesMaster)||showError)){
       ctx.font=_font;
       const prefix=pick('bands','faixas','intervals');
       const bandsStartX=margin.left+ctx.measureText(prefix).width+lerp(7,10);
       ctx.font=_fontSm;
       const bandSwatchW=lerp(13,18);
       let lx=bandsStartX;let row=0;
-      if(showRanges&&_hasHorm){
+      if(showRanges&&showAxesMaster&&_hasHorm){
         const lbl=pick('Target range','Faixa-alvo','Interval objectiu');
         const w=bandSwatchW+lerp(4,6)+ctx.measureText(lbl).width;
         if(lx>bandsStartX&&lx+w>_maxX){row++;lx=bandsStartX;}
@@ -3781,8 +3781,9 @@ function drawChart(canvas,opts){
       legendRow++;
     }
     // Explainer row: shaded ranges + error halo — labeled "bands". Only relevant when there's
-    // actually hormone data on the chart (meds-only views shouldn't see this row at all).
-    if(hasHormData&&(showRanges||showError)){
+    // actually hormone data on the chart AND the relevant feature is rendered. Target ranges
+    // only draw on the right-axis columns, so Ranges contributes nothing when Axes is off.
+    if(hasHormData&&((showRanges&&showAxesMaster)||showError)){
       let ly=blY+legendRow*rowH;
       const prefix=pick('bands','faixas','intervals');
       ctx.font=lFont;ctx.fillStyle=cDim;
@@ -3791,7 +3792,7 @@ function drawChart(canvas,opts){
       let lx3=bandsStartX;
       ctx.font=lFontSm;
       const bandSwatchW=lerp(13,18);
-      if(showRanges&&hasHormData){
+      if(showRanges&&showAxesMaster&&hasHormData){
         const lbl=pick('Target range','Faixa-alvo','Interval objectiu');
         const itemW=bandSwatchW+lerp(4,6)+ctx.measureText(lbl).width;
         if(lx3>bandsStartX&&lx3+itemW>legendMaxX){legendRow++;ly=blY+legendRow*rowH;lx3=bandsStartX;}
@@ -3831,8 +3832,8 @@ function redraw(){
   // Responsive default heights: phones get shorter charts that don't need landscape rotation to view
   const vpW=window.innerWidth;
   const defH=vpW<480?340:vpW<768?420:620;
-  const splitSingleH=vpW<480?260:vpW<768?320:400;
-  const splitMultiH=vpW<480?180:vpW<768?210:240;
+  const splitSingleH=vpW<480?320:vpW<768?400:480;
+  const splitMultiH=vpW<480?260:vpW<768?300:340;
   // Both modes filter by `selectedChartItems`. Multi combines them on one chart; Individual gives each its own.
   const selItems=[...selectedChartItems];
   const selMeds=selItems.filter(i=>i.startsWith('med_')).map(i=>i.slice(4)).filter(m=>medications.includes(m));
