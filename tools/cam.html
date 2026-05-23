@@ -875,6 +875,7 @@ const I18N = {
     camDenied:'Camera access denied — check browser settings and reload',
     noCamFound:'No camera found on this device',
     camBusy:'Camera is busy — close other apps using it and try again',
+    camBusyRetry:'Camera busy — retrying…',
     camStartFail:(msg)=>`Couldn't start camera: ${msg}`,
   },
   pt: {
@@ -914,6 +915,7 @@ const I18N = {
     camDenied:'Acesso negado — verifique as permissões e recarregue',
     noCamFound:'Nenhuma câmera encontrada',
     camBusy:'Câmera ocupada — feche outros apps e tente de novo',
+    camBusyRetry:'Câmera ocupada — tentando de novo…',
     camStartFail:(msg)=>`Não foi possível iniciar a câmera: ${msg}`,
   },
   ca: {
@@ -953,6 +955,7 @@ const I18N = {
     camDenied:"Accés denegat — comprova els permisos i recarrega",
     noCamFound:'No s\'ha trobat cap càmera',
     camBusy:'Càmera ocupada — tanca altres apps i torna-ho a provar',
+    camBusyRetry:'Càmera ocupada — tornant a provar…',
     camStartFail:(msg)=>`No s'ha pogut obrir la càmera: ${msg}`,
   },
 };
@@ -1603,6 +1606,20 @@ function buildConstraints(deviceId) {
   return { video: { deviceId: { exact: deviceId } }, audio: false };
 }
 
+async function retryCameraAfterBusy(deviceId) {
+  // Camera HAL on some ROMs needs time to release — two attempts with backoff
+  const attempts = [
+    [700,  buildConstraints(deviceId)],
+    [1800, { video: true, audio: false }],
+  ];
+  for (const [delay, constraints] of attempts) {
+    await new Promise(r => setTimeout(r, delay));
+    try { return await navigator.mediaDevices.getUserMedia(constraints); }
+    catch {}
+  }
+  return null;
+}
+
 async function startCamera(deviceId = null) {
   let ns;
   try {
@@ -1611,6 +1628,10 @@ async function startCamera(deviceId = null) {
     if (err.name === 'OverconstrainedError' && deviceId) {
       try { ns = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { ideal: deviceId } }, audio: false }); }
       catch { showToast(t('camNotAccessible')); return; }
+    } else if (err.name === 'NotReadableError') {
+      showToast(t('camBusyRetry'), 2500);
+      ns = await retryCameraAfterBusy(deviceId);
+      if (!ns) return handleError(err);
     } else { return handleError(err); }
   }
 
