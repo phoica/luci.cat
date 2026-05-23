@@ -78,13 +78,10 @@ body[data-theme="light"] .header h1{
 }
 .icon-btn:hover,.icon-btn:active{border-color:var(--cx);color:var(--cx);background:var(--cx-dim)}
 .icon-btn svg{width:16px;height:16px;display:block}
-#blindExitBtn{display:none}
 .lang-btn{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1px}
 
 /* ── Blind mode: same hide-controls behaviour as V, the rest stays put
    but more translucent so the camera dominates. Tap-to-shoot. ── */
-body.blind-mode #blindBtn{display:none}
-body.blind-mode #blindExitBtn{display:flex}
 body.blind-mode .header,
 body.blind-mode .capture-bar,
 body.blind-mode .right-panel{opacity:.55;transition:opacity .2s}
@@ -590,16 +587,12 @@ body[data-theme="light"] .gallery-hdr-title{
         </button>
         <button class="icon-btn" id="fsBtn" data-i18n-title="toggleFullscreen" data-i18n-aria="toggleFullscreen"></button>
         <button class="icon-btn" id="blindBtn" data-i18n-title="blindModeTitle" data-i18n-aria="blindModeTitle">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <rect x="4" y="4" width="16" height="16" rx="3"/>
-            <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
-          </svg>
-        </button>
-        <!-- Blind mode exit -->
-        <button class="icon-btn" id="blindExitBtn" data-i18n-title="blindExit" data-i18n-aria="blindExit">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 14a8 8 0 0 1-8 8"/>
+            <path d="M18 11v-1a2 2 0 0 0-4 0"/>
+            <path d="M14 10V9a2 2 0 0 0-4 0v5"/>
+            <path d="M10 9.5V4a2 2 0 0 0-4 0v10"/>
+            <path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>
           </svg>
         </button>
         <button class="icon-btn" id="themeBtn" data-i18n-title="toggleTheme" data-i18n-aria="toggleTheme"></button>
@@ -835,7 +828,7 @@ const I18N = {
     saveSelected:'Save selected', clearAll:'Clear all', view:'View →', rec:'REC',
     toggleTheme:'Toggle theme', toggleFullscreen:'Toggle fullscreen',
     toggleSession:'Toggle session mode', sessionTitle:'Session mode — collect photos before saving',
-    blindModeTitle:'Blind mode — tap anywhere to shoot', blindExit:'Exit blind mode',
+    blindModeTitle:'Blind mode — tap anywhere to shoot',
     toggleSound:'Shutter sound',
     language:'Language',
     photos:(n)=>`${n} photo${n===1?'':'s'}`,
@@ -872,7 +865,7 @@ const I18N = {
     saveSelected:'Salvar selecionadas', clearAll:'Limpar tudo', view:'Ver →', rec:'REC',
     toggleTheme:'Alternar tema', toggleFullscreen:'Tela cheia',
     toggleSession:'Modo sessão', sessionTitle:'Modo sessão — junte fotos antes de salvar',
-    blindModeTitle:'Modo cego — toque em qualquer lugar pra fotografar', blindExit:'Sair do modo cego',
+    blindModeTitle:'Modo cego — toque em qualquer lugar pra fotografar',
     toggleSound:'Som do obturador',
     language:'Idioma',
     photos:(n)=>`${n} foto${n===1?'':'s'}`,
@@ -909,7 +902,7 @@ const I18N = {
     saveSelected:'Desa seleccionades', clearAll:'Buida tot', view:'Veure →', rec:'REC',
     toggleTheme:'Canvia tema', toggleFullscreen:'Pantalla completa',
     toggleSession:'Mode sessió', sessionTitle:'Mode sessió — recull fotos abans de desar-les',
-    blindModeTitle:'Mode cec — toca on sigui per disparar', blindExit:'Surt del mode cec',
+    blindModeTitle:'Mode cec — toca on sigui per disparar',
     toggleSound:'So de l\'obturador',
     language:'Idioma',
     photos:(n)=>`${n} foto${n===1?'':'s'}`,
@@ -1064,7 +1057,6 @@ const gallerySave   = $('gallerySave');
 const galleryClear  = $('galleryClear');
 const fsBtn         = $('fsBtn');
 const blindBtn      = $('blindBtn');
-const blindExitBtn = $('blindExitBtn');
 const capHideBtn   = $('capHideBtn');
 const camSel       = $('cameraSelector');
 const zoomRow      = $('zoomRow');
@@ -1446,12 +1438,21 @@ function toggleControls() {
 
 // ── Blind mode ─────────────────────────────────────────────────────────────
 let blindCollapsedCtrls = false;
+function updateBlindBtn() {
+  blindBtn.style.borderColor = isBlindMode ? 'var(--accent)' : '';
+  blindBtn.style.background  = isBlindMode ? 'var(--accent)' : '';
+  blindBtn.style.color       = isBlindMode ? 'var(--bg)'     : '';
+}
+function toggleBlindMode() {
+  isBlindMode ? exitBlindMode() : enterBlindMode();
+}
 function enterBlindMode() {
   isBlindMode = true;
   body.classList.add('blind-mode');
   blindCollapsedCtrls = ctrlVisible;
   if (ctrlVisible) toggleControls();
   vpWrap.addEventListener('click', blindTap);
+  updateBlindBtn();
   showToast(t('blindToast'), 2500);
 }
 function exitBlindMode() {
@@ -1460,6 +1461,7 @@ function exitBlindMode() {
   if (blindCollapsedCtrls && !ctrlVisible) toggleControls();
   blindCollapsedCtrls = false;
   vpWrap.removeEventListener('click', blindTap);
+  updateBlindBtn();
 }
 function blindTap(e) {
   if (e.target.closest('.overlay:not(.hidden),.le-overlay:not(.hidden)')) return;
@@ -2198,8 +2200,7 @@ function bindControls() {
   soundBtn.addEventListener('click',      toggleSound);
   capHideBtn.addEventListener('click',    toggleControls);
   permBtn.addEventListener('click',       () => startCamera());
-  blindBtn.addEventListener('click',      enterBlindMode);
-  blindExitBtn.addEventListener('click',  exitBlindMode);
+  blindBtn.addEventListener('click',      toggleBlindMode);
   retryBtn.addEventListener('click', () => {
     errOverlay.classList.add('hidden');
     permOverlay.classList.remove('hidden');
