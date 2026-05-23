@@ -387,6 +387,7 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
         <h1>Cam</h1>
         <span class="hdr-space"></span>
         <!-- Blind mode enter -->
+        <button class="icon-btn" id="fsBtn" title="Fullscreen" aria-label="Toggle fullscreen"></button>
         <button class="icon-btn" id="blindBtn" title="Blind mode — tap anywhere to shoot" aria-label="Blind mode">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="4" y="4" width="16" height="16" rx="3"/>
@@ -641,6 +642,7 @@ const cfPicker     = $('cfPicker');
 const cfOverlay    = $('cfOverlay');
 const cfBorder     = $('cfBorder');
 const themeBtn     = $('themeBtn');
+const fsBtn        = $('fsBtn');
 const blindBtn     = $('blindBtn');
 const blindExitBtn = $('blindExitBtn');
 const capHideBtn   = $('capHideBtn');
@@ -681,6 +683,27 @@ const cdTop    = $('cdTop');
 const cdBottom = $('cdBottom');
 const cdLeft   = $('cdLeft');
 const cdRight  = $('cdRight');
+
+// ── Fullscreen ─────────────────────────────────────────────────────────────
+const FS_ENTER = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>`;
+const FS_EXIT  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v4H3M17 7h-4V3M13 17v-4h4M3 13h4v4"/></svg>`;
+
+function isFullscreen() {
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function updateFsBtn() {
+  fsBtn.innerHTML = isFullscreen() ? FS_EXIT : FS_ENTER;
+}
+function toggleFullscreen() {
+  if (isFullscreen()) {
+    (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
+  } else {
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen)?.call(el);
+  }
+}
+document.addEventListener('fullscreenchange',       updateFsBtn);
+document.addEventListener('webkitfullscreenchange', updateFsBtn);
 
 // ── Crop ───────────────────────────────────────────────────────────────────
 function updateCropRegion() {
@@ -758,6 +781,7 @@ function init() {
   loadSettings();
   bindControls();
   initCrop();
+  updateFsBtn();
   navigator.mediaDevices?.getUserMedia
     ? startCamera()
     : showError('Camera API not supported — try Safari or Chrome');
@@ -1462,6 +1486,7 @@ function bindControls() {
   torchTgl.addEventListener('click',      () => setTorch(!isTorchOn));
   cfTgl.addEventListener('click',         () => setCF(!isCF));
   leCancelBtn.addEventListener('click',   cancelLongExposure);
+  fsBtn.addEventListener('click',         toggleFullscreen);
   themeBtn.addEventListener('click',      () => applyTheme(themeIdx + 1));
   capHideBtn.addEventListener('click',    toggleControls);
   permBtn.addEventListener('click',       () => startCamera());
