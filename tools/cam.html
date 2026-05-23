@@ -89,11 +89,12 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
 }
 .viewport{position:relative;background:#000;overflow:hidden;max-width:100%;max-height:100%}
 .viewport[data-ratio="free"]{width:100%;height:100%}
-.viewport[data-ratio="1:1"] {aspect-ratio:1/1;  width:100%;height:auto;max-height:100%}
-.viewport[data-ratio="4:3"] {aspect-ratio:4/3;  width:100%;height:auto;max-height:100%}
-.viewport[data-ratio="3:4"] {aspect-ratio:3/4;  height:100%;width:auto;max-width:100%}
-.viewport[data-ratio="16:9"]{aspect-ratio:16/9; width:100%;height:auto;max-height:100%}
-.viewport[data-ratio="9:16"]{aspect-ratio:9/16; height:100%;width:auto;max-width:100%}
+.viewport[data-ratio="1:1"] {aspect-ratio:1/1}
+.viewport[data-ratio="4:3"] {aspect-ratio:4/3}
+.viewport[data-ratio="3:4"] {aspect-ratio:3/4}
+.viewport[data-ratio="16:9"]{aspect-ratio:16/9}
+.viewport[data-ratio="9:16"]{aspect-ratio:9/16}
+.viewport:not([data-ratio="free"]){width:auto;height:auto;max-width:100%;max-height:100%}
 
 #preview{width:100%;height:100%;object-fit:cover;display:block;background:#000}
 #preview.mirrored{transform:scaleX(-1)}
@@ -351,6 +352,39 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   background:rgba(255,255,255,.85);box-shadow:1px 0 4px rgba(0,0,0,.4);
 }
 
+/* ── Custom ratio row ── */
+.custom-ratio-row{display:flex;align-items:center;gap:8px;padding:2px 0}
+.custom-ratio-row input{
+  width:46px;padding:5px 6px;text-align:center;
+  background:var(--glass2);border:1px solid var(--border);border-radius:var(--rs);
+  color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;
+  -moz-appearance:textfield;outline:none;transition:border-color .15s;
+}
+.custom-ratio-row input::-webkit-inner-spin-button,
+.custom-ratio-row input::-webkit-outer-spin-button{-webkit-appearance:none}
+.custom-ratio-row input:focus{border-color:var(--accent)}
+.cr-sep{font-size:15px;color:var(--text-d);font-family:'JetBrains Mono',monospace}
+.cr-hint{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-d)}
+
+/* ── Capture animations ── */
+/* Expanding ring from shutter button */
+@keyframes shutterRing{
+  from{transform:scale(1);opacity:.6}
+  to  {transform:scale(2.4);opacity:0}
+}
+.shutter-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:2px solid var(--accent);pointer-events:none;
+  animation:shutterRing .55s cubic-bezier(.2,.6,.4,1) forwards;
+}
+/* Edge glow around the whole screen */
+#edgeFlash{position:fixed;inset:0;pointer-events:none;z-index:89;opacity:0}
+@keyframes edgePop{
+  0%  {opacity:1;box-shadow:inset 0 0 0 3px rgba(255,255,255,.65),inset 0 0 28px rgba(255,255,255,.08)}
+  100%{opacity:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,0),inset 0 0 60px rgba(255,255,255,0)}
+}
+#edgeFlash.pop{animation:edgePop .55s ease-out forwards}
+
 /* ── Session pill (above capture row) ── */
 .session-pill{
   display:none;align-items:center;gap:8px;
@@ -581,6 +615,13 @@ body[data-theme="light"] .gallery-hdr-title{
           <button class="pill" data-ratio="3:4">3:4</button>
           <button class="pill" data-ratio="16:9">16:9</button>
           <button class="pill" data-ratio="9:16">9:16</button>
+          <button class="pill" data-ratio="custom">Custom</button>
+        </div>
+        <div class="custom-ratio-row" id="customRatioRow" style="display:none">
+          <input type="number" id="customW" min="1" max="99" value="16">
+          <span class="cr-sep">:</span>
+          <input type="number" id="customH" min="1" max="99" value="9">
+          <span class="cr-hint">ratio</span>
         </div>
 
         <!-- Zoom (hardware) -->
@@ -704,6 +745,7 @@ body[data-theme="light"] .gallery-hdr-title{
   </div>
 </div>
 
+<div id="edgeFlash"></div>
 <div class="toast" id="toast"></div>
 <canvas id="captureCanvas" style="display:none"></canvas>
 <a id="dlLink" style="display:none"></a>
@@ -735,6 +777,8 @@ let ready          = false;
 let ctrlVisible    = true;
 let toastTimer     = null;
 let isTorchOn      = false;
+let deviceHasTorch = false;
+let customW        = 16, customH = 9;
 let isBlindMode    = false;
 // Session mode
 let isSessionMode  = false;
@@ -813,6 +857,9 @@ const expTimeVal   = $('expTimeVal');
 const isoRow       = $('isoRow');
 const isoSldr      = $('isoSlider');
 const isoVal       = $('isoVal');
+const customRatioRow = $('customRatioRow');
+const customWInput   = $('customW');
+const customHInput   = $('customH');
 const leDurSldr    = $('leDurSlider');
 const leDurVal     = $('leDurVal');
 const leModeRow    = $('leModeRow');
@@ -825,6 +872,7 @@ const leTimer      = $('leTimer');
 const leBarFill    = $('leBarFill');
 const leCancelBtn  = $('leCancelBtn');
 const capFlash     = $('captureFlash');
+const edgeFlash    = $('edgeFlash');
 const recBadge     = $('recBadge');
 const recTimer     = $('recTimer');
 const capCanvas    = $('captureCanvas');
@@ -837,6 +885,20 @@ const cdTop    = $('cdTop');
 const cdBottom = $('cdBottom');
 const cdLeft   = $('cdLeft');
 const cdRight  = $('cdRight');
+
+// ── Capture animation ──────────────────────────────────────────────────────
+function triggerCaptureAnim() {
+  // Expanding ring from shutter button
+  const ring = document.createElement('div');
+  ring.className = 'shutter-ring';
+  shutterBtn.appendChild(ring);
+  ring.addEventListener('animationend', () => ring.remove(), { once: true });
+  // Edge glow — force reflow to restart if fired rapidly
+  edgeFlash.classList.remove('pop');
+  void edgeFlash.offsetWidth;
+  edgeFlash.classList.add('pop');
+  edgeFlash.addEventListener('animationend', () => edgeFlash.classList.remove('pop'), { once: true });
+}
 
 // ── Session mode ───────────────────────────────────────────────────────────
 function toggleSessionMode() {
@@ -1050,6 +1112,8 @@ function loadSettings() {
     const s = JSON.parse(localStorage.getItem('cam_prefs') || '{}');
     applyTheme(THEMES.indexOf(s.theme) >= 0 ? THEMES.indexOf(s.theme) : 0, false);
     if (typeof s.mirrored === 'boolean') setMirror(s.mirrored, false);
+    if (typeof s.customW === 'number') { customW = s.customW; customWInput.value = customW; }
+    if (typeof s.customH === 'number') { customH = s.customH; customHInput.value = customH; }
     if (s.ratio) setRatio(s.ratio, false);
     if (typeof s.cf === 'boolean') {
       isCF = s.cf;
@@ -1076,7 +1140,7 @@ function loadSettings() {
 function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
-      theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio,
+      theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leDurIdx, leMode,
     }));
   } catch {}
@@ -1087,7 +1151,7 @@ function applyTheme(idx, save = true) {
   themeIdx = ((idx % 2) + 2) % 2;
   body.dataset.theme = THEMES[themeIdx];
   themeColorMeta.content = THEME_COLORS[THEMES[themeIdx]];
-  themeBtn.innerHTML = themeIdx === 0 ? SUN : MOON;
+  themeBtn.innerHTML = themeIdx === 0 ? MOON : SUN;
   if (save) saveSettings();
 }
 
@@ -1273,7 +1337,7 @@ function detectCapabilities() {
   const track = stream?.getVideoTracks()[0];
   isTorchOn = false;
   torchTgl.classList.remove('on');
-  torchTgl.style.display = 'none';
+  if (!deviceHasTorch) torchTgl.style.display = 'none';
   zoomRow.style.display    = 'none';
   evRow.style.display      = 'none';
   expTimeRow.style.display = 'none';
@@ -1290,7 +1354,7 @@ function detectCapabilities() {
   if (!track?.getCapabilities) return;
   const caps = track.getCapabilities();
 
-  if (caps.torch) torchTgl.style.display = '';
+  if (caps.torch) { deviceHasTorch = true; torchTgl.style.display = ''; }
 
   if (caps.zoom) {
     zoomSlider.min   = caps.zoom.min  ?? 1;
@@ -1466,9 +1530,23 @@ function setCFColor(color) {
 }
 
 // ── Aspect ratio ───────────────────────────────────────────────────────────
+function applyCustomRatio() {
+  customW = Math.max(1, Math.min(99, parseInt(customWInput.value) || 16));
+  customH = Math.max(1, Math.min(99, parseInt(customHInput.value) || 9));
+  customWInput.value = customW;
+  customHInput.value = customH;
+  viewport.style.aspectRatio = `${customW}/${customH}`;
+}
 function setRatio(ratio, save = true) {
   currentRatio = ratio;
   viewport.dataset.ratio = ratio;
+  if (ratio === 'custom') {
+    customRatioRow.style.display = '';
+    applyCustomRatio();
+  } else {
+    customRatioRow.style.display = 'none';
+    viewport.style.aspectRatio = '';
+  }
   document.querySelectorAll('#ratioSelector .pill').forEach(p =>
     p.classList.toggle('active', p.dataset.ratio === ratio));
   resetCrop();
@@ -1613,7 +1691,9 @@ async function capturePhoto() {
     cw = Math.round((vpRect.width  - cropL - cropR) * scaleX);
     ch = Math.round((vpRect.height - cropT - cropB) * scaleY);
   } else if (currentRatio !== 'free') {
-    const [rw, rh] = currentRatio.split(':').map(Number);
+    const [rw, rh] = currentRatio === 'custom'
+      ? [customW, customH]
+      : currentRatio.split(':').map(Number);
     const ar = rw / rh, vAR = vw / vh;
     if (ar > vAR) { cw = vw; ch = Math.round(vw / ar); }
     else          { ch = vh; cw = Math.round(vh * ar); }
@@ -1634,9 +1714,10 @@ async function capturePhoto() {
   const devLabel   = devices.find(d => d.deviceId === currentDeviceId)?.label ?? '';
   const isFront    = facingMode === 'user' || cameraLabel({ label: devLabel }) === 'Selfie';
   if (!isCF && !isFront) flash();
-  navigator.vibrate?.(30);
+  navigator.vibrate?.([25, 0, 12]);
+  triggerCaptureAnim();
   shutterBtn.classList.add('pressing');
-  setTimeout(() => shutterBtn.classList.remove('pressing'), 120);
+  setTimeout(() => shutterBtn.classList.remove('pressing'), 150);
   if (isCF) setTimeout(() => { cfOverlay.style.display = 'none'; }, 450);
 
   capCanvas.toBlob(blob => {
@@ -1804,6 +1885,8 @@ function bindControls() {
 
   document.querySelectorAll('#ratioSelector .pill').forEach(b =>
     b.addEventListener('click', () => setRatio(b.dataset.ratio)));
+  customWInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
+  customHInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
   document.querySelectorAll('#leModeRow .pill').forEach(b =>
     b.addEventListener('click', () => setLeMode(b.dataset.leMode)));
   document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s =>
