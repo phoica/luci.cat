@@ -1324,17 +1324,31 @@ function playShutterBlip() {
     if (!audioCtx) audioCtx = new Ctx();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const t0 = audioCtx.currentTime;
+
+    // Noise transient — the hard "gl" click at the front
+    const bufLen = Math.ceil(audioCtx.sampleRate * 0.004);
+    const buf = audioCtx.createBuffer(1, bufLen, audioCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bufLen; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / bufLen);
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buf;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.value = 0.09;
+    noise.connect(noiseGain).connect(audioCtx.destination);
+    noise.start(t0);
+
+    // Rising sine — the "ick" tail
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(2200, t0);
-    osc.frequency.exponentialRampToValueAtTime(1400, t0 + 0.06);
+    osc.frequency.setValueAtTime(1100, t0);
+    osc.frequency.exponentialRampToValueAtTime(3200, t0 + 0.045);
     gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.005);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.17, t0 + 0.002);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.055);
     osc.connect(gain).connect(audioCtx.destination);
     osc.start(t0);
-    osc.stop(t0 + 0.09);
+    osc.stop(t0 + 0.06);
   } catch {}
 }
 
