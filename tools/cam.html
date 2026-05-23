@@ -352,6 +352,25 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   background:rgba(255,255,255,.85);box-shadow:1px 0 4px rgba(0,0,0,.4);
 }
 
+/* ── Capture animations ── */
+/* Expanding ring from shutter button */
+@keyframes shutterRing{
+  from{transform:scale(1);opacity:.6}
+  to  {transform:scale(2.4);opacity:0}
+}
+.shutter-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:2px solid var(--accent);pointer-events:none;
+  animation:shutterRing .55s cubic-bezier(.2,.6,.4,1) forwards;
+}
+/* Edge glow around the whole screen */
+#edgeFlash{position:fixed;inset:0;pointer-events:none;z-index:89;opacity:0}
+@keyframes edgePop{
+  0%  {opacity:1;box-shadow:inset 0 0 0 3px rgba(255,255,255,.65),inset 0 0 28px rgba(255,255,255,.08)}
+  100%{opacity:0;box-shadow:inset 0 0 0 3px rgba(255,255,255,0),inset 0 0 60px rgba(255,255,255,0)}
+}
+#edgeFlash.pop{animation:edgePop .55s ease-out forwards}
+
 /* ── Session pill (above capture row) ── */
 .session-pill{
   display:none;align-items:center;gap:8px;
@@ -705,6 +724,7 @@ body[data-theme="light"] .gallery-hdr-title{
   </div>
 </div>
 
+<div id="edgeFlash"></div>
 <div class="toast" id="toast"></div>
 <canvas id="captureCanvas" style="display:none"></canvas>
 <a id="dlLink" style="display:none"></a>
@@ -826,6 +846,7 @@ const leTimer      = $('leTimer');
 const leBarFill    = $('leBarFill');
 const leCancelBtn  = $('leCancelBtn');
 const capFlash     = $('captureFlash');
+const edgeFlash    = $('edgeFlash');
 const recBadge     = $('recBadge');
 const recTimer     = $('recTimer');
 const capCanvas    = $('captureCanvas');
@@ -838,6 +859,20 @@ const cdTop    = $('cdTop');
 const cdBottom = $('cdBottom');
 const cdLeft   = $('cdLeft');
 const cdRight  = $('cdRight');
+
+// ── Capture animation ──────────────────────────────────────────────────────
+function triggerCaptureAnim() {
+  // Expanding ring from shutter button
+  const ring = document.createElement('div');
+  ring.className = 'shutter-ring';
+  shutterBtn.appendChild(ring);
+  ring.addEventListener('animationend', () => ring.remove(), { once: true });
+  // Edge glow — force reflow to restart if fired rapidly
+  edgeFlash.classList.remove('pop');
+  void edgeFlash.offsetWidth;
+  edgeFlash.classList.add('pop');
+  edgeFlash.addEventListener('animationend', () => edgeFlash.classList.remove('pop'), { once: true });
+}
 
 // ── Session mode ───────────────────────────────────────────────────────────
 function toggleSessionMode() {
@@ -1635,9 +1670,10 @@ async function capturePhoto() {
   const devLabel   = devices.find(d => d.deviceId === currentDeviceId)?.label ?? '';
   const isFront    = facingMode === 'user' || cameraLabel({ label: devLabel }) === 'Selfie';
   if (!isCF && !isFront) flash();
-  navigator.vibrate?.(30);
+  navigator.vibrate?.([25, 0, 12]);
+  triggerCaptureAnim();
   shutterBtn.classList.add('pressing');
-  setTimeout(() => shutterBtn.classList.remove('pressing'), 120);
+  setTimeout(() => shutterBtn.classList.remove('pressing'), 150);
   if (isCF) setTimeout(() => { cfOverlay.style.display = 'none'; }, 450);
 
   capCanvas.toBlob(blob => {
