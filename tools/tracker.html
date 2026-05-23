@@ -579,7 +579,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   .chart-wrapper .grip-corner,
   .chart-wrapper .chart-grip.grip-h{display:none}
   .chart-wrapper .chart-container{grid-column:auto;grid-row:auto;width:100%;min-width:0}
-  .chart-grip.grip-v{display:flex;opacity:.5;height:22px;cursor:row-resize;touch-action:none;width:100%;grid-column:auto}
+  .chart-grip.grip-v{display:flex;opacity:.55;height:30px;cursor:row-resize;touch-action:none;width:100%;grid-column:auto}
   .chart-grip.grip-v::before{width:50px;height:3px}
 
   /* ── History panel ── */
@@ -3963,29 +3963,50 @@ function printChart(){
   const gripB=document.getElementById('gripB');
   let dragging=false,startX=0,startY=0,startW=0,startH=0,activeGrip=null,axis='',vRafPending=false;
   function getMaxW(){return resizer.parentElement.clientWidth-20;}
+  let movedPastDeadzone=false;
   function onDown(e){
     e.preventDefault();dragging=true;activeGrip=this;
     const p=e.touches?.[0]||e;
     startX=p.clientX;startY=p.clientY;
-    startW=container.clientWidth;startH=container.clientHeight;
+    // clientHeight underflows on collapsed/hidden containers — snapshot the *applied* style
+    // instead, falling back to clientHeight only when no inline height is set.
+    const styleH=parseFloat(container.style.height);
+    const styleW=parseFloat(container.style.width);
+    startW=Number.isFinite(styleW)&&styleW>0?styleW:container.clientWidth;
+    startH=Number.isFinite(styleH)&&styleH>0?styleH:container.clientHeight;
     axis=this.classList.contains('grip-v')?'v':'h';
     document.body.style.cursor=axis==='v'?'row-resize':'col-resize';
     this.classList.add('active');
+    movedPastDeadzone=false;
   }
   function onMove(e){
     if(!dragging)return;
-    e.preventDefault();
     const p=e.touches?.[0]||e;
+    if(p.clientX==null||p.clientY==null)return;
+    // Dead zone: don't actually resize until the finger has moved ~5px from its start
+    // position. Stops a stray tap (especially on touch screens) from registering as a
+    // drag and collapsing the chart to its minimum.
+    const dx=Math.abs(p.clientX-startX),dy=Math.abs(p.clientY-startY);
+    if(!movedPastDeadzone){
+      if(dx<5&&dy<5)return;
+      movedPastDeadzone=true;
+    }
+    e.preventDefault();
     if(axis==='h'){
+      // Horizontal resize is symmetric (auto-centered wrapper), so finger movement maps 1:2
+      // to keep the edge under the finger.
       const isRight=activeGrip===gripR;
       const delta=isRight?(startX-p.clientX):(p.clientX-startX);
       const newW=Math.max(300,Math.min(getMaxW(),startW-delta*2));
       resizer.style.maxWidth=(newW+20)+'px';
       resizer.style.margin='0 auto';
     }else{
+      // Vertical resize grows only downward; finger movement maps 1:1 so the bottom edge
+      // tracks the finger directly. (Old *2 multiplier overshot and made minor jitter
+      // slam the container against its min height.)
       const isBottom=activeGrip===gripB;
       const delta=isBottom?(startY-p.clientY):(p.clientY-startY);
-      const newH=Math.max(250,Math.min(1400,startH-delta*2));
+      const newH=Math.max(250,Math.min(1400,startH-delta));
       container.style.height=newH+'px';
     }
     // Live preview — redraw so the canvas re-renders to the new size
@@ -3995,10 +4016,14 @@ function printChart(){
     }
   }
   function onUp(){
-    if(!dragging)return;dragging=false;
+    if(!dragging)return;
+    const wasDrag=movedPastDeadzone;
+    dragging=false;movedPastDeadzone=false;
     document.body.style.cursor='';
     document.querySelectorAll('.chart-grip').forEach(g=>g.classList.remove('active'));
-    redraw();
+    // Only redraw if the user actually moved — a stray tap with no movement leaves
+    // everything as-is.
+    if(wasDrag)redraw();
   }
   [gripL,gripR,gripT,gripB].filter(Boolean).forEach(g=>{
     g.addEventListener('mousedown',onDown);
