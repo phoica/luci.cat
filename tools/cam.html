@@ -777,6 +777,7 @@ let ready          = false;
 let ctrlVisible    = true;
 let toastTimer     = null;
 let isTorchOn      = false;
+let deviceHasTorch = false;
 let customW        = 16, customH = 9;
 let isBlindMode    = false;
 // Session mode
@@ -1336,7 +1337,7 @@ function detectCapabilities() {
   const track = stream?.getVideoTracks()[0];
   isTorchOn = false;
   torchTgl.classList.remove('on');
-  torchTgl.style.display = 'none';
+  if (!deviceHasTorch) torchTgl.style.display = 'none';
   zoomRow.style.display    = 'none';
   evRow.style.display      = 'none';
   expTimeRow.style.display = 'none';
@@ -1353,7 +1354,7 @@ function detectCapabilities() {
   if (!track?.getCapabilities) return;
   const caps = track.getCapabilities();
 
-  if (caps.torch) torchTgl.style.display = '';
+  if (caps.torch) { deviceHasTorch = true; torchTgl.style.display = ''; }
 
   if (caps.zoom) {
     zoomSlider.min   = caps.zoom.min  ?? 1;
