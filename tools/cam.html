@@ -296,6 +296,21 @@ body[data-theme="light"] .tgl.on{color:#fff}
 .swatch.active{border-color:var(--accent);transform:scale(1.15)}
 .swatch-custom{background:conic-gradient(red,yellow,lime,cyan,blue,magenta,red);position:relative;overflow:hidden}
 .swatch-custom input[type="color"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:130%;height:130%;top:-15%;left:-15%}
+.cf-color-btn{
+  width:20px;height:20px;flex-shrink:0;border-radius:var(--rs);padding:0;
+  border:2px solid var(--border);background:#fff;cursor:pointer;
+  clip-path:polygon(0 0,calc(100% - 4px) 0,100% 4px,100% 100%,0 100%);
+  opacity:.2;pointer-events:none;transition:opacity .15s,border-color .15s;
+}
+.cf-color-btn.active{opacity:1;pointer-events:auto;border-color:var(--accent)}
+.cf-popup{
+  position:fixed;z-index:200;
+  display:flex;gap:7px;align-items:center;padding:9px 11px;
+  background:var(--surface);border:1px solid var(--border-h);border-radius:var(--r);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  filter:drop-shadow(0 4px 18px rgba(0,0,0,.45));
+}
+.cf-popup.hidden{display:none}
 
 /* ── Capture bar (full width, always at bottom of .app) ── */
 .capture-bar{
@@ -713,8 +728,11 @@ body[data-theme="light"] .gallery-hdr-title{
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="10" height="10" rx="1.2"/><rect x="4.5" y="4.5" width="5" height="5"/></svg>
             <span data-i18n="colorFrame">Color Frame</span>
           </button>
+          <button class="cf-color-btn" id="cfColorBtn" title="Choose color"></button>
         </div>
-        <div class="swatch-row" id="swatchRow" style="display:none">
+
+        <!-- CF colour picker popup — rendered fixed via JS to escape overflow:hidden -->
+        <div class="cf-popup hidden" id="cfPopup">
           <button class="swatch active" data-color="#ffffff" style="background:#ffffff"></button>
           <button class="swatch" data-color="#fff5e0" style="background:#fff5e0"></button>
           <button class="swatch" data-color="#e0f0ff" style="background:#e0f0ff"></button>
@@ -1032,6 +1050,7 @@ let sessionPhotos  = []; // { blob, url, selected }
 const SESSION_MAX  = 9;
 // Color frame
 let isCF           = false;
+let cfPopupOpen    = false;
 let cfColor        = '#ffffff';
 // Hardware caps
 let focusMin = 0, focusMax = 0;
@@ -1069,7 +1088,8 @@ const recordIcon   = $('recordIcon');
 const mirrorTgl    = $('mirrorTgl');
 const torchTgl     = $('torchTgl');
 const cfTgl        = $('cfTgl');
-const swatchRow    = $('swatchRow');
+const cfColorBtn   = $('cfColorBtn');
+const cfPopup      = $('cfPopup');
 const customSwatch = $('customSwatch');
 const cfPicker     = $('cfPicker');
 const cfOverlay    = $('cfOverlay');
@@ -1455,7 +1475,6 @@ function loadSettings() {
     if (typeof s.cf === 'boolean') {
       isCF = s.cf;
       cfTgl.classList.toggle('on', isCF);
-      if (isCF) swatchRow.style.display = '';
     }
     if (s.cfColor) {
       cfColor = s.cfColor;
@@ -1463,6 +1482,7 @@ function loadSettings() {
       updateSwatchActive();
     }
     updateCFBorder();
+    updateCFColorBtn();
     if (typeof s.leDurIdx === 'number' && s.leDurIdx >= 0 && s.leDurIdx <= 12) {
       leDurIdx = s.leDurIdx;
       leDurSldr.value = leDurIdx;
@@ -1917,10 +1937,27 @@ function updateCFBorder() {
     cfBorder.classList.remove('active');
   }
 }
+function updateCFColorBtn() {
+  cfColorBtn.style.background = cfColor;
+  cfColorBtn.classList.toggle('active', isCF);
+  if (!isCF) closeCFPopup();
+}
+function toggleCFPopup() {
+  if (cfPopupOpen) { closeCFPopup(); return; }
+  const rect = cfColorBtn.getBoundingClientRect();
+  cfPopup.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+  cfPopup.style.right  = (window.innerWidth  - rect.right) + 'px';
+  cfPopup.classList.remove('hidden');
+  cfPopupOpen = true;
+}
+function closeCFPopup() {
+  cfPopup.classList.add('hidden');
+  cfPopupOpen = false;
+}
 function setCF(on) {
   isCF = on;
   cfTgl.classList.toggle('on', on);
-  swatchRow.style.display = on ? '' : 'none';
+  updateCFColorBtn();
   updateCFBorder();
   saveSettings();
 }
@@ -2257,6 +2294,7 @@ function handleError(err) {
 
 // ── Key handler (volume rocker) ────────────────────────────────────────────
 function onKey(e) {
+  if (e.key === 'Escape' && cfPopupOpen) { closeCFPopup(); return; }
   // Review overlay shortcuts
   if (!reviewOverlay.classList.contains('hidden')) {
     if (e.key === 'Escape') { e.preventDefault(); closeReview(); return; }
@@ -2283,6 +2321,7 @@ function bindControls() {
   mirrorTgl.addEventListener('click',     () => setMirror(!isMirrored));
   torchTgl.addEventListener('click',      () => setTorch(!isTorchOn));
   cfTgl.addEventListener('click',         () => setCF(!isCF));
+  cfColorBtn.addEventListener('click',    (e) => { e.stopPropagation(); toggleCFPopup(); });
   leCancelBtn.addEventListener('click',   cancelLongExposure);
   sessionBtn.addEventListener('click',    toggleSessionMode);
   sessionViewBtn.addEventListener('click',openGallery);
@@ -2343,15 +2382,21 @@ function bindControls() {
   document.querySelectorAll('#leModeRow .pill').forEach(b =>
     b.addEventListener('click', () => setLeMode(b.dataset.leMode)));
   document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s =>
-    s.addEventListener('click', () => setCFColor(s.dataset.color)));
+    s.addEventListener('click', () => { setCFColor(s.dataset.color); updateCFColorBtn(); closeCFPopup(); }));
   cfPicker.addEventListener('input', () => {
     cfColor = cfPicker.value;
     customSwatch.style.background = cfColor;
     document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s => s.classList.remove('active'));
     customSwatch.classList.add('active');
     updateCFBorder();
+    updateCFColorBtn();
   });
   cfPicker.addEventListener('change', saveSettings);
+
+  // Close CF popup on outside click
+  document.addEventListener('click', (e) => {
+    if (cfPopupOpen && !cfPopup.contains(e.target) && e.target !== cfColorBtn) closeCFPopup();
+  });
 
   // Volume rocker → shutter (capture phase for priority, passive:false for preventDefault)
   document.addEventListener('keydown', onKey, { capture: true, passive: false });
