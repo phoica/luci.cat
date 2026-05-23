@@ -13,7 +13,7 @@
 <style>
 :root,body[data-theme="dark"]{
   --bg:#000;--surface:#0c0f15;--surface2:#181d27;
-  --glass:rgba(10,13,20,.78);--glass2:rgba(20,24,33,.72);
+  --glass:rgba(10,13,20,.44);--glass2:rgba(20,24,33,.38);
   --border:rgba(82,90,108,.55);--border-s:#525a6c;--border-h:#7a8294;
   --text:#fff;--text-m:#c4ccd8;--text-d:#8a92a0;
   --accent:#ffb070;--accent-dim:rgba(255,176,112,.16);--accent-glow:rgba(255,176,112,.5);
@@ -21,7 +21,7 @@
 }
 body[data-theme="light"]{
   --bg:#f4f2ef;--surface:#fff;--surface2:#f0eee9;
-  --glass:rgba(244,242,239,.85);--glass2:rgba(240,238,233,.8);
+  --glass:rgba(244,242,239,.58);--glass2:rgba(240,238,233,.5);
   --border:rgba(212,208,200,.65);--border-s:#d4d0c8;--border-h:#b8b4ac;
   --text:#2c2a26;--text-m:#6b6860;--text-d:#9c9890;
   --accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.25);
@@ -105,7 +105,7 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   border:0px solid transparent;
   transition:border-width .2s,border-color .2s;
 }
-.cf-border.active{border-width:10px;border-color:var(--cf,#fff)}
+.cf-border.active{border-width:22px;border-color:var(--cf,#fff)}
 
 .capture-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5;transition:opacity .05s}
 .capture-flash.flash{opacity:.9}
@@ -321,6 +321,36 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── Crop UI (free mode only) ── */
+.crop-ui{position:absolute;inset:0;z-index:4;display:none;pointer-events:none}
+.viewport[data-ratio="free"] .crop-ui{display:block}
+.crop-region{
+  position:absolute;pointer-events:none;
+  border:1px solid rgba(255,255,255,.55);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.42);
+  transition:none;
+}
+/* Horizontal handles (top/bottom) */
+.crop-h{
+  position:absolute;left:50%;transform:translateX(-50%);
+  width:52px;height:22px;cursor:row-resize;pointer-events:all;
+  display:flex;align-items:center;justify-content:center;
+}
+.crop-h::after{
+  content:'';display:block;width:36px;height:3px;border-radius:2px;
+  background:rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(0,0,0,.4);
+}
+/* Vertical handles (left/right) */
+.crop-v{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:22px;height:52px;cursor:col-resize;pointer-events:all;
+  display:flex;align-items:center;justify-content:center;
+}
+.crop-v::after{
+  content:'';display:block;width:3px;height:36px;border-radius:2px;
+  background:rgba(255,255,255,.85);box-shadow:1px 0 4px rgba(0,0,0,.4);
+}
+
 /* ── Desktop ── */
 @media(min-width:640px){
   .app-main{flex-direction:row}
@@ -378,6 +408,14 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
           <video id="preview" autoplay playsinline muted></video>
           <!-- Persistent colored border when Color Frame is on -->
           <div class="cf-border" id="cfBorder"></div>
+          <!-- Free-mode crop UI -->
+          <div class="crop-ui" id="cropUI">
+            <div class="crop-region" id="cropRegion"></div>
+            <div class="crop-h" id="cdTop"    style="top:0;transform:translate(-50%,-50%)"></div>
+            <div class="crop-h" id="cdBottom" style="bottom:0;transform:translate(-50%,50%)"></div>
+            <div class="crop-v" id="cdLeft"   style="left:0;transform:translate(-50%,-50%)"></div>
+            <div class="crop-v" id="cdRight"  style="right:0;transform:translate(50%,-50%)"></div>
+          </div>
           <div class="capture-flash" id="captureFlash"></div>
           <div class="rec-badge" id="recBadge"><span class="rec-dot"></span>REC</div>
 
@@ -575,6 +613,8 @@ let leStackCanvas  = null, leStackCtx = null;
 let leFrameCount   = 0;
 let leW = 0, leH = 0;
 let leElapsed = 0, leTotalMs = 0;
+// Crop (free mode, pixels from each edge of viewport)
+let cropT = 0, cropB = 0, cropL = 0, cropR = 0;
 
 // ── DOM ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -636,10 +676,88 @@ const dlLink       = $('dlLink');
 const toastEl      = $('toast');
 const themeColorMeta = $('themeColorMeta');
 
+const cropRegion = $('cropRegion');
+const cdTop    = $('cdTop');
+const cdBottom = $('cdBottom');
+const cdLeft   = $('cdLeft');
+const cdRight  = $('cdRight');
+
+// ── Crop ───────────────────────────────────────────────────────────────────
+function updateCropRegion() {
+  const vp = viewport.getBoundingClientRect();
+  const w = vp.width, h = vp.height;
+  const minSz = 60;
+  cropT = Math.max(0, Math.min(cropT, h - cropB - minSz));
+  cropB = Math.max(0, Math.min(cropB, h - cropT - minSz));
+  cropL = Math.max(0, Math.min(cropL, w - cropR - minSz));
+  cropR = Math.max(0, Math.min(cropR, w - cropL - minSz));
+
+  cropRegion.style.top    = cropT + 'px';
+  cropRegion.style.left   = cropL + 'px';
+  cropRegion.style.right  = cropR + 'px';
+  cropRegion.style.bottom = cropB + 'px';
+
+  cdTop.style.top       = cropT + 'px';
+  cdBottom.style.bottom = cropB + 'px';
+  cdLeft.style.left     = cropL + 'px';
+  cdRight.style.right   = cropR + 'px';
+}
+
+function resetCrop() {
+  cropT = cropB = cropL = cropR = 0;
+  updateCropRegion();
+}
+
+function makeDraggable(el, onDrag) {
+  let sx, sy, sv;
+  function start(e) {
+    const p = e.touches?.[0] || e;
+    sx = p.clientX; sy = p.clientY;
+    sv = { t: cropT, b: cropB, l: cropL, r: cropR };
+    document.addEventListener('mousemove', move);
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchend', end);
+    e.preventDefault();
+  }
+  function move(e) {
+    const p = e.touches?.[0] || e;
+    onDrag(p.clientX - sx, p.clientY - sy, sv);
+    updateCropRegion();
+    e.preventDefault();
+  }
+  function end() {
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchend', end);
+  }
+  el.addEventListener('mousedown', start);
+  el.addEventListener('touchstart', start, { passive: false });
+}
+
+function initCrop() {
+  const vp = () => viewport.getBoundingClientRect();
+  makeDraggable(cdTop,    (dx, dy, s) => { cropT = Math.max(0, s.t + dy); });
+  makeDraggable(cdBottom, (dx, dy, s) => { cropB = Math.max(0, s.b - dy); });
+  makeDraggable(cdLeft,   (dx, dy, s) => { cropL = Math.max(0, s.l + dx); });
+  makeDraggable(cdRight,  (dx, dy, s) => { cropR = Math.max(0, s.r - dx); });
+  // Double-tap viewport to reset crop
+  let lastTap = 0;
+  vpWrap.addEventListener('touchend', e => {
+    if (currentRatio !== 'free') return;
+    const now = Date.now();
+    if (now - lastTap < 320) resetCrop();
+    lastTap = now;
+  });
+  updateCropRegion();
+}
+
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
   loadSettings();
   bindControls();
+  initCrop();
   navigator.mediaDevices?.getUserMedia
     ? startCamera()
     : showError('Camera API not supported — try Safari or Chrome');
@@ -793,7 +911,14 @@ async function enumerateDevices() {
       seen.add(k); return true;
     });
     const labeled = unique.filter(d => d.label.trim() !== '');
-    devices = labeled.length >= 2 ? labeled : unique;
+    const raw = labeled.length >= 2 ? labeled : unique;
+    // Sort: Selfie first, then Ultra/Wide/Tele, then Main, then others
+    const typeOrder = { Selfie:0, Ultra:1, Wide:2, Tele:3, Main:4 };
+    devices = [...raw].sort((a, b) => {
+      const la = cameraLabel(a), lb = cameraLabel(b);
+      const oa = typeOrder[la] ?? 5, ob = typeOrder[lb] ?? 5;
+      return oa - ob;
+    });
     renderCamSelector();
   } catch {}
 }
@@ -1066,6 +1191,7 @@ function setRatio(ratio, save = true) {
   viewport.dataset.ratio = ratio;
   document.querySelectorAll('#ratioSelector .pill').forEach(p =>
     p.classList.toggle('active', p.dataset.ratio === ratio));
+  resetCrop();
   if (save) saveSettings();
 }
 
@@ -1197,16 +1323,25 @@ async function capturePhoto() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (!vw || !vh) { cfOverlay.style.display = 'none'; return; }
 
-  let cw = vw, ch = vh;
-  if (currentRatio !== 'free') {
+  let cw = vw, ch = vh, sx = 0, sy = 0;
+  if (currentRatio === 'free' && (cropT || cropB || cropL || cropR)) {
+    // Apply crop — map viewport pixels → video pixels
+    const vpRect = viewport.getBoundingClientRect();
+    const scaleX = vw / vpRect.width, scaleY = vh / vpRect.height;
+    sx = Math.round(cropL * scaleX);
+    sy = Math.round(cropT * scaleY);
+    cw = Math.round((vpRect.width  - cropL - cropR) * scaleX);
+    ch = Math.round((vpRect.height - cropT - cropB) * scaleY);
+  } else if (currentRatio !== 'free') {
     const [rw, rh] = currentRatio.split(':').map(Number);
     const ar = rw / rh, vAR = vw / vh;
-    ar > vAR ? (cw = vw, ch = Math.round(vw / ar)) : (ch = vh, cw = Math.round(vh * ar));
+    if (ar > vAR) { cw = vw; ch = Math.round(vw / ar); }
+    else          { ch = vh; cw = Math.round(vh * ar); }
+    sx = (vw - cw) / 2; sy = (vh - ch) / 2;
   }
 
   capCanvas.width = cw; capCanvas.height = ch;
   const ctx = capCanvas.getContext('2d');
-  const sx = (vw - cw) / 2, sy = (vh - ch) / 2;
   if (isMirrored) {
     ctx.save(); ctx.scale(-1, 1);
     ctx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
