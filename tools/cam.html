@@ -577,6 +577,8 @@ body[data-theme="light"] .gallery-hdr-title{
         <h1 data-i18n="title">Cam</h1>
         <span class="hdr-space"></span>
         <button class="icon-btn lang-btn" id="langBtn" data-i18n-title="language" aria-label="Language" title="Language">EN</button>
+        <!-- Shutter sound -->
+        <button class="icon-btn" id="soundBtn" data-i18n-title="toggleSound" data-i18n-aria="toggleSound"></button>
         <!-- Session mode -->
         <button class="icon-btn" id="sessionBtn" data-i18n-title="sessionTitle" data-i18n-aria="toggleSession">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -834,6 +836,7 @@ const I18N = {
     toggleTheme:'Toggle theme', toggleFullscreen:'Toggle fullscreen',
     toggleSession:'Toggle session mode', sessionTitle:'Session mode — collect photos before saving',
     blindModeTitle:'Blind mode — tap anywhere to shoot', blindExit:'Exit blind mode',
+    toggleSound:'Shutter sound',
     language:'Language',
     photos:(n)=>`${n} photo${n===1?'':'s'}`,
     selectedOf:(s,n)=>`${s} of ${n} selected`,
@@ -841,7 +844,7 @@ const I18N = {
     savedPhotos:(n)=>`Saved ${n} photo${n>1?'s':''}`,
     sessionOn:'Session mode on — photos held until you save them',
     sessionOff:'Session mode off',
-    sessionFull:'Session full (10/10) — save what you like, then clear',
+    sessionFull:(max)=>`Session full (${max}/${max}) — save what you like, then clear`,
     sessionFullSave:'Session full — save or clear before shooting more',
     sessionCleared:'Session cleared',
     blindToast:'Blind mode — tap anywhere to shoot',
@@ -870,6 +873,7 @@ const I18N = {
     toggleTheme:'Alternar tema', toggleFullscreen:'Tela cheia',
     toggleSession:'Modo sessão', sessionTitle:'Modo sessão — junte fotos antes de salvar',
     blindModeTitle:'Modo cego — toque em qualquer lugar pra fotografar', blindExit:'Sair do modo cego',
+    toggleSound:'Som do obturador',
     language:'Idioma',
     photos:(n)=>`${n} foto${n===1?'':'s'}`,
     selectedOf:(s,n)=>`${s} de ${n} selecionada${s>1?'s':''}`,
@@ -877,7 +881,7 @@ const I18N = {
     savedPhotos:(n)=>`${n} foto${n>1?'s':''} salva${n>1?'s':''}`,
     sessionOn:'Modo sessão ativo — fotos guardadas até você salvar',
     sessionOff:'Modo sessão desativado',
-    sessionFull:'Sessão cheia (10/10) — salve as que quiser e limpe',
+    sessionFull:(max)=>`Sessão cheia (${max}/${max}) — salve as que quiser e limpe`,
     sessionFullSave:'Sessão cheia — salve ou limpe antes de continuar',
     sessionCleared:'Sessão limpa',
     blindToast:'Modo cego — toque em qualquer lugar pra fotografar',
@@ -906,6 +910,7 @@ const I18N = {
     toggleTheme:'Canvia tema', toggleFullscreen:'Pantalla completa',
     toggleSession:'Mode sessió', sessionTitle:'Mode sessió — recull fotos abans de desar-les',
     blindModeTitle:'Mode cec — toca on sigui per disparar', blindExit:'Surt del mode cec',
+    toggleSound:'So de l\'obturador',
     language:'Idioma',
     photos:(n)=>`${n} foto${n===1?'':'s'}`,
     selectedOf:(s,n)=>`${s} de ${n} seleccionada${s>1?'es':''}`,
@@ -913,7 +918,7 @@ const I18N = {
     savedPhotos:(n)=>`${n} foto${n>1?'s':''} desada${n>1?'es':''}`,
     sessionOn:'Mode sessió actiu — fotos guardades fins que les desis',
     sessionOff:'Mode sessió desactivat',
-    sessionFull:'Sessió plena (10/10) — desa el que vulguis i buida',
+    sessionFull:(max)=>`Sessió plena (${max}/${max}) — desa el que vulguis i buida`,
     sessionFullSave:'Sessió plena — desa o buida abans de seguir',
     sessionCleared:'Sessió buidada',
     blindToast:'Mode cec — toca on sigui per disparar',
@@ -990,6 +995,8 @@ let ready          = false;
 let ctrlVisible    = true;
 let toastTimer     = null;
 let isTorchOn      = false;
+let soundEnabled   = false;
+let audioCtx       = null;
 let deviceHasTorch = false;
 let customW        = 16, customH = 9;
 let isBlindMode    = false;
@@ -1043,6 +1050,7 @@ const cfOverlay    = $('cfOverlay');
 const cfBorder     = $('cfBorder');
 const themeBtn     = $('themeBtn');
 const langBtn      = $('langBtn');
+const soundBtn     = $('soundBtn');
 const sessionBtn    = $('sessionBtn');
 const sessionPill   = $('sessionPill');
 const sessionCount  = $('sessionCount');
@@ -1143,7 +1151,7 @@ function addToSession(blob, meta = {}) {
   updateSessionPill();
   renderGalleryGrid();
   if (sessionPhotos.length >= SESSION_MAX) {
-    showToast(t('sessionFull'), 3500);
+    showToast(t('sessionFull', SESSION_MAX), 3500);
     openGallery();
   }
 }
@@ -1221,6 +1229,8 @@ function clearSession() {
 // ── Fullscreen ─────────────────────────────────────────────────────────────
 const FS_ENTER = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>`;
 const FS_EXIT  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 3v4H3M17 7h-4V3M13 17v-4h4M3 13h4v4"/></svg>`;
+const SOUND_ON  = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8v4h3l4 3V5L6 8H3z" fill="currentColor" stroke="none"/><path d="M13 7c1.3.8 2 1.9 2 3s-.7 2.2-2 3"/></svg>`;
+const SOUND_OFF = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8v4h3l4 3V5L6 8H3z" fill="currentColor" stroke="none"/><path d="M13 8l4 4M17 8l-4 4"/></svg>`;
 
 function fullscreenSupported() {
   const el = document.documentElement;
@@ -1243,6 +1253,40 @@ function toggleFullscreen() {
 }
 document.addEventListener('fullscreenchange',       updateFsBtn);
 document.addEventListener('webkitfullscreenchange', updateFsBtn);
+
+// ── Shutter sound ──────────────────────────────────────────────────────────
+function updateSoundBtn() {
+  soundBtn.innerHTML = soundEnabled ? SOUND_ON : SOUND_OFF;
+  soundBtn.style.borderColor = soundEnabled ? 'var(--accent)' : '';
+  soundBtn.style.background  = soundEnabled ? 'var(--accent)' : '';
+  soundBtn.style.color       = soundEnabled ? 'var(--bg)'     : '';
+}
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  if (soundEnabled) playShutterBlip();
+  updateSoundBtn();
+  saveSettings();
+}
+function playShutterBlip() {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!audioCtx) audioCtx = new Ctx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(2200, t0);
+    osc.frequency.exponentialRampToValueAtTime(1400, t0 + 0.06);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.08);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + 0.09);
+  } catch {}
+}
 
 // ── Crop ───────────────────────────────────────────────────────────────────
 function updateCropRegion() {
@@ -1323,6 +1367,7 @@ function init() {
   bindControls();
   initCrop();
   updateFsBtn();
+  updateSoundBtn();
   if (!navigator.mediaDevices?.getUserMedia) showError(t('apiNotSupported'));
 }
 window.addEventListener('beforeunload', () => {
@@ -1356,6 +1401,8 @@ function loadSettings() {
       updateLeDurDisplay();
     }
     if (s.leMode) setLeMode(s.leMode, false);
+    if (typeof s.soundEnabled === 'boolean') soundEnabled = s.soundEnabled;
+    updateSoundBtn();
   } catch {
     applyTheme(0, false);
   }
@@ -1365,7 +1412,7 @@ function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
-      cf: isCF, cfColor, leDurIdx, leMode, lang: curLang,
+      cf: isCF, cfColor, leDurIdx, leMode, lang: curLang, soundEnabled,
     }));
   } catch {}
 }
@@ -1978,6 +2025,7 @@ async function capturePhoto() {
   const isFront    = facingMode === 'user' || cameraLabel({ label: devLabel }) === 'Selfie';
   if (!isCF && !isFront) flash();
   navigator.vibrate?.([25, 0, 12]);
+  if (soundEnabled) playShutterBlip();
   triggerCaptureAnim();
   shutterBtn.classList.add('pressing');
   setTimeout(() => shutterBtn.classList.remove('pressing'), 150);
@@ -2147,6 +2195,7 @@ function bindControls() {
   fsBtn.addEventListener('click',         toggleFullscreen);
   themeBtn.addEventListener('click',      () => applyTheme(themeIdx + 1));
   langBtn.addEventListener('click',       cycleLang);
+  soundBtn.addEventListener('click',      toggleSound);
   capHideBtn.addEventListener('click',    toggleControls);
   permBtn.addEventListener('click',       () => startCamera());
   blindBtn.addEventListener('click',      enterBlindMode);
