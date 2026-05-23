@@ -32,12 +32,13 @@ body[data-theme="light"]{
 
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:var(--bg)}
-body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);font-size:15px;line-height:1.5}
+html{height:-webkit-fill-available}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);font-size:15px;line-height:1.5;min-height:-webkit-fill-available}
 
 /* ── App shell ── */
 .app{
   display:flex;flex-direction:column;
-  height:100dvh;height:100vh;
+  height:100vh;height:100dvh;
   padding-top:env(safe-area-inset-top);
   padding-left:env(safe-area-inset-left);
   padding-right:env(safe-area-inset-right);
