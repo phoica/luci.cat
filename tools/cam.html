@@ -403,7 +403,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Horizontal handles (top/bottom) */
 .crop-h{
-  position:absolute;left:50%;transform:translateX(-50%);
+  position:absolute;transform:translate(-50%,-50%);
   width:52px;height:22px;cursor:row-resize;pointer-events:all;
   display:flex;align-items:center;justify-content:center;
 }
@@ -413,7 +413,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Vertical handles (left/right) */
 .crop-v{
-  position:absolute;top:50%;transform:translateY(-50%);
+  position:absolute;transform:translate(-50%,-50%);
   width:22px;height:52px;cursor:col-resize;pointer-events:all;
   display:flex;align-items:center;justify-content:center;
 }
@@ -644,10 +644,10 @@ body[data-theme="light"] .gallery-hdr-title{
           <!-- Free-mode crop UI -->
           <div class="crop-ui" id="cropUI">
             <div class="crop-region" id="cropRegion"></div>
-            <div class="crop-h" id="cdTop"    style="top:0;transform:translate(-50%,-50%)"></div>
-            <div class="crop-h" id="cdBottom" style="bottom:0;transform:translate(-50%,50%)"></div>
-            <div class="crop-v" id="cdLeft"   style="left:0;transform:translate(-50%,-50%)"></div>
-            <div class="crop-v" id="cdRight"  style="right:0;transform:translate(50%,-50%)"></div>
+            <div class="crop-h" id="cdTop"></div>
+            <div class="crop-h" id="cdBottom"></div>
+            <div class="crop-v" id="cdLeft"></div>
+            <div class="crop-v" id="cdRight"></div>
           </div>
           <div class="capture-flash" id="captureFlash"></div>
           <div class="rec-badge" id="recBadge"><span class="rec-dot"></span><span data-i18n="rec">REC</span></div>
@@ -1400,10 +1400,17 @@ function updateCropRegion() {
   cropRegion.style.right  = cropR + 'px';
   cropRegion.style.bottom = cropB + 'px';
 
-  cdTop.style.top       = cropT + 'px';
-  cdBottom.style.bottom = cropB + 'px';
-  cdLeft.style.left     = cropL + 'px';
-  cdRight.style.right   = cropR + 'px';
+  const midX = cropL + (w - cropL - cropR) / 2;
+  const midY = cropT + (h - cropT - cropB) / 2;
+
+  cdTop.style.top    = cropT + 'px';
+  cdTop.style.left   = midX + 'px';
+  cdBottom.style.top = (h - cropB) + 'px';
+  cdBottom.style.left = midX + 'px';
+  cdLeft.style.left  = cropL + 'px';
+  cdLeft.style.top   = midY + 'px';
+  cdRight.style.left = (w - cropR) + 'px';
+  cdRight.style.top  = midY + 'px';
 }
 
 function resetCrop() {
