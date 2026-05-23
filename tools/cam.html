@@ -94,7 +94,9 @@ body.blind-mode .viewport-wrap{cursor:crosshair}
 .viewport-wrap{
   flex:1;display:flex;align-items:center;justify-content:center;
   background:var(--bg);overflow:hidden;min-height:0;position:relative;
+  transition:transform .28s ease;
 }
+body.controls-open .viewport-wrap{transform:translateY(-11%)}
 .viewport{position:relative;background:var(--bg);overflow:hidden;max-width:100%;max-height:100%}
 .viewport[data-ratio="free"]{width:100%;height:100%}
 .viewport[data-ratio="1:1"] {aspect-ratio:1/1}
@@ -272,7 +274,7 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 body[data-theme="light"] .pill.active{color:#fff}
 
 /* ── Toggle pills ── */
-.tgl-row{display:flex;gap:5px;flex-wrap:wrap}
+.tgl-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
 .tgl{
   display:inline-flex;align-items:center;gap:5px;
   flex-shrink:0;padding:4px 10px 4px 8px;border-radius:2px;
@@ -315,7 +317,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 /* ── Capture bar (full width, always at bottom of .app) ── */
 .capture-bar{
   flex-shrink:0;
-  padding:6px 16px calc(env(safe-area-inset-bottom) + 8px);
+  padding:2px 16px calc(env(safe-area-inset-bottom) + 4px);
   background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   border-top:1px solid var(--border);position:relative;
 }
@@ -324,7 +326,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
   background:linear-gradient(90deg,transparent,var(--cx),transparent);
   opacity:.4;
 }
-.capture-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:2px 0}
+.capture-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0}
 .cap-left{display:flex;justify-content:flex-start;padding-left:6px}
 .cap-right{display:flex;justify-content:flex-end;padding-right:6px}
 
@@ -1529,6 +1531,7 @@ function pct(slider) {
 function toggleControls() {
   ctrlVisible = !ctrlVisible;
   controlsEl.classList.toggle('hidden', !ctrlVisible);
+  body.classList.toggle('controls-open', ctrlVisible);
   shutterBtn.classList.toggle('ghost', !ctrlVisible);
   recordCell.style.opacity = ctrlVisible ? '' : '0.15';
   capHideBtn.classList.toggle('revealed', !ctrlVisible);
@@ -2110,12 +2113,18 @@ function cancelLongExposure() {
 function cropRect(srcW, srcH) {
   if (currentRatio === 'free' && (cropT || cropB || cropL || cropR)) {
     const r = viewport.getBoundingClientRect();
-    const sx = srcW / r.width, sy = srcH / r.height;
-    return {
-      sx: Math.round(cropL * sx), sy: Math.round(cropT * sy),
-      cw: Math.round((r.width  - cropL - cropR) * sx),
-      ch: Math.round((r.height - cropT - cropB) * sy),
-    };
+    // object-fit:cover — video may extend beyond the viewport on one axis
+    const srcAR = srcW / srcH, vpAR = r.width / r.height;
+    const rendW = srcAR > vpAR ? r.height * srcAR : r.width;
+    const rendH = srcAR > vpAR ? r.height          : r.width / srcAR;
+    const offX  = (rendW - r.width)  / 2;
+    const offY  = (rendH - r.height) / 2;
+    const scaleX = srcW / rendW, scaleY = srcH / rendH;
+    const sx = Math.round((cropL + offX) * scaleX);
+    const sy = Math.round((cropT + offY) * scaleY);
+    const ex = Math.round((r.width  - cropR + offX) * scaleX);
+    const ey = Math.round((r.height - cropB + offY) * scaleY);
+    return { sx, sy, cw: ex - sx, ch: ey - sy };
   }
   if (currentRatio !== 'free') {
     const [rw, rh] = currentRatio === 'custom' ? [customW, customH] : currentRatio.split(':').map(Number);
