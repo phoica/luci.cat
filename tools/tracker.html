@@ -1030,6 +1030,12 @@ let selectedMedId='',tMin=-20,xMax=350;
 let historyTab='doses',histSortKey='day',histSortAsc=false,editingDose=null,editingLab=null,editingLabExtra=new Set();
 let undoStack=[],recurOpen=false,showLabels=true,showLegend=true,showValues=true,showGuides=true;
 let chartView='multi'; // 'multi' = combined chart of selected items; 'individual' = one chart per selected item
+// Independent height state per view mode so they never clobber each other:
+//   - multiContainerH: total chart container height for Multi-view (one big canvas).
+//   - individualPerChartH: per-chart fixed height for Individual mode.
+// Both null = use responsive defaults. Pull-tab drag updates whichever mode is active.
+let multiContainerH=null;
+let individualPerChartH=null;
 let dpr=1;
 const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -3842,6 +3848,9 @@ function redraw(){
   const selHorms=selItems.filter(i=>i.startsWith('h_')).map(i=>i.slice(2)).filter(h=>trackedHormones.includes(h));
   if(chartView==='multi'){
     container.style.display='';container.style.flexDirection='';
+    // Multi-view's container height is its own persistent state. Restore it from
+    // multiContainerH; if null, clear so drawChart uses opts.height (responsive default).
+    container.style.height=(Number.isFinite(multiContainerH)&&multiContainerH>50)?(multiContainerH+'px'):'';
     container.innerHTML='<canvas id="chart"></canvas>';
     drawChart(document.getElementById('chart'),{meds:selMeds,hormones:selHorms,height:defH});
   }else{
@@ -3849,19 +3858,18 @@ function redraw(){
     const meds=selMeds;
     const horms=selHorms;
     const totalCharts=meds.length+horms.length;
-    // Container becomes a flex column. Each item is a flex:1 child whose canvas fills its
-    // remaining vertical space after its header — so heights distribute exactly with no
-    // overflow or empty gap at the bottom, regardless of header line-height/font/margins.
-    const fallbackTotalH=totalCharts===1?splitSingleH:Math.max(splitMultiH*totalCharts,defH);
-    const containerCustomH=parseInt(container.style.height,10);
-    const haveCustom=Number.isFinite(containerCustomH)&&containerCustomH>50;
-    if(!haveCustom)container.style.height=fallbackTotalH+'px';
-    container.style.display='flex';
-    container.style.flexDirection='column';
+    // Each chart gets a fixed height (default = splitMultiH per chart, splitSingleH if
+    // there's just one). Adding/removing hormones doesn't resize the other charts — only
+    // pulling the bottom grip does. Container grows to N × perChartH naturally.
+    const defaultPerChartH=totalCharts===1?splitSingleH:splitMultiH;
+    const perChartH=Number.isFinite(individualPerChartH)&&individualPerChartH>120?individualPerChartH:defaultPerChartH;
+    container.style.height='';
+    container.style.display='block';
+    container.style.flexDirection='';
     let html='';
     const _pillIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M10.5 3.5a4.95 4.95 0 0 1 7 7l-7 7a4.95 4.95 0 0 1-7-7z"/><path d="M7 7l7 7"/></svg>`;
     const _vialIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" style="vertical-align:-3px;margin-right:6px"><path d="M9 3h6"/><path d="M10 3v9.5a3.5 3.5 0 1 0 4 0V3"/><path d="M10 13h4"/></svg>`;
-    const itemStyle='display:flex;flex-direction:column;flex:1 1 0;min-height:0;min-width:0;overflow:hidden';
+    const itemStyle=`display:flex;flex-direction:column;height:${perChartH}px;min-height:0;min-width:0;overflow:hidden`;
     const headerStyle='font-size:16px;font-weight:600;padding:6px 0 4px;flex-shrink:0;line-height:1.3';
     const canvasStyle='flex:1 1 auto;min-height:0;width:100%;display:block;margin:0';
     for(const medId of meds){const m=getMed(medId);const name=m?m.name:medId;const u=getMedUnit(medId);
@@ -3968,12 +3976,25 @@ function printChart(){
     e.preventDefault();dragging=true;activeGrip=this;
     const p=e.touches?.[0]||e;
     startX=p.clientX;startY=p.clientY;
-    // clientHeight underflows on collapsed/hidden containers — snapshot the *applied* style
-    // instead, falling back to clientHeight only when no inline height is set.
-    const styleH=parseFloat(container.style.height);
     const styleW=parseFloat(container.style.width);
     startW=Number.isFinite(styleW)&&styleW>0?styleW:container.clientWidth;
-    startH=Number.isFinite(styleH)&&styleH>0?styleH:container.clientHeight;
+    // Vertical grip start height depends on view mode:
+    //   - Individual: read the *current* per-chart height by measuring the first child item.
+    //     Drag will mutate individualPerChartH directly.
+    //   - Multi-view (or anything else): use container's applied height.
+    if(this.classList.contains('grip-v')&&chartView==='individual'){
+      // Individual mode: start from the current per-chart height (measure live so the drag
+      // continues from what the user sees, not a stale snapshot).
+      const firstItem=container.firstElementChild;
+      startH=firstItem?firstItem.clientHeight:260;
+    }else if(this.classList.contains('grip-v')){
+      // Multi-view: start from the persistent multiContainerH, falling back to live container size.
+      const styleH=parseFloat(container.style.height);
+      startH=(Number.isFinite(multiContainerH)&&multiContainerH>0)?multiContainerH:(Number.isFinite(styleH)&&styleH>0?styleH:container.clientHeight);
+    }else{
+      // Horizontal grip — startW already captured above; startH unused for h drag.
+      startH=container.clientHeight;
+    }
     axis=this.classList.contains('grip-v')?'v':'h';
     document.body.style.cursor=axis==='v'?'row-resize':'col-resize';
     this.classList.add('active');
@@ -4001,13 +4022,18 @@ function printChart(){
       resizer.style.maxWidth=(newW+20)+'px';
       resizer.style.margin='0 auto';
     }else{
-      // Vertical resize grows only downward; finger movement maps 1:1 so the bottom edge
-      // tracks the finger directly. (Old *2 multiplier overshot and made minor jitter
-      // slam the container against its min height.)
+      // Vertical resize. In Individual mode, mutate individualPerChartH (per-chart fixed
+      // height) so all charts grow/shrink by the same amount and stay independent of how
+      // many are visible. In Multi-view, change container.style.height as before.
       const isBottom=activeGrip===gripB;
       const delta=isBottom?(startY-p.clientY):(p.clientY-startY);
-      const newH=Math.max(250,Math.min(1400,startH-delta));
-      container.style.height=newH+'px';
+      const newH=Math.max(180,Math.min(1400,startH-delta));
+      if(chartView==='individual'){
+        individualPerChartH=newH;
+      }else{
+        multiContainerH=newH;
+        container.style.height=newH+'px';
+      }
     }
     // Live preview — redraw so the canvas re-renders to the new size
     if(!vRafPending){
@@ -4028,7 +4054,15 @@ function printChart(){
   [gripL,gripR,gripT,gripB].filter(Boolean).forEach(g=>{
     g.addEventListener('mousedown',onDown);
     g.addEventListener('touchstart',onDown,{passive:false});
-    g.addEventListener('dblclick',()=>{resizer.style.maxWidth='';resizer.style.margin='';container.style.height='';redraw();});
+    g.addEventListener('dblclick',()=>{
+      resizer.style.maxWidth='';resizer.style.margin='';
+      // Reset BOTH modes' persistent height state — multi (container) and individual (per-chart).
+      // Width reset (resizer) applies regardless of vertical mode.
+      multiContainerH=null;
+      individualPerChartH=null;
+      container.style.height='';
+      redraw();
+    });
   });
   document.addEventListener('mousemove',onMove);
   document.addEventListener('touchmove',onMove,{passive:false});
