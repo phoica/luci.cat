@@ -816,6 +816,7 @@ let mediaRecorder  = null;
 let recordedChunks = [];
 let recInterval    = null;
 let recSecs        = 0;
+let audioStream    = null;
 let ready          = false;
 let ctrlVisible    = true;
 let toastTimer     = null;
@@ -1143,7 +1144,10 @@ function init() {
     ? startCamera()
     : showError('Camera API not supported — try Safari or Chrome');
 }
-window.addEventListener('beforeunload', () => stream?.getTracks().forEach(t => t.stop()));
+window.addEventListener('beforeunload', () => {
+  stream?.getTracks().forEach(t => t.stop());
+  audioStream?.getTracks().forEach(t => t.stop());
+});
 
 // ── Settings ───────────────────────────────────────────────────────────────
 function loadSettings() {
@@ -1812,13 +1816,41 @@ async function capturePhoto() {
 }
 
 // ── Video recording ────────────────────────────────────────────────────────
-function startRecording() {
-  if (!ready || !stream) return;
+async function startRecording() {
+  if (!ready || !stream || isRecording) return;
+  // Request the mic separately with high-quality, unprocessed audio
+  audioStream = null;
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl:  false,
+        sampleRate:       48000,
+        sampleSize:       16,
+        channelCount:     2,
+      },
+      video: false,
+    });
+  } catch (err) {
+    if (err.name === 'NotAllowedError') { showToast('Mic blocked — recording video without audio', 3000); }
+    else { showToast('No mic available — recording silent', 2400); }
+  }
+
+  const tracks = [...stream.getVideoTracks(), ...(audioStream?.getAudioTracks() ?? [])];
+  const recStream = new MediaStream(tracks);
+
   recordedChunks = [];
-  const types = ['video/mp4;codecs=h264','video/mp4','video/webm;codecs=h264','video/webm'];
+  const types = ['video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=h264,opus','video/webm;codecs=vp9,opus','video/webm'];
   const mime = types.find(t => { try { return MediaRecorder.isTypeSupported(t); } catch { return false; } }) || '';
-  try { mediaRecorder = new MediaRecorder(stream, mime ? { mimeType: mime } : {}); }
-  catch { mediaRecorder = new MediaRecorder(stream); }
+  const opts = mime ? { mimeType: mime } : {};
+  opts.videoBitsPerSecond = 8_000_000;     // ~8 Mbps video
+  opts.audioBitsPerSecond = 192_000;       // 192 kbps audio (stereo, transparent quality)
+  try { mediaRecorder = new MediaRecorder(recStream, opts); }
+  catch {
+    try { mediaRecorder = new MediaRecorder(recStream, { mimeType: mime }); }
+    catch { mediaRecorder = new MediaRecorder(recStream); }
+  }
   mediaRecorder.ondataavailable = e => { if (e.data?.size > 0) recordedChunks.push(e.data); };
   mediaRecorder.onstop = saveVideo;
   mediaRecorder.start(250);
@@ -1835,6 +1867,8 @@ function stopRecording() {
   if (!isRecording || !mediaRecorder) return;
   mediaRecorder.stop(); isRecording = false;
   clearInterval(recInterval);
+  audioStream?.getTracks().forEach(t => t.stop());
+  audioStream = null;
   recTimer.classList.remove('visible'); recBadge.classList.remove('visible');
   recordBtn.classList.remove('recording');
   recordIcon.innerHTML = '<circle cx="12" cy="12" r="7"/>';
