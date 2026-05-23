@@ -1324,31 +1324,18 @@ function playShutterBlip() {
     if (!audioCtx) audioCtx = new Ctx();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const t0 = audioCtx.currentTime;
-    const sr = audioCtx.sampleRate;
-
-    // Low body pulse — physical weight / the "gl"
-    const body = audioCtx.createOscillator();
-    const bodyGain = audioCtx.createGain();
-    body.type = 'sine';
-    body.frequency.value = 310;
-    bodyGain.gain.setValueAtTime(0.0001, t0);
-    bodyGain.gain.exponentialRampToValueAtTime(0.3, t0 + 0.0008);
-    bodyGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.016);
-    body.connect(bodyGain).connect(audioCtx.destination);
-    body.start(t0); body.stop(t0 + 0.02);
-
-    // High-freq bandpassed noise — the crisp "ick" texture
-    const n = Math.ceil(sr * 0.022);
-    const nbuf = audioCtx.createBuffer(1, n, sr);
-    const nd = nbuf.getChannelData(0);
-    for (let i = 0; i < n; i++) nd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (n * 0.28));
-    const nsrc = audioCtx.createBufferSource();
-    nsrc.buffer = nbuf;
-    const bp = audioCtx.createBiquadFilter();
-    bp.type = 'bandpass'; bp.frequency.value = 4800; bp.Q.value = 1.8;
-    const ng = audioCtx.createGain(); ng.gain.value = 0.2;
-    nsrc.connect(bp).connect(ng).connect(audioCtx.destination);
-    nsrc.start(t0);
+    // Two light sine partials — fundamental + octave — quiet pluck-like click
+    [[1700, 0.11], [3400, 0.035]].forEach(([freq, peak]) => {
+      const osc = audioCtx.createOscillator();
+      const g   = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(peak, t0 + 0.0012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.038);
+      osc.connect(g).connect(audioCtx.destination);
+      osc.start(t0); osc.stop(t0 + 0.042);
+    });
   } catch {}
 }
 
@@ -1630,17 +1617,16 @@ async function saveBlobsBatch(items) {
 
 // ── Camera ─────────────────────────────────────────────────────────────────
 function buildConstraints(deviceId) {
-  // Always request max sensor resolution — browser picks the highest it can support
-  const maxRes = { width: { ideal: 9999 }, height: { ideal: 9999 } };
+  const res = { width: { ideal: 1920 }, height: { ideal: 1080 } };
   if (!deviceId) {
     const mob = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    return { video: mob ? { facingMode: { ideal: 'environment' }, ...maxRes } : maxRes, audio: false };
+    return { video: mob ? { facingMode: { ideal: 'environment' }, ...res } : res, audio: false };
   }
   const lbl = (devices.find(d => d.deviceId === deviceId)?.label || '').toLowerCase();
   const isFront = lbl.includes('front') || lbl.includes('facetime') ||
                   lbl.includes('facing front') || lbl.match(/\buser\b/);
-  if (isFront) return { video: { facingMode: 'user', ...maxRes }, audio: false };
-  return { video: { deviceId: { exact: deviceId }, ...maxRes }, audio: false };
+  if (isFront) return { video: { facingMode: 'user', ...res }, audio: false };
+  return { video: { deviceId: { exact: deviceId }, ...res }, audio: false };
 }
 
 async function retryCameraAfterBusy(deviceId) {
@@ -2164,7 +2150,6 @@ async function capturePhoto() {
   if (isCF) {
     cfOverlay.style.backgroundColor = cfColor;
     cfOverlay.style.display = 'block';
-    // Two rAF = guaranteed paint before capture
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     await new Promise(r => setTimeout(r, 280));
   }
@@ -2172,36 +2157,12 @@ async function capturePhoto() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (!vw || !vh) { cfOverlay.style.display = 'none'; return; }
 
+  const { sx, sy, cw, ch } = cropRect(vw, vh);
+  drawToCanvas(preview, sx, sy, cw, ch);
+
   const facingMode = stream?.getVideoTracks()[0]?.getSettings()?.facingMode;
   const devLabel   = devices.find(d => d.deviceId === currentDeviceId)?.label ?? '';
   const isFront    = facingMode === 'user' || cameraLabel({ label: devLabel }) === 'Selfie';
-
-  // Try ImageCapture (full sensor resolution) then fall back to canvas-from-video
-  const track = stream?.getVideoTracks()[0];
-  let blob = null;
-  if (window.ImageCapture && track) {
-    try {
-      const ic = new ImageCapture(track);
-      const raw = await ic.takePhoto();
-      blob = await new Promise(resolve => {
-        const img = new Image();
-        img.onload = () => {
-          const { sx, sy, cw, ch } = cropRect(img.naturalWidth, img.naturalHeight);
-          drawToCanvas(img, sx, sy, cw, ch);
-          URL.revokeObjectURL(img.src);
-          capCanvas.toBlob(resolve, 'image/png');
-        };
-        img.onerror = () => { URL.revokeObjectURL(img.src); resolve(null); };
-        img.src = URL.createObjectURL(raw);
-      });
-    } catch { /* fall through to canvas path */ }
-  }
-  if (!blob) {
-    const { sx, sy, cw, ch } = cropRect(vw, vh);
-    drawToCanvas(preview, sx, sy, cw, ch);
-    blob = await new Promise(r => capCanvas.toBlob(r, 'image/png'));
-  }
-
   if (!isCF && !isFront) flash();
   navigator.vibrate?.([25, 0, 12]);
   if (soundEnabled) playShutterBlip();
@@ -2210,22 +2171,24 @@ async function capturePhoto() {
   setTimeout(() => shutterBtn.classList.remove('pressing'), 150);
   if (isCF) setTimeout(() => { cfOverlay.style.display = 'none'; }, 450);
 
-  if (!blob) return;
-  if (reviewModeOn) { openReview(blob); return; }
-  if (isSessionMode) {
-    if (sessionPhotos.length >= SESSION_MAX) {
-      showToast(t('sessionFullSave'), 3000);
-      openGallery();
-      return;
+  capCanvas.toBlob(blob => {
+    if (!blob) return;
+    if (reviewModeOn) { openReview(blob); return; }
+    if (isSessionMode) {
+      if (sessionPhotos.length >= SESSION_MAX) {
+        showToast(t('sessionFullSave'), 3000);
+        openGallery();
+        return;
+      }
+      addToSession(blob);
+    } else {
+      saveBlob(blob, `cam_${timestamp()}.png`);
+      if (!localStorage.getItem('cam_save_ok')) {
+        localStorage.setItem('cam_save_ok', '1');
+        showToast(t('photoReady'));
+      }
     }
-    addToSession(blob);
-  } else {
-    saveBlob(blob, `cam_${timestamp()}.png`);
-    if (!localStorage.getItem('cam_save_ok')) {
-      localStorage.setItem('cam_save_ok', '1');
-      showToast(t('photoReady'));
-    }
-  }
+  }, 'image/png');
 }
 
 // ── Video recording ────────────────────────────────────────────────────────
