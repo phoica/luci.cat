@@ -408,7 +408,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Horizontal handles (top/bottom) */
 .crop-h{
-  position:absolute;transform:translate(-50%,-50%);
+  position:absolute;
   width:52px;height:22px;cursor:row-resize;pointer-events:all;
   display:flex;align-items:center;justify-content:center;
 }
@@ -418,7 +418,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Vertical handles (left/right) */
 .crop-v{
-  position:absolute;transform:translate(-50%,-50%);
+  position:absolute;
   width:22px;height:52px;cursor:col-resize;pointer-events:all;
   display:flex;align-items:center;justify-content:center;
 }
@@ -426,6 +426,11 @@ body[data-theme="light"] .tgl.on{color:#fff}
   content:'';display:block;width:3px;height:36px;border-radius:2px;
   background:rgba(255,255,255,.85);box-shadow:1px 0 4px rgba(0,0,0,.4);
 }
+/* Each handle sits fully inside the crop region — always accessible */
+#cdTop    { transform:translate(-50%,0) }
+#cdBottom { transform:translate(-50%,-100%) }
+#cdLeft   { transform:translate(0,-50%) }
+#cdRight  { transform:translate(-100%,-50%) }
 
 /* ── Custom ratio row ── */
 .custom-ratio-row{display:flex;align-items:center;gap:8px;padding:2px 0}
@@ -1555,6 +1560,7 @@ function toggleControls() {
   shutterBtn.classList.toggle('ghost', !ctrlVisible);
   recordCell.style.opacity = ctrlVisible ? '' : '0.15';
   capHideBtn.classList.toggle('revealed', !ctrlVisible);
+  if (currentRatio === 'free') requestAnimationFrame(updateCropRegion);
 }
 
 // ── Blind mode ─────────────────────────────────────────────────────────────
