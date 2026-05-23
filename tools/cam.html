@@ -157,6 +157,11 @@ body.blind-mode .viewport-wrap{cursor:crosshair}
   z-index:10;padding:28px;text-align:center;color:#fff;
 }
 .overlay.hidden{display:none}
+.review-overlay{padding:16px;justify-content:flex-end;gap:12px;background:rgba(0,0,0,.88)}
+.review-img{flex:1 1 auto;min-height:0;width:auto;max-width:100%;object-fit:contain;border-radius:var(--r)}
+.review-actions{display:flex;gap:10px;flex-shrink:0;width:100%}
+.review-actions .perm-btn{flex:1;margin-top:0}
+.review-discard-btn{background:transparent!important;border:1px solid rgba(255,255,255,.3)!important;color:#fff!important}
 .overlay-icon{width:58px;height:58px;opacity:.5;margin-bottom:4px}
 .overlay p{font-size:15px;color:rgba(255,255,255,.72);max-width:260px;line-height:1.5}
 .perm-btn{
@@ -576,6 +581,15 @@ body[data-theme="light"] .gallery-hdr-title{
         <button class="icon-btn lang-btn" id="langBtn" data-i18n-title="language" aria-label="Language" title="Language">EN</button>
         <!-- Shutter sound -->
         <button class="icon-btn" id="soundBtn" data-i18n-title="toggleSound" data-i18n-aria="toggleSound"></button>
+        <!-- Review mode -->
+        <button class="icon-btn" id="reviewModeBtn" data-i18n-title="reviewModeTitle" data-i18n-aria="reviewModeTitle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="14" rx="2"/>
+            <circle cx="8" cy="9" r="1.5" fill="currentColor" stroke="none"/>
+            <path d="M3 14l4.5-4.5L11 13l3.5-3.5L21 14"/>
+            <path d="M8 22l4-3 4 3"/>
+          </svg>
+        </button>
         <!-- Session mode -->
         <button class="icon-btn" id="sessionBtn" data-i18n-title="sessionTitle" data-i18n-aria="toggleSession">
           <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -642,6 +656,14 @@ body[data-theme="light"] .gallery-hdr-title{
             </svg>
             <p id="errMsg" data-i18n="somethingWrong">Something went wrong</p>
             <button class="perm-btn" id="retryBtn" data-i18n="tryAgain">Try Again</button>
+          </div>
+
+          <div class="overlay review-overlay hidden" id="reviewOverlay">
+            <img id="reviewImg" class="review-img" src="" alt="captured photo"/>
+            <div class="review-actions">
+              <button class="perm-btn review-discard-btn" id="reviewDiscardBtn" data-i18n="reviewDiscard">Discard</button>
+              <button class="perm-btn" id="reviewSaveBtn" data-i18n="reviewKeep">Keep</button>
+            </div>
           </div>
         </div>
       </div>
@@ -830,6 +852,8 @@ const I18N = {
     toggleSession:'Toggle session mode', sessionTitle:'Session mode — collect photos before saving',
     blindModeTitle:'Blind mode — tap anywhere to shoot',
     toggleSound:'Shutter sound',
+    reviewModeTitle:'Review before saving',
+    reviewKeep:'Keep', reviewDiscard:'Discard',
     language:'Language',
     photos:(n)=>`${n} photo${n===1?'':'s'}`,
     selectedOf:(s,n)=>`${s} of ${n} selected`,
@@ -867,6 +891,8 @@ const I18N = {
     toggleSession:'Modo sessão', sessionTitle:'Modo sessão — junte fotos antes de salvar',
     blindModeTitle:'Modo cego — toque em qualquer lugar pra fotografar',
     toggleSound:'Som do obturador',
+    reviewModeTitle:'Revisar antes de salvar',
+    reviewKeep:'Guardar', reviewDiscard:'Descartar',
     language:'Idioma',
     photos:(n)=>`${n} foto${n===1?'':'s'}`,
     selectedOf:(s,n)=>`${s} de ${n} selecionada${s>1?'s':''}`,
@@ -904,6 +930,8 @@ const I18N = {
     toggleSession:'Mode sessió', sessionTitle:'Mode sessió — recull fotos abans de desar-les',
     blindModeTitle:'Mode cec — toca on sigui per disparar',
     toggleSound:'So de l\'obturador',
+    reviewModeTitle:'Revisar abans de desar',
+    reviewKeep:'Guardar', reviewDiscard:'Descartar',
     language:'Idioma',
     photos:(n)=>`${n} foto${n===1?'':'s'}`,
     selectedOf:(s,n)=>`${s} de ${n} seleccionada${s>1?'es':''}`,
@@ -989,6 +1017,8 @@ let ctrlVisible    = true;
 let toastTimer     = null;
 let isTorchOn      = false;
 let soundEnabled   = false;
+let reviewModeOn   = false;
+let pendingReviewBlob = null;
 let audioCtx       = null;
 let deviceHasTorch = false;
 let customW        = 16, customH = 9;
@@ -1043,7 +1073,12 @@ const cfOverlay    = $('cfOverlay');
 const cfBorder     = $('cfBorder');
 const themeBtn     = $('themeBtn');
 const langBtn      = $('langBtn');
-const soundBtn     = $('soundBtn');
+const soundBtn      = $('soundBtn');
+const reviewModeBtn = $('reviewModeBtn');
+const reviewOverlay = $('reviewOverlay');
+const reviewImg     = $('reviewImg');
+const reviewSaveBtn = $('reviewSaveBtn');
+const reviewDiscardBtn = $('reviewDiscardBtn');
 const sessionBtn    = $('sessionBtn');
 const sessionPill   = $('sessionPill');
 const sessionCount  = $('sessionCount');
@@ -1280,6 +1315,42 @@ function playShutterBlip() {
   } catch {}
 }
 
+// ── Review mode ───────────────────────────────────────────────────────────
+function updateReviewModeBtn() {
+  reviewModeBtn.style.borderColor = reviewModeOn ? 'var(--accent)' : '';
+  reviewModeBtn.style.background  = reviewModeOn ? 'var(--accent)' : '';
+  reviewModeBtn.style.color       = reviewModeOn ? 'var(--bg)'     : '';
+}
+function toggleReviewMode() {
+  reviewModeOn = !reviewModeOn;
+  updateReviewModeBtn();
+  saveSettings();
+}
+function openReview(blob) {
+  pendingReviewBlob = blob;
+  reviewImg.src = URL.createObjectURL(blob);
+  reviewOverlay.classList.remove('hidden');
+}
+function closeReview() {
+  reviewOverlay.classList.add('hidden');
+  const prev = reviewImg.src;
+  reviewImg.src = '';
+  if (prev) URL.revokeObjectURL(prev);
+  pendingReviewBlob = null;
+}
+function commitReview() {
+  const blob = pendingReviewBlob;
+  if (!blob) return;
+  closeReview();
+  if (isSessionMode) {
+    if (sessionPhotos.length >= SESSION_MAX) { showToast(t('sessionFullSave'), 3000); openGallery(); return; }
+    addToSession(blob);
+  } else {
+    saveBlob(blob, `cam_${timestamp()}.png`);
+    if (!localStorage.getItem('cam_save_ok')) { localStorage.setItem('cam_save_ok', '1'); showToast(t('photoReady')); }
+  }
+}
+
 // ── Crop ───────────────────────────────────────────────────────────────────
 function updateCropRegion() {
   const vp = viewport.getBoundingClientRect();
@@ -1360,6 +1431,7 @@ function init() {
   initCrop();
   updateFsBtn();
   updateSoundBtn();
+  updateReviewModeBtn();
   if (!navigator.mediaDevices?.getUserMedia) showError(t('apiNotSupported'));
 }
 window.addEventListener('beforeunload', () => {
@@ -1393,7 +1465,8 @@ function loadSettings() {
       updateLeDurDisplay();
     }
     if (s.leMode) setLeMode(s.leMode, false);
-    if (typeof s.soundEnabled === 'boolean') soundEnabled = s.soundEnabled;
+    if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
+    if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     updateSoundBtn();
   } catch {
     applyTheme(0, false);
@@ -1404,7 +1477,7 @@ function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
-      cf: isCF, cfColor, leDurIdx, leMode, lang: curLang, soundEnabled,
+      cf: isCF, cfColor, leDurIdx, leMode, lang: curLang, soundEnabled, reviewModeOn,
     }));
   } catch {}
 }
@@ -2034,6 +2107,7 @@ async function capturePhoto() {
   if (isCF) setTimeout(() => { cfOverlay.style.display = 'none'; }, 450);
 
   capCanvas.toBlob(blob => {
+    if (reviewModeOn) { openReview(blob); return; }
     if (isSessionMode) {
       if (sessionPhotos.length >= SESSION_MAX) {
         showToast(t('sessionFullSave'), 3000);
@@ -2161,6 +2235,11 @@ function handleError(err) {
 
 // ── Key handler (volume rocker) ────────────────────────────────────────────
 function onKey(e) {
+  // Review overlay shortcuts
+  if (!reviewOverlay.classList.contains('hidden')) {
+    if (e.key === 'Escape') { e.preventDefault(); closeReview(); return; }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); commitReview(); return; }
+  }
   const isVol = e.key === 'AudioVolumeUp'   || e.key === 'AudioVolumeDown' ||
                 e.key === 'VolumeUp'         || e.key === 'VolumeDown' ||
                 e.code === 'AudioVolumeUp'   || e.code === 'AudioVolumeDown';
@@ -2198,6 +2277,9 @@ function bindControls() {
   themeBtn.addEventListener('click',      () => applyTheme(themeIdx + 1));
   langBtn.addEventListener('click',       cycleLang);
   soundBtn.addEventListener('click',      toggleSound);
+  reviewModeBtn.addEventListener('click', toggleReviewMode);
+  reviewSaveBtn.addEventListener('click', commitReview);
+  reviewDiscardBtn.addEventListener('click', closeReview);
   capHideBtn.addEventListener('click',    toggleControls);
   permBtn.addEventListener('click',       () => startCamera());
   blindBtn.addEventListener('click',      toggleBlindMode);
