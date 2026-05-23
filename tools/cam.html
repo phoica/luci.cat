@@ -1203,7 +1203,8 @@ function toggleControls() {
   ctrlVisible = !ctrlVisible;
   controlsEl.classList.toggle('hidden', !ctrlVisible);
   shutterBtn.classList.toggle('ghost', !ctrlVisible);
-  recordCell.style.visibility = ctrlVisible ? '' : 'hidden';
+  recordCell.style.opacity = ctrlVisible ? '' : '0.15';
+  recordCell.style.pointerEvents = ctrlVisible ? '' : 'none';
   capHideBtn.classList.toggle('revealed', !ctrlVisible);
 }
 
