@@ -43,7 +43,7 @@ html{background:var(--bg)}
   padding-left:env(safe-area-inset-left);
   padding-right:env(safe-area-inset-right);
 }
-.app-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.app-main{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;position:relative}
 .cam-area{flex:1;display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden}
 
 /* ── Header ── */
@@ -171,18 +171,19 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
 }
 .perm-btn:active{opacity:.8}
 
-/* ── Right panel ── */
+/* ── Right panel: floats above the camera, doesn't squish it ── */
 .right-panel{
-  display:flex;flex-direction:column;flex-shrink:0;
-  background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
-  border-top:1px solid var(--border);
-  position:relative;
+  position:absolute;left:0;right:0;bottom:0;z-index:5;
+  display:flex;flex-direction:column;
+  background:rgba(1,18,32,.34);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid rgba(0,200,232,.18);
 }
-/* vertical cyan accent line on left edge of panel */
+body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
+/* thin cyan accent line at top edge */
 .right-panel::before{
-  content:'';position:absolute;top:0;left:0;bottom:0;width:1px;
-  background:linear-gradient(180deg,transparent,var(--cx) 30%,var(--cx) 70%,transparent);
-  opacity:.3;z-index:1;pointer-events:none;
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cx) 30%,var(--cx) 70%,transparent);
+  opacity:.32;z-index:1;pointer-events:none;
 }
 
 /* ── Controls ── */
@@ -203,9 +204,12 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   display:flex;align-items:center;gap:8px;
   font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
   color:var(--cx);font-family:'JetBrains Mono',monospace;
-  margin-top:6px;flex-shrink:0;opacity:.7;
+  margin-top:6px;flex-shrink:0;opacity:.75;
 }
-.sec::before{content:'◈';font-size:8px;opacity:.8}
+.sec::before{
+  content:'';display:inline-block;width:5px;height:5px;
+  background:var(--cx);transform:rotate(45deg);flex-shrink:0;opacity:.85;
+}
 .sec::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
 
 /* ── Control rows (label | slider | value) ── */
@@ -216,7 +220,14 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
 .clbl{
   font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
   color:var(--text-d);white-space:nowrap;font-family:'JetBrains Mono',monospace;
+  display:inline-flex;align-items:center;gap:5px;
 }
+.cdot{
+  display:inline-block;width:5px;height:5px;flex-shrink:0;
+  background:var(--d,var(--cx));transform:rotate(45deg);
+  box-shadow:0 0 4px var(--d,var(--cx));
+}
+.ctrl-bump{margin-top:2px}
 .cval{
   font-size:11px;font-family:'JetBrains Mono',monospace;
   color:var(--text-m);text-align:right;white-space:nowrap;
@@ -259,11 +270,13 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
 /* ── Toggle pills ── */
 .tgl-row{display:flex;gap:5px;flex-wrap:wrap}
 .tgl{
-  flex-shrink:0;padding:4px 10px;border-radius:2px;
+  display:inline-flex;align-items:center;gap:5px;
+  flex-shrink:0;padding:4px 10px 4px 8px;border-radius:2px;
   border:1px solid var(--border);background:var(--glass2);
   color:var(--text-m);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
   cursor:pointer;transition:all .15s;white-space:nowrap;letter-spacing:.5px;text-transform:uppercase;
 }
+.tgl svg{width:11px;height:11px;display:block;flex-shrink:0}
 .tgl.on{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
 
 /* ── Color swatches ── */
@@ -301,18 +314,7 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   cursor:pointer;position:relative;
   display:flex;align-items:center;justify-content:center;padding:0;
   transition:opacity .25s,border-color .25s,box-shadow .25s;
-  box-shadow:0 0 0 1px rgba(255,140,48,.12),0 0 16px rgba(255,140,48,.08);
-}
-/* outer decorative tick ring */
-.shutter-btn::before{
-  content:'';position:absolute;inset:-6px;border-radius:50%;
-  border:1px solid rgba(255,140,48,.15);
-  background:conic-gradient(
-    rgba(255,140,48,.3) 0deg 4deg, transparent 4deg 86deg,
-    rgba(255,140,48,.3) 86deg 90deg, transparent 90deg 176deg,
-    rgba(255,140,48,.3) 176deg 180deg, transparent 180deg 266deg,
-    rgba(255,140,48,.3) 266deg 270deg, transparent 270deg 360deg
-  );
+  box-shadow:0 0 0 1px rgba(255,140,48,.18),0 0 18px rgba(255,140,48,.16);
 }
 .shutter-btn::after{
   content:'';width:56px;height:56px;border-radius:50%;
@@ -642,6 +644,8 @@ body[data-theme="light"] .gallery-hdr-title{
 
         <div class="sec">Camera</div>
         <div class="pill-row" id="cameraSelector"></div>
+
+        <div class="sec">Ratio</div>
         <div class="pill-row" id="ratioSelector">
           <button class="pill active" data-ratio="free">Free</button>
           <button class="pill" data-ratio="1:1">1:1</button>
@@ -659,17 +663,25 @@ body[data-theme="light"] .gallery-hdr-title{
         </div>
 
         <!-- Zoom (hardware) -->
-        <div class="crow" id="zoomRow" style="display:none">
-          <span class="clbl">Zoom</span>
+        <div class="crow ctrl-bump" id="zoomRow" style="display:none">
+          <span class="clbl"><i class="cdot" style="--d:#7ed1ff"></i>Zoom</span>
           <input type="range" class="cslider" id="zoomSlider" min="1" max="5" step="0.1" value="1">
           <span class="cval" id="zoomVal">1.0×</span>
         </div>
 
-        <div class="sec">Frame</div>
-        <div class="tgl-row">
-          <button class="tgl" id="mirrorTgl">Mirror</button>
-          <button class="tgl" id="torchTgl" style="display:none">Flash</button>
-          <button class="tgl" id="cfTgl">Color Frame</button>
+        <div class="tgl-row ctrl-bump">
+          <button class="tgl" id="mirrorTgl">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 2v10M3 5l-2 2 2 2M11 5l2 2-2 2"/></svg>
+            Mirror
+          </button>
+          <button class="tgl" id="torchTgl" style="display:none">
+            <svg viewBox="0 0 14 14" fill="currentColor"><path d="M8 1L3 8h3l-1 5 5-7H7l1-5z"/></svg>
+            Flash
+          </button>
+          <button class="tgl" id="cfTgl">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="2" width="10" height="10" rx="1.2"/><rect x="4.5" y="4.5" width="5" height="5"/></svg>
+            Color Frame
+          </button>
         </div>
         <div class="swatch-row" id="swatchRow" style="display:none">
           <button class="swatch active" data-color="#ffffff" style="background:#ffffff"></button>
@@ -683,32 +695,30 @@ body[data-theme="light"] .gallery-hdr-title{
           </label>
         </div>
 
-        <div class="sec">Light</div>
-
         <!-- EV compensation -->
-        <div class="crow" id="evRow" style="display:none">
-          <span class="clbl">EV</span>
+        <div class="crow ctrl-bump" id="evRow" style="display:none">
+          <span class="clbl"><i class="cdot" style="--d:#ffd060"></i>EV</span>
           <input type="range" class="cslider" id="evSlider" min="-3" max="3" step="0.5" value="0">
           <span class="cval" id="evVal">0</span>
         </div>
 
         <!-- Shutter — left=auto, right=manual (hardware) -->
-        <div class="crow" id="expTimeRow" style="display:none">
-          <span class="clbl">Shutter</span>
+        <div class="crow ctrl-bump" id="expTimeRow" style="display:none">
+          <span class="clbl"><i class="cdot" style="--d:#ff8c30"></i>Shutter</span>
           <input type="range" class="cslider" id="expTimeSlider" min="0" max="1" step="0.01" value="0">
           <span class="cval" id="expTimeVal">Auto</span>
         </div>
 
         <!-- ISO — left=auto, right=manual (hardware) -->
-        <div class="crow" id="isoRow" style="display:none">
-          <span class="clbl">ISO</span>
+        <div class="crow ctrl-bump" id="isoRow" style="display:none">
+          <span class="clbl"><i class="cdot" style="--d:#ff5a8c"></i>ISO</span>
           <input type="range" class="cslider" id="isoSlider" min="0" max="1" step="0.01" value="0">
           <span class="cval" id="isoVal">Auto</span>
         </div>
 
-        <!-- Long Exp — index 0 = off -->
-        <div class="crow">
-          <span class="clbl">Long Exp</span>
+        <!-- Exp (long exposure) — index 0 = off -->
+        <div class="crow ctrl-bump">
+          <span class="clbl"><i class="cdot" style="--d:#a070ff"></i>Exp</span>
           <input type="range" class="cslider" id="leDurSlider" min="0" max="12" step="1" value="0">
           <span class="cval" id="leDurVal">Off</span>
         </div>
@@ -718,10 +728,9 @@ body[data-theme="light"] .gallery-hdr-title{
           <button class="pill" data-le-mode="darken">Dark</button>
         </div>
 
-        <!-- Optics (hardware focus) -->
-        <div class="sec" id="opticsHd" style="display:none">Optics</div>
-        <div class="crow" id="focusRow" style="display:none">
-          <span class="clbl">Focus</span>
+        <!-- Focus -->
+        <div class="crow ctrl-bump" id="focusRow" style="display:none">
+          <span class="clbl"><i class="cdot" style="--d:#70e0c0"></i>Focus</span>
           <input type="range" class="cslider" id="focusSlider" min="0" max="1" step="0.01" value="0">
           <span class="cval" id="focusVal">Auto</span>
         </div>
@@ -898,7 +907,6 @@ const leDurSldr    = $('leDurSlider');
 const leDurVal     = $('leDurVal');
 const leModeRow    = $('leModeRow');
 const focusRow     = $('focusRow');
-const opticsHd     = $('opticsHd');
 const focusSldr    = $('focusSlider');
 const focusVal     = $('focusVal');
 const leOverlay    = $('leOverlay');
@@ -1008,16 +1016,13 @@ function updateGalleryHeader() {
   gallerySelAll.textContent = sel === n ? 'Deselect all' : 'Select all';
 }
 
-function saveSessionPhotos() {
+async function saveSessionPhotos() {
   const toSave = sessionPhotos.filter(p => p.selected);
-  toSave.forEach((p, i) => {
-    setTimeout(() => {
-      dlLink.href = p.url;
-      dlLink.download = `cam_session_${timestamp()}_${i + 1}.png`;
-      dlLink.click();
-    }, i * 80);
-  });
-  // Remove saved, keep unsaved
+  if (!toSave.length) return;
+  const ts = timestamp();
+  const items = toSave.map((p, i) => ({ blob: p.blob, filename: `cam_session_${ts}_${i + 1}.png` }));
+  const ok = await saveBlobsBatch(items);
+  if (!ok) return;
   const kept = sessionPhotos.filter(p => !p.selected);
   toSave.forEach(p => URL.revokeObjectURL(p.url));
   sessionPhotos = kept;
@@ -1233,6 +1238,47 @@ function showToast(msg, ms = 2800) {
   toastTimer = setTimeout(() => toastEl.classList.remove('show'), ms);
 }
 
+// ── Save: Web Share API on mobile (opens Save to Photos), download elsewhere ──
+async function saveBlob(blob, filename) {
+  const type = blob.type || 'image/png';
+  try {
+    const file = new File([blob], filename, { type });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+      return true;
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') return false;
+  }
+  const url = URL.createObjectURL(blob);
+  dlLink.href = url;
+  dlLink.download = filename;
+  dlLink.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return true;
+}
+
+async function saveBlobsBatch(items) {
+  try {
+    const files = items.map(it => new File([it.blob], it.filename, { type: it.blob.type || 'image/png' }));
+    if (navigator.canShare && navigator.canShare({ files })) {
+      await navigator.share({ files });
+      return true;
+    }
+  } catch (err) {
+    if (err.name === 'AbortError') return false;
+  }
+  items.forEach((it, i) => {
+    setTimeout(() => {
+      const url = URL.createObjectURL(it.blob);
+      dlLink.href = url; dlLink.download = it.filename;
+      dlLink.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }, i * 80);
+  });
+  return true;
+}
+
 // ── Camera ─────────────────────────────────────────────────────────────────
 function buildConstraints(deviceId) {
   if (!deviceId) {
@@ -1377,7 +1423,6 @@ function detectCapabilities() {
   expTimeRow.style.display = 'none';
   isoRow.style.display     = 'none';
   focusRow.style.display   = 'none';
-  opticsHd.style.display   = 'none';
   focusMin = 0; focusMax = 0;
   expTimeMin = 0; expTimeMax = 0;
   isoMin = 0; isoMax = 0;
@@ -1429,7 +1474,6 @@ function detectCapabilities() {
   if (hasManualFocus && caps.focusDistance?.max !== undefined) {
     focusMin = caps.focusDistance.min ?? 0;
     focusMax = caps.focusDistance.max ?? 1;
-    opticsHd.style.display = '';
     focusRow.style.display = '';
   }
 }
@@ -1675,11 +1719,7 @@ function finishLongExposure() {
     ctx.drawImage(leStackCanvas, 0, 0);
   }
   capCanvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    dlLink.href = url;
-    dlLink.download = `cam_le_${LE_DURS[leDurIdx]}s_${leMode}_${timestamp()}.png`;
-    dlLink.click();
-    setTimeout(() => URL.revokeObjectURL(url), 15000);
+    saveBlob(blob, `cam_le_${LE_DURS[leDurIdx]}s_${leMode}_${timestamp()}.png`);
   }, 'image/png');
   navigator.vibrate?.(70); flash();
   leAccum = null; leStackCanvas = null; leStackCtx = null;
@@ -1763,13 +1803,10 @@ async function capturePhoto() {
       }
       addToSession(blob);
     } else {
-      const url = URL.createObjectURL(blob);
-      dlLink.href = url; dlLink.download = `cam_${timestamp()}.png`;
-      dlLink.click();
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      saveBlob(blob, `cam_${timestamp()}.png`);
       if (!localStorage.getItem('cam_save_ok')) {
         localStorage.setItem('cam_save_ok', '1');
-        showToast('Photos save directly to your device');
+        showToast('Photo ready — pick "Save to Photos" if prompted');
       }
     }
   }, 'image/png');
@@ -1809,10 +1846,7 @@ function saveVideo() {
   const mime = mediaRecorder?.mimeType || 'video/webm';
   const ext  = mime.includes('mp4') ? 'mp4' : 'webm';
   const blob = new Blob(recordedChunks, { type: mime });
-  const url  = URL.createObjectURL(blob);
-  dlLink.href = url; dlLink.download = `cam_${timestamp()}.${ext}`;
-  dlLink.click();
-  setTimeout(() => URL.revokeObjectURL(url), 30000);
+  saveBlob(blob, `cam_${timestamp()}.${ext}`);
 }
 function updateRecTimer() {
   const m = Math.floor(recSecs / 60), s = recSecs % 60;
