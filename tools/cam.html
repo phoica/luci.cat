@@ -351,6 +351,113 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   background:rgba(255,255,255,.85);box-shadow:1px 0 4px rgba(0,0,0,.4);
 }
 
+/* ── Session pill (above capture row) ── */
+.session-pill{
+  display:none;align-items:center;gap:8px;
+  padding:5px 16px 0;
+  font-size:12px;font-family:'JetBrains Mono',monospace;
+}
+.session-pill.visible{display:flex}
+.session-pill-count{color:var(--accent);font-weight:500}
+.session-pill-count.full{color:var(--danger)}
+.session-view-btn{
+  margin-left:auto;font-size:12px;font-family:inherit;font-weight:600;
+  color:var(--accent);background:none;border:none;cursor:pointer;padding:2px 0;
+}
+.session-view-btn:active{opacity:.7}
+/* Session mode: shutter gets a stack ring */
+.shutter-btn.session-mode{box-shadow:0 0 0 3px rgba(255,176,112,.35),0 0 14px rgba(255,176,112,.2)}
+
+/* ── Gallery overlay ── */
+.gallery-ov{
+  position:fixed;inset:0;z-index:45;
+  display:flex;flex-direction:column;
+  background:var(--bg);
+}
+.gallery-ov.hidden{display:none}
+.gallery-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px 8px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.gallery-hdr-title{
+  font-family:'Silkscreen',monospace;font-size:16px;font-weight:400;letter-spacing:.5px;
+  background:linear-gradient(135deg,var(--accent),#7eaad4);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+body[data-theme="light"] .gallery-hdr-title{
+  background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text;background-clip:text;
+}
+.gallery-hdr-sub{font-size:12px;color:var(--text-d);font-family:'JetBrains Mono',monospace}
+.gallery-hdr-space{flex:1}
+.gallery-selall{
+  font-size:12px;font-weight:600;color:var(--text-m);
+  background:none;border:none;cursor:pointer;padding:4px 8px;font-family:inherit;
+}
+.gallery-selall:hover{color:var(--text)}
+.gallery-close{
+  width:32px;height:32px;border-radius:var(--rs);
+  border:1px solid var(--border);background:var(--glass2);
+  color:var(--text-m);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;
+}
+.gallery-close svg{width:14px;height:14px;display:block}
+
+.gallery-grid{
+  flex:1;overflow-y:auto;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+  padding:2px;
+  scrollbar-width:thin;scrollbar-color:var(--border-s) transparent;
+}
+@media(min-width:500px){.gallery-grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:800px){.gallery-grid{grid-template-columns:repeat(5,1fr)}}
+
+.gthumb{
+  position:relative;aspect-ratio:1;cursor:pointer;overflow:hidden;background:#111;
+  transition:opacity .15s;
+}
+.gthumb.off{opacity:.35}
+.gthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.gthumb .gcheck{
+  position:absolute;top:5px;right:5px;
+  width:20px;height:20px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.6);
+  background:rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.gthumb:not(.off) .gcheck{background:var(--accent);border-color:var(--accent)}
+.gthumb:not(.off) .gcheck svg{display:block}
+.gcheck svg{width:10px;height:10px;display:none;stroke:#000;stroke-width:2.5}
+.gthumb .gnum{
+  position:absolute;bottom:4px;left:5px;
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  color:rgba(255,255,255,.7);text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+
+.gallery-footer{
+  display:flex;gap:10px;
+  padding:10px 14px calc(env(safe-area-inset-bottom) + 10px);
+  border-top:1px solid var(--border);flex-shrink:0;
+}
+.gallery-save{
+  flex:1;padding:12px;
+  background:var(--accent);color:#000;
+  border:none;border-radius:var(--r);
+  font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;
+  transition:opacity .15s;
+}
+.gallery-save:active{opacity:.8}
+.gallery-save:disabled{opacity:.35;cursor:not-allowed}
+.gallery-clear{
+  padding:12px 16px;
+  background:none;color:var(--danger);
+  border:1px solid var(--danger);border-radius:var(--r);
+  font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;
+  transition:opacity .15s;white-space:nowrap;
+}
+.gallery-clear:active{opacity:.7}
+
 /* ── Desktop ── */
 @media(min-width:640px){
   .app-main{flex-direction:row}
@@ -387,6 +494,14 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
         <h1>Cam</h1>
         <span class="hdr-space"></span>
         <!-- Blind mode enter -->
+        <button class="icon-btn" id="sessionBtn" title="Session mode — collect photos before saving" aria-label="Toggle session mode">
+          <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+            <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+            <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+            <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+          </svg>
+        </button>
         <button class="icon-btn" id="fsBtn" title="Fullscreen" aria-label="Toggle fullscreen"></button>
         <button class="icon-btn" id="blindBtn" title="Blind mode — tap anywhere to shoot" aria-label="Blind mode">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -543,6 +658,10 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
 
   <!-- Capture bar: OUTSIDE app-main so it's always full-width at bottom -->
   <div class="capture-bar">
+    <div class="session-pill" id="sessionPill">
+      <span class="session-pill-count" id="sessionCount">0 / 10</span>
+      <button class="session-view-btn" id="sessionViewBtn">View →</button>
+    </div>
     <div class="capture-row">
       <div class="cap-left" id="recordCell">
         <button class="record-btn off" id="recordBtn" aria-label="Record video">
@@ -564,6 +683,26 @@ body.blind-mode .header{background:rgba(0,0,0,.3);border-bottom-color:transparen
   </div>
 
 </div><!-- /app -->
+
+<!-- Session gallery overlay -->
+<div class="gallery-ov hidden" id="galleryOv">
+  <div class="gallery-hdr">
+    <span class="gallery-hdr-title">Session</span>
+    <span class="gallery-hdr-sub" id="galleryHdrSub">0 photos</span>
+    <span class="gallery-hdr-space"></span>
+    <button class="gallery-selall" id="gallerySelAll">Select all</button>
+    <button class="gallery-close" id="galleryClose" aria-label="Close gallery">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M1 1l12 12M13 1L1 13"/>
+      </svg>
+    </button>
+  </div>
+  <div class="gallery-grid" id="galleryGrid"></div>
+  <div class="gallery-footer">
+    <button class="gallery-save" id="gallerySave">Save selected</button>
+    <button class="gallery-clear" id="galleryClear">Clear all</button>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 <canvas id="captureCanvas" style="display:none"></canvas>
@@ -597,6 +736,10 @@ let ctrlVisible    = true;
 let toastTimer     = null;
 let isTorchOn      = false;
 let isBlindMode    = false;
+// Session mode
+let isSessionMode  = false;
+let sessionPhotos  = []; // { blob, url, selected }
+const SESSION_MAX  = 10;
 // Color frame
 let isCF           = false;
 let cfColor        = '#ffffff';
@@ -642,8 +785,19 @@ const cfPicker     = $('cfPicker');
 const cfOverlay    = $('cfOverlay');
 const cfBorder     = $('cfBorder');
 const themeBtn     = $('themeBtn');
-const fsBtn        = $('fsBtn');
-const blindBtn     = $('blindBtn');
+const sessionBtn    = $('sessionBtn');
+const sessionPill   = $('sessionPill');
+const sessionCount  = $('sessionCount');
+const sessionViewBtn= $('sessionViewBtn');
+const galleryOv     = $('galleryOv');
+const galleryGrid   = $('galleryGrid');
+const galleryHdrSub = $('galleryHdrSub');
+const gallerySelAll = $('gallerySelAll');
+const galleryClose  = $('galleryClose');
+const gallerySave   = $('gallerySave');
+const galleryClear  = $('galleryClear');
+const fsBtn         = $('fsBtn');
+const blindBtn      = $('blindBtn');
 const blindExitBtn = $('blindExitBtn');
 const capHideBtn   = $('capHideBtn');
 const camSel       = $('cameraSelector');
@@ -683,6 +837,108 @@ const cdTop    = $('cdTop');
 const cdBottom = $('cdBottom');
 const cdLeft   = $('cdLeft');
 const cdRight  = $('cdRight');
+
+// ── Session mode ───────────────────────────────────────────────────────────
+function toggleSessionMode() {
+  isSessionMode = !isSessionMode;
+  sessionBtn.classList.toggle('on', isSessionMode);
+  // 'on' class works like .tgl.on — reuse accent style via same rule
+  sessionBtn.style.borderColor  = isSessionMode ? 'var(--accent)' : '';
+  sessionBtn.style.color        = isSessionMode ? 'var(--accent)' : '';
+  sessionBtn.style.background   = isSessionMode ? 'var(--accent-dim)' : '';
+  shutterBtn.classList.toggle('session-mode', isSessionMode);
+  updateSessionPill();
+  if (isSessionMode) showToast('Session mode on — photos held until you save them', 3000);
+  else               showToast('Session mode off');
+}
+
+function updateSessionPill() {
+  const n = sessionPhotos.length;
+  if (!isSessionMode && n === 0) { sessionPill.classList.remove('visible'); return; }
+  sessionPill.classList.add('visible');
+  sessionCount.textContent = `${n} / ${SESSION_MAX}`;
+  sessionCount.classList.toggle('full', n >= SESSION_MAX);
+  sessionViewBtn.textContent = n > 0 ? 'View →' : '';
+  sessionViewBtn.style.display = n > 0 ? '' : 'none';
+  gallerySave.disabled = sessionPhotos.filter(p => p.selected).length === 0;
+}
+
+function addToSession(blob) {
+  const url = URL.createObjectURL(blob);
+  sessionPhotos.push({ blob, url, selected: true });
+  updateSessionPill();
+  renderGalleryGrid();
+  if (sessionPhotos.length >= SESSION_MAX) {
+    showToast('Session full (10/10) — save what you like, then clear', 3500);
+    openGallery();
+  }
+}
+
+function openGallery() {
+  galleryOv.classList.remove('hidden');
+  renderGalleryGrid();
+  updateGalleryHeader();
+}
+function closeGallery() {
+  galleryOv.classList.add('hidden');
+}
+
+function renderGalleryGrid() {
+  galleryGrid.innerHTML = '';
+  sessionPhotos.forEach((photo, i) => {
+    const div = document.createElement('div');
+    div.className = 'gthumb' + (photo.selected ? '' : ' off');
+    div.innerHTML = `
+      <img src="${photo.url}" loading="lazy">
+      <div class="gcheck"><svg viewBox="0 0 10 10" fill="none"><polyline points="1.5,5 4,7.5 8.5,2" stroke="inherit" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span class="gnum">${i + 1}</span>`;
+    div.addEventListener('click', () => {
+      photo.selected = !photo.selected;
+      div.classList.toggle('off', !photo.selected);
+      updateGalleryHeader();
+      updateSessionPill();
+    });
+    galleryGrid.appendChild(div);
+  });
+  updateGalleryHeader();
+}
+
+function updateGalleryHeader() {
+  const n = sessionPhotos.length;
+  const sel = sessionPhotos.filter(p => p.selected).length;
+  galleryHdrSub.textContent = `${sel} of ${n} selected`;
+  gallerySave.textContent = sel > 0 ? `Save ${sel} photo${sel > 1 ? 's' : ''}` : 'Save selected';
+  gallerySave.disabled = sel === 0;
+  gallerySelAll.textContent = sel === n ? 'Deselect all' : 'Select all';
+}
+
+function saveSessionPhotos() {
+  const toSave = sessionPhotos.filter(p => p.selected);
+  toSave.forEach((p, i) => {
+    setTimeout(() => {
+      dlLink.href = p.url;
+      dlLink.download = `cam_session_${timestamp()}_${i + 1}.png`;
+      dlLink.click();
+    }, i * 80);
+  });
+  // Remove saved, keep unsaved
+  const kept = sessionPhotos.filter(p => !p.selected);
+  toSave.forEach(p => URL.revokeObjectURL(p.url));
+  sessionPhotos = kept;
+  updateSessionPill();
+  renderGalleryGrid();
+  if (sessionPhotos.length === 0) closeGallery();
+  showToast(`Saved ${toSave.length} photo${toSave.length > 1 ? 's' : ''}`);
+}
+
+function clearSession() {
+  sessionPhotos.forEach(p => URL.revokeObjectURL(p.url));
+  sessionPhotos = [];
+  updateSessionPill();
+  renderGalleryGrid();
+  closeGallery();
+  showToast('Session cleared');
+}
 
 // ── Fullscreen ─────────────────────────────────────────────────────────────
 const FS_ENTER = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>`;
@@ -1381,13 +1637,22 @@ async function capturePhoto() {
   if (isCF) setTimeout(() => { cfOverlay.style.display = 'none'; }, 450);
 
   capCanvas.toBlob(blob => {
-    const url = URL.createObjectURL(blob);
-    dlLink.href = url; dlLink.download = `cam_${timestamp()}.png`;
-    dlLink.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-    if (!localStorage.getItem('cam_save_ok')) {
-      localStorage.setItem('cam_save_ok', '1');
-      showToast('Photos save directly to your device');
+    if (isSessionMode) {
+      if (sessionPhotos.length >= SESSION_MAX) {
+        showToast('Session full — save or clear before shooting more', 3000);
+        openGallery();
+        return;
+      }
+      addToSession(blob);
+    } else {
+      const url = URL.createObjectURL(blob);
+      dlLink.href = url; dlLink.download = `cam_${timestamp()}.png`;
+      dlLink.click();
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      if (!localStorage.getItem('cam_save_ok')) {
+        localStorage.setItem('cam_save_ok', '1');
+        showToast('Photos save directly to your device');
+      }
     }
   }, 'image/png');
 }
@@ -1486,6 +1751,17 @@ function bindControls() {
   torchTgl.addEventListener('click',      () => setTorch(!isTorchOn));
   cfTgl.addEventListener('click',         () => setCF(!isCF));
   leCancelBtn.addEventListener('click',   cancelLongExposure);
+  sessionBtn.addEventListener('click',    toggleSessionMode);
+  sessionViewBtn.addEventListener('click',openGallery);
+  galleryClose.addEventListener('click',  closeGallery);
+  gallerySave.addEventListener('click',   saveSessionPhotos);
+  galleryClear.addEventListener('click',  clearSession);
+  gallerySelAll.addEventListener('click', () => {
+    const allSelected = sessionPhotos.every(p => p.selected);
+    sessionPhotos.forEach(p => p.selected = !allSelected);
+    renderGalleryGrid();
+    updateSessionPill();
+  });
   fsBtn.addEventListener('click',         toggleFullscreen);
   themeBtn.addEventListener('click',      () => applyTheme(themeIdx + 1));
   capHideBtn.addEventListener('click',    toggleControls);
