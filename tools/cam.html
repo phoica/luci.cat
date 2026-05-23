@@ -1630,7 +1630,10 @@ async function capturePhoto() {
     ctx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
   }
 
-  if (!isCF) flash();
+  const facingMode = stream?.getVideoTracks()[0]?.getSettings()?.facingMode;
+  const devLabel   = devices.find(d => d.deviceId === currentDeviceId)?.label ?? '';
+  const isFront    = facingMode === 'user' || cameraLabel({ label: devLabel }) === 'Selfie';
+  if (!isCF && !isFront) flash();
   navigator.vibrate?.(30);
   shutterBtn.classList.add('pressing');
   setTimeout(() => shutterBtn.classList.remove('pressing'), 120);
