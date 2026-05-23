@@ -1,1 +1,53 @@
+@import url("variables.css");
 
+html, body { margin: 0; padding: 0; }
+body { min-height: 100vh; }
+
+.lang {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background: var(--c8);
+  border: 1px solid black;
+  cursor: pointer;
+  padding: 0;
+}
+
+.palette {
+  display: flex;
+  width: 100%;
+  height: 24px;
+}
+.palette > span { flex: 1 1 0; display: block; }
+.palette > span:nth-child(18n+1)  { background: var(--c1); }
+.palette > span:nth-child(18n+2)  { background: var(--c2); }
+.palette > span:nth-child(18n+3)  { background: var(--c3); }
+.palette > span:nth-child(18n+4)  { background: var(--c4); }
+.palette > span:nth-child(18n+5)  { background: var(--c5); }
+.palette > span:nth-child(18n+6)  { background: var(--c6); }
+.palette > span:nth-child(18n+7)  { background: var(--c7); }
+.palette > span:nth-child(18n+8)  { background: var(--c8); }
+.palette > span:nth-child(18n+9)  { background: var(--c9); }
+.palette > span:nth-child(18n+10) { background: var(--c10); }
+.palette > span:nth-child(18n+11) { background: var(--c11); }
+.palette > span:nth-child(18n+12) { background: var(--c12); }
+.palette > span:nth-child(18n+13) { background: var(--c13); }
+.palette > span:nth-child(18n+14) { background: var(--c14); }
+.palette > span:nth-child(18n+15) { background: var(--c15); }
+.palette > span:nth-child(18n+16) { background: var(--c16); }
+.palette > span:nth-child(18n+17) { background: var(--c17); }
+.palette > span:nth-child(18n+18) { background: var(--c18); }
+
+.band {
+  padding: 24px 16px;
+}
+.band-top    { background: var(--c1); color: black; }
+.band-tools  { background: var(--c2); color: black; }
+.band-bottom { background: var(--c4); color: black; }
+
+.spacer { height: 60vh; }
+
+.tools-list { margin: 8px 0; padding-left: 20px; }
+.tools-list a { color: black; }
