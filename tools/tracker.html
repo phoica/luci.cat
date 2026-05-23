@@ -2898,6 +2898,8 @@ function renderChartTabs(){const c=document.getElementById('chartTabs');c.innerH
   if(medications.length||trackedHormones.length){const sep=document.createElement('span');sep.style.cssText='color:var(--text-dim);font-size:12px;align-self:center;margin:0 4px';sep.textContent='|';c.appendChild(sep);}
   for(const medId of medications){const btn=document.createElement('button');const isOn=selectedChartItems.has('med_'+medId);btn.className='chart-tab'+(isOn?' active':'');btn.innerHTML=pillIcon+esc(getMedShortName(medId));btn.style.borderColor=isOn?getMedColor(medId):'';
     btn.onclick=()=>{if(selectedChartItems.has('med_'+medId))selectedChartItems.delete('med_'+medId);else selectedChartItems.add('med_'+medId);renderChartTabs();redraw();};c.appendChild(btn);}
+  // Second separator between medications and hormones (only when both groups have items).
+  if(medications.length&&trackedHormones.length){const sep2=document.createElement('span');sep2.style.cssText='color:var(--text-dim);font-size:12px;align-self:center;margin:0 4px';sep2.textContent='|';c.appendChild(sep2);}
   for(const hk of trackedHormones){const h=getHormone(hk);if(!h)continue;const btn=document.createElement('button');const isOn=selectedChartItems.has('h_'+hk);btn.className='chart-tab'+(isOn?' active':'');btn.innerHTML=vialIcon+esc(h.name);btn.style.borderColor=isOn?h.color:'';
     btn.onclick=()=>{if(selectedChartItems.has('h_'+hk))selectedChartItems.delete('h_'+hk);else selectedChartItems.add('h_'+hk);renderChartTabs();redraw();};c.appendChild(btn);}
   // Sparkle + accent the Add Profile button when no profiles exist
