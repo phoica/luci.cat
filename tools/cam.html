@@ -330,21 +330,29 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 #funPxlSldr{background:linear-gradient(to right,#2a4a60 0%,#7040b0 55%,#c060ff 100%)}
 /* FX rows: slider + sensor button strip */
 .fx-row{display:flex;flex-direction:column;gap:3px}
-.fx-row .crow{grid-template-columns:48px 18px 1fr 22px}/* label | inv | slider | bnc */
+.fx-row .crow{grid-template-columns:48px 24px 1fr 28px}/* label | inv | slider | bnc */
 .inv-btn,.bnc-btn{
-  height:18px;flex-shrink:0;padding:0 2px;
+  height:20px;flex-shrink:0;padding:0 3px;
   display:flex;align-items:center;justify-content:center;
-  font-size:7px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  font-size:8px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
   font-family:'JetBrains Mono',monospace;
-  border:1px solid var(--border);background:var(--glass2);color:var(--text-d);
+  border:1px solid var(--border-h);background:var(--glass2);color:var(--text-m);
   border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap;
 }
-.inv-btn{width:18px}
-.bnc-btn{width:22px}
+.inv-btn{width:24px}
+.bnc-btn{width:28px}
 .inv-btn:hover,.bnc-btn:hover{border-color:var(--cx);color:var(--cx)}
-.inv-btn.on,.bnc-btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.inv-btn.on,.bnc-btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:800}
 body[data-theme="light"] .inv-btn.on,body[data-theme="light"] .bnc-btn.on{color:#fff}
-.snsr-row{display:flex;gap:4px;padding-left:78px;padding-right:28px}/* align under slider track */
+.snsr-row{display:flex;gap:4px;padding-left:84px;padding-right:34px}/* align under slider track */
+.fx-rst-btn{
+  margin-left:auto;padding:2px 7px;
+  font-size:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+  border:1px solid var(--border);background:var(--glass2);color:var(--text-m);
+  border-radius:2px;cursor:pointer;transition:all .15s;
+}
+.fx-rst-btn:hover{border-color:var(--danger);color:var(--danger)}
 .snsr-tgl{
   flex:1;padding:3px 0;
   display:flex;align-items:center;justify-content:center;
@@ -946,7 +954,7 @@ body[data-theme="light"] .gallery-hdr-title{
 
         <!-- FX controls -->
         <div id="funSection" style="display:flex;flex-direction:column;gap:8px">
-          <div class="sec">✦ FX</div>
+          <div class="sec">✦ FX<button class="fx-rst-btn" id="fxResetBtn">RESET</button></div>
           <div class="fx-row ctrl-bump">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
@@ -1421,6 +1429,7 @@ const funConSldr  = $('funConSldr');
 const funAbrSldr  = $('funAbrSldr');
 const funPxlSldr  = $('funPxlSldr');
 const reloadCamBtn = $('reloadCamBtn');
+const fxResetBtn  = $('fxResetBtn');
 const fxCanvas    = $('fxCanvas');
 const fxCtx       = fxCanvas.getContext('2d', { willReadFrequently: true });
 const logoTitle   = document.querySelector('.header h1');
@@ -3359,6 +3368,21 @@ function bindControls() {
   initVideoReview();
   capHideBtn.addEventListener('click',    toggleControls);
   reloadCamBtn.addEventListener('click', () => startCamera());
+  fxResetBtn.addEventListener('click', () => {
+    funHueVal = 0; funSatVal = 100; funBriVal = 100; funConVal = 100;
+    funAbrVal = 0; funPxlVal = 1;
+    funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100; funConSldr.value = 100;
+    funAbrSldr.value = 0; funPxlSldr.value = 1;
+    snsrOn = { hue: null, sat: null, bri: null, con: null, abr: null, pxl: null };
+    fxInvert = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
+    fxBounce = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
+    funSection.querySelectorAll('.inv-btn,.bnc-btn').forEach(b => b.classList.remove('on'));
+    syncSensorListeners();
+    updateSnsrBtns();
+    applyFunFilters();
+    saveSettings();
+    showToast('FX reset', 1200);
+  });
   function reZeroSensor(fx) {
     if (snsrOn[fx] !== 'mse') snsrNeedsZero[fx] = true;
   }
