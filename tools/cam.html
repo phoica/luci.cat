@@ -289,16 +289,18 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 #funSatSldr{background:linear-gradient(to right,hsl(200,0%,55%),hsl(200,50%,55%),hsl(120,90%,50%),hsl(60,100%,50%),hsl(0,100%,55%))}
 #funBriSldr{background:linear-gradient(to right,#111 0%,#4a7a9b 45%,#fff 100%)}
 #funConSldr{background:linear-gradient(to right,#808080,#bbb 35%,#eee 50%,#333 65%,#111)}
-/* Compact inline gyro toggles — one per FX row */
-.gyro-tgl{
-  width:100%;height:26px;
-  display:flex;align-items:center;justify-content:center;
-  border-radius:3px;border:1px solid var(--border);background:var(--glass2);
-  color:var(--text-m);cursor:pointer;transition:all .15s;padding:5px 8px;
+/* FX rows: slider + sensor button strip */
+.fx-row{display:flex;flex-direction:column;gap:3px}
+.snsr-row{display:flex;gap:4px;padding-left:54px}/* align with slider (48px label + 6px gap) */
+.snsr-tgl{
+  flex:1;padding:3px 0;
+  font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+  border:1px solid var(--border);background:var(--glass2);color:var(--text-m);
+  border-radius:2px;cursor:pointer;transition:all .15s;
 }
-.gyro-tgl.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-body[data-theme="light"] .gyro-tgl.on{color:#fff}
-.gyro-tgl svg{width:13px;height:13px;flex-shrink:0}
+.snsr-tgl.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+body[data-theme="light"] .snsr-tgl.on{color:#fff}
 
 /* ── Pill rows ── */
 .pill-row{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -845,25 +847,49 @@ body[data-theme="light"] .gallery-hdr-title{
         <!-- Fun FX (unlocked by tapping logo) -->
         <div id="funSection" style="display:none;flex-direction:column;gap:8px">
           <div class="sec">✦ FX</div>
-          <div class="crow ctrl-bump">
-            <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
-            <input type="range" class="fun-slider" id="funHueSldr" min="-180" max="180" value="0">
-            <button class="gyro-tgl" id="gyroHueTgl" title="Gyro → Hue"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
+          <div class="fx-row ctrl-bump">
+            <div class="crow">
+              <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
+              <input type="range" class="fun-slider" id="funHueSldr" min="-180" max="180" value="0">
+            </div>
+            <div class="snsr-row" data-fx="hue">
+              <button class="snsr-tgl" data-sensor="gyr">GYR</button>
+              <button class="snsr-tgl" data-sensor="acc">ACC</button>
+              <button class="snsr-tgl" data-sensor="com">COM</button>
+            </div>
           </div>
-          <div class="crow">
-            <span class="clbl"><i class="cdot" style="--d:#60e8a0"></i><span>Sat</span></span>
-            <input type="range" class="fun-slider" id="funSatSldr" min="0" max="200" value="100">
-            <button class="gyro-tgl" id="gyroSatTgl" title="Gyro → Sat"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
+          <div class="fx-row">
+            <div class="crow">
+              <span class="clbl"><i class="cdot" style="--d:#60e8a0"></i><span>Sat</span></span>
+              <input type="range" class="fun-slider" id="funSatSldr" min="0" max="200" value="100">
+            </div>
+            <div class="snsr-row" data-fx="sat">
+              <button class="snsr-tgl" data-sensor="gyr">GYR</button>
+              <button class="snsr-tgl" data-sensor="acc">ACC</button>
+              <button class="snsr-tgl" data-sensor="com">COM</button>
+            </div>
           </div>
-          <div class="crow">
-            <span class="clbl"><i class="cdot" style="--d:#e8d860"></i><span>Bright</span></span>
-            <input type="range" class="fun-slider" id="funBriSldr" min="0" max="200" value="100">
-            <button class="gyro-tgl" id="gyroBriTgl" title="Gyro → Brightness"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
+          <div class="fx-row">
+            <div class="crow">
+              <span class="clbl"><i class="cdot" style="--d:#e8d860"></i><span>Bright</span></span>
+              <input type="range" class="fun-slider" id="funBriSldr" min="0" max="200" value="100">
+            </div>
+            <div class="snsr-row" data-fx="bri">
+              <button class="snsr-tgl" data-sensor="gyr">GYR</button>
+              <button class="snsr-tgl" data-sensor="acc">ACC</button>
+              <button class="snsr-tgl" data-sensor="com">COM</button>
+            </div>
           </div>
-          <div class="crow">
-            <span class="clbl"><i class="cdot" style="--d:#c0c0ff"></i><span>Con</span></span>
-            <input type="range" class="fun-slider" id="funConSldr" min="0" max="200" value="100">
-            <button class="gyro-tgl" id="gyroConTgl" title="Gyro → Contrast"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
+          <div class="fx-row">
+            <div class="crow">
+              <span class="clbl"><i class="cdot" style="--d:#c0c0ff"></i><span>Con</span></span>
+              <input type="range" class="fun-slider" id="funConSldr" min="0" max="200" value="100">
+            </div>
+            <div class="snsr-row" data-fx="con">
+              <button class="snsr-tgl" data-sensor="gyr">GYR</button>
+              <button class="snsr-tgl" data-sensor="acc">ACC</button>
+              <button class="snsr-tgl" data-sensor="com">COM</button>
+            </div>
           </div>
         </div>
 
@@ -1145,8 +1171,13 @@ let isoMin = 0, isoMax = 0;
 let leDurIdx       = 0;
 let funUnlocked  = false;
 let funHueVal = 0, funSatVal = 100, funBriVal = 100, funConVal = 100;
-let gyroHue = false, gyroSat = false, gyroBri = false, gyroCon = false;
-let gyroPermGranted = false;
+// snsrOn[fx] = 'gyr'|'acc'|'com'|null  (radio-style per effect)
+let snsrOn      = { hue: null, sat: null, bri: null, con: null };
+// baseline = slider value when sensor was (re-)zeroed; zero = sensor reading at that moment
+let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100 };
+let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0   };
+let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false };
+let orientPermGranted = false, motionPermGranted = false;
 let leMode         = 'average';
 let leCapturing    = false;
 let leInterval     = null;
@@ -1210,10 +1241,6 @@ const funHueSldr  = $('funHueSldr');
 const funSatSldr  = $('funSatSldr');
 const funBriSldr  = $('funBriSldr');
 const funConSldr  = $('funConSldr');
-const gyroHueTgl  = $('gyroHueTgl');
-const gyroSatTgl  = $('gyroSatTgl');
-const gyroBriTgl  = $('gyroBriTgl');
-const gyroConTgl  = $('gyroConTgl');
 const logoTitle   = document.querySelector('.header h1');
 const camSel       = $('cameraSelector');
 const zoomRow      = $('zoomRow');
@@ -1666,51 +1693,111 @@ function fxFilter() {
 function applyFunFilters() {
   preview.style.filter = fxFilter();
 }
-function updateGyroBtns() {
-  gyroHueTgl.classList.toggle('on', gyroHue);
-  gyroSatTgl.classList.toggle('on', gyroSat);
-  gyroBriTgl.classList.toggle('on', gyroBri);
-  gyroConTgl.classList.toggle('on', gyroCon);
+const FX_SLIDERS = { hue: () => funHueSldr, sat: () => funSatSldr, bri: () => funBriSldr, con: () => funConSldr };
+function setFxVal(fx, val) {
+  if (fx === 'hue') funHueVal = val;
+  else if (fx === 'sat') funSatVal = val;
+  else if (fx === 'bri') funBriVal = val;
+  else if (fx === 'con') funConVal = val;
+  FX_SLIDERS[fx]().value = val;
 }
-async function toggleGyroFor(param) {
-  const wasAny = gyroHue || gyroSat || gyroBri || gyroCon;
-  if (param === 'hue') gyroHue = !gyroHue;
-  else if (param === 'sat') gyroSat = !gyroSat;
-  else if (param === 'bri') gyroBri = !gyroBri;
-  else if (param === 'con') gyroCon = !gyroCon;
-  const nowAny = gyroHue || gyroSat || gyroBri || gyroCon;
-  if (nowAny && !wasAny) {
-    if (!gyroPermGranted && typeof DeviceOrientationEvent !== 'undefined' &&
-        typeof DeviceOrientationEvent.requestPermission === 'function') {
-      try {
-        const perm = await DeviceOrientationEvent.requestPermission();
-        if (perm !== 'granted') { showToast('Gyro permission denied'); }
-        else gyroPermGranted = true;
-      } catch { showToast('Gyro unavailable'); }
-      if (!gyroPermGranted) {
-        if (param === 'hue') gyroHue = false;
-        else if (param === 'sat') gyroSat = false;
-        else if (param === 'bri') gyroBri = false;
-        else if (param === 'con') gyroCon = false;
-        updateGyroBtns(); return;
+function updateSnsrBtns() {
+  funSection.querySelectorAll('.snsr-tgl').forEach(btn => {
+    const fx = btn.closest('.snsr-row').dataset.fx;
+    btn.classList.toggle('on', snsrOn[fx] === btn.dataset.sensor);
+  });
+}
+function syncSensorListeners() {
+  const fxKeys = Object.keys(snsrOn);
+  const needOrient = fxKeys.some(f => snsrOn[f] === 'gyr' || snsrOn[f] === 'com');
+  const needMotion = fxKeys.some(f => snsrOn[f] === 'acc');
+  window.removeEventListener('deviceorientation', onOrientation);
+  window.removeEventListener('devicemotion', onMotion);
+  if (needOrient) window.addEventListener('deviceorientation', onOrientation);
+  if (needMotion) window.addEventListener('devicemotion', onMotion);
+}
+function compassDelta(curr, zero) {
+  // Returns signed delta (-180..180) between two compass angles (0-360)
+  let d = curr - zero;
+  if (d > 180) d -= 360;
+  if (d < -180) d += 360;
+  return d;
+}
+const FX_CURRENT = { hue: () => funHueVal, sat: () => funSatVal, bri: () => funBriVal, con: () => funConVal };
+async function toggleSensor(fx, sensor) {
+  const prev = snsrOn[fx];
+  const next = prev === sensor ? null : sensor;
+  // Request permission before committing the change
+  if (next !== null) {
+    if ((sensor === 'gyr' || sensor === 'com') && !orientPermGranted) {
+      if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
+        try {
+          const p = await DeviceOrientationEvent.requestPermission();
+          if (p !== 'granted') { showToast('Orientation permission denied'); return; }
+        } catch { showToast('Orientation unavailable'); return; }
       }
+      orientPermGranted = true;
     }
-    if (!window.DeviceOrientationEvent) { showToast('Gyro unavailable'); return; }
-    window.addEventListener('deviceorientation', onOrientation);
-  } else if (!nowAny && wasAny) {
-    window.removeEventListener('deviceorientation', onOrientation);
+    if (sensor === 'acc' && !motionPermGranted) {
+      if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+        try {
+          const p = await DeviceMotionEvent.requestPermission();
+          if (p !== 'granted') { showToast('Motion permission denied'); return; }
+        } catch { showToast('Accelerometer unavailable'); return; }
+      }
+      motionPermGranted = true;
+    }
   }
-  updateGyroBtns();
+  snsrOn[fx] = next;
+  if (next !== null) {
+    snsrBaseline[fx] = FX_CURRENT[fx]();
+    snsrNeedsZero[fx] = true;
+  }
+  syncSensorListeners();
+  updateSnsrBtns();
 }
 function onOrientation(e) {
-  const g = e.gamma ?? 0;
-  // hue: gamma * 2 maps -90°→-180, 0→0, 90°→180
-  if (gyroHue) { funHueVal = Math.max(-180, Math.min(180, Math.round(g * 2))); funHueSldr.value = funHueVal; }
-  // sat/bri/con: gamma maps -90°→0%, 0→100%, 90°→200%
-  if (gyroSat) { funSatVal = Math.max(0, Math.min(200, Math.round(g * (100/90) + 100))); funSatSldr.value = funSatVal; }
-  if (gyroBri) { funBriVal = Math.max(0, Math.min(200, Math.round(g * (100/90) + 100))); funBriSldr.value = funBriVal; }
-  if (gyroCon) { funConVal = Math.max(0, Math.min(200, Math.round(g * (100/90) + 100))); funConSldr.value = funConVal; }
-  applyFunFilters();
+  const gamma = e.gamma ?? 0, alpha = e.alpha ?? 0;
+  let changed = false;
+  Object.keys(snsrOn).forEach(fx => {
+    const s = snsrOn[fx];
+    if (s !== 'gyr' && s !== 'com') return;
+    const raw = s === 'gyr' ? gamma : alpha;
+    if (snsrNeedsZero[fx]) { snsrZero[fx] = raw; snsrNeedsZero[fx] = false; }
+    const base = snsrBaseline[fx];
+    let val;
+    if (fx === 'hue') {
+      const delta = s === 'gyr'
+        ? (raw - snsrZero[fx]) * 2                    // tilt ±90° → ±180°
+        : compassDelta(raw, snsrZero[fx]);             // compass wraparound-safe delta
+      val = Math.max(-180, Math.min(180, Math.round(base + delta)));
+    } else {
+      const delta = s === 'gyr'
+        ? (raw - snsrZero[fx]) * (100/90)             // tilt ±90° → ±100%
+        : compassDelta(raw, snsrZero[fx]) * (100/180); // compass ±180° → ±100%
+      val = Math.max(0, Math.min(200, Math.round(base + delta)));
+    }
+    setFxVal(fx, val); changed = true;
+  });
+  if (changed) applyFunFilters();
+}
+function onMotion(e) {
+  const x = e.accelerationIncludingGravity?.x ?? 0;
+  let changed = false;
+  Object.keys(snsrOn).forEach(fx => {
+    if (snsrOn[fx] !== 'acc') return;
+    if (snsrNeedsZero[fx]) { snsrZero[fx] = x; snsrNeedsZero[fx] = false; }
+    const base = snsrBaseline[fx];
+    const delta = (x - snsrZero[fx]);
+    let val;
+    if (fx === 'hue') {
+      val = Math.max(-180, Math.min(180, Math.round(base + delta * 18)));      // ±10 m/s² → ±180°
+    } else {
+      val = Math.max(0, Math.min(200, Math.round(base + delta * (100/9.8)))); // ±9.8 → ±100%
+    }
+    setFxVal(fx, val); changed = true;
+  });
+  if (changed) applyFunFilters();
 }
 
 // ── Toggle controls ────────────────────────────────────────────────────────
@@ -2592,22 +2679,23 @@ function bindControls() {
     if (!funUnlocked) {
       funHueVal = 0; funSatVal = 100; funBriVal = 100; funConVal = 100;
       funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100; funConSldr.value = 100;
-      gyroHue = false; gyroSat = false; gyroBri = false; gyroCon = false;
-      window.removeEventListener('deviceorientation', onOrientation);
-      updateGyroBtns();
+      snsrOn = { hue: null, sat: null, bri: null, con: null };
+      syncSensorListeners();
+      updateSnsrBtns();
       applyFunFilters();
     }
     saveSettings();
     showToast(funUnlocked ? '✦ FX unlocked' : 'FX off', 1500);
   });
-  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; applyFunFilters(); saveSettings(); });
-  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; applyFunFilters(); saveSettings(); });
-  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; applyFunFilters(); saveSettings(); });
-  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; applyFunFilters(); saveSettings(); });
-  gyroHueTgl.addEventListener('click', () => toggleGyroFor('hue'));
-  gyroSatTgl.addEventListener('click', () => toggleGyroFor('sat'));
-  gyroBriTgl.addEventListener('click', () => toggleGyroFor('bri'));
-  gyroConTgl.addEventListener('click', () => toggleGyroFor('con'));
+  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; snsrNeedsZero.hue = true; } applyFunFilters(); saveSettings(); });
+  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; snsrNeedsZero.sat = true; } applyFunFilters(); saveSettings(); });
+  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; snsrNeedsZero.bri = true; } applyFunFilters(); saveSettings(); });
+  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; snsrNeedsZero.con = true; } applyFunFilters(); saveSettings(); });
+  funSection.addEventListener('click', e => {
+    const btn = e.target.closest('.snsr-tgl');
+    if (!btn) return;
+    toggleSensor(btn.closest('.snsr-row').dataset.fx, btn.dataset.sensor);
+  });
   permBtn.addEventListener('click',       () => startCamera());
   blindBtn.addEventListener('click',      toggleBlindMode);
   retryBtn.addEventListener('click', () => {
