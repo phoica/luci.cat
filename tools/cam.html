@@ -200,12 +200,15 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 /* ── Controls ── */
 .controls{
   padding:10px 14px 12px;
-  display:flex;flex-direction:column;gap:8px;
-  overflow-x:hidden;overflow-y:scroll;  /* always-on scrollbar prevents layout shift */
+  overflow-x:hidden;overflow-y:scroll;
+  -webkit-overflow-scrolling:touch; /* iOS momentum scroll */
   max-height:46vh;
   scrollbar-width:thin;scrollbar-color:var(--border-s) transparent;
   transition:max-height .3s ease,opacity .2s,padding .3s;
 }
+/* Separate the flex layout from the scroll container so iOS Safari
+   doesn't collapse the max-height and clip camera/ratio rows */
+.controls-inner{display:flex;flex-direction:column;gap:8px}
 .controls::-webkit-scrollbar{width:2px}
 .controls::-webkit-scrollbar-thumb{background:var(--border-s);border-radius:2px}
 .controls.hidden{max-height:0;opacity:0;padding-top:0;padding-bottom:0;overflow:hidden}
@@ -625,7 +628,8 @@ body[data-theme="light"] .gallery-hdr-title{
 
 /* ── Desktop: tighter spacing to match phone density ── */
 @media(min-width:640px){
-  .controls{max-height:36vh;gap:5px;padding:7px 14px 9px}
+  .controls{max-height:36vh;padding:7px 14px 9px}
+  .controls-inner{gap:5px}
   .ctrl-bump{margin-top:0}
   .sec{margin-top:3px}
   .crow{gap:5px}
@@ -634,7 +638,8 @@ body[data-theme="light"] .gallery-hdr-title{
 @media(max-height:620px) and (max-width:639px){
   .header{padding:6px 12px 4px}
   .header h1{font-size:17px}
-  .controls{gap:6px;padding:7px 12px 9px;max-height:38vh}
+  .controls{padding:7px 12px 9px;max-height:38vh}
+  .controls-inner{gap:6px}
   .shutter-btn{width:62px;height:62px}
   .shutter-btn::after{width:50px;height:50px}
   .record-btn{width:44px;height:44px}
@@ -748,6 +753,7 @@ body[data-theme="light"] .gallery-hdr-title{
 
     <div class="right-panel" id="rightPanel">
       <div class="controls" id="controls">
+      <div class="controls-inner">
 
         <div class="sec" data-i18n="camera">Camera</div>
         <div class="pill-row" id="cameraSelector"></div>
@@ -894,6 +900,7 @@ body[data-theme="light"] .gallery-hdr-title{
           </div>
         </div>
 
+      </div><!-- /controls-inner -->
       </div><!-- /controls -->
     </div><!-- /right-panel -->
 
@@ -2514,44 +2521,114 @@ async function capturePhoto() {
 const recCanvas = $('recCanvas');
 const recCtx    = recCanvas.getContext('2d');
 
-// Intermediate canvas: filter is baked here first so captureStream on recCanvas
-// always receives already-filtered pixels (avoids GPU-path capture missing ctx.filter).
+// Detect ctx.filter support (missing on iOS Safari < 18)
+const _ftest = document.createElement('canvas').getContext('2d');
+const CTX_FILTER_OK = typeof _ftest.filter === 'string';
+
+// Intermediate canvas for crop+mirror before filter
 const fxStageCanvas = document.createElement('canvas');
 const fxStageCtx    = fxStageCanvas.getContext('2d');
+
+// WebGL fallback for browsers without ctx.filter (e.g. iOS < 18).
+// Implements hue-rotate → saturate → brightness → contrast via shader,
+// matching the CSS filter spec matrices exactly.
+let glFx = null;
+if (!CTX_FILTER_OK) {
+  try {
+    const gc = document.createElement('canvas');
+    const gl = gc.getContext('webgl') || gc.getContext('experimental-webgl');
+    if (gl) {
+      const vs = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0,1);}';
+      const fs = [
+        'precision mediump float;',
+        'uniform sampler2D u;uniform float h,s,b,c;varying vec2 v;',
+        'void main(){',
+        '  vec4 px=texture2D(u,v);vec3 rgb=px.rgb;',
+        '  float r=h*.01745329,ca=cos(r),sa=sin(r);',
+        // CSS hue-rotate matrix (column-major for GLSL)
+        '  rgb=clamp(mat3(',
+        '    .213+ca*.787-sa*.213,.213-ca*.213+sa*.143,.213-ca*.213-sa*.787,',
+        '    .715-ca*.715-sa*.715,.715+ca*.285+sa*.14,.715-ca*.715+sa*.715,',
+        '    .072-ca*.072+sa*.928,.072-ca*.072-sa*.283,.072+ca*.928+sa*.072',
+        '  )*rgb,0.,1.);',
+        '  float lm=dot(rgb,vec3(.2126,.7152,.0722));',
+        '  rgb=clamp(mix(vec3(lm),rgb,s),0.,1.);', // saturate
+        '  rgb=clamp(rgb*b,0.,1.);',               // brightness
+        '  rgb=clamp((rgb-.5)*c+.5,0.,1.);',       // contrast
+        '  gl_FragColor=vec4(rgb,px.a);}',
+      ].join('');
+      function mkSh(t, src) {
+        const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); return s;
+      }
+      const prog = gl.createProgram();
+      gl.attachShader(prog, mkSh(gl.VERTEX_SHADER, vs));
+      gl.attachShader(prog, mkSh(gl.FRAGMENT_SHADER, fs));
+      gl.linkProgram(prog); gl.useProgram(prog);
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+      const aLoc = gl.getAttribLocation(prog, 'a');
+      gl.enableVertexAttribArray(aLoc);
+      gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.uniform1i(gl.getUniformLocation(prog, 'u'), 0);
+      const uH = gl.getUniformLocation(prog,'h'), uS = gl.getUniformLocation(prog,'s'),
+            uB = gl.getUniformLocation(prog,'b'), uC = gl.getUniformLocation(prog,'c');
+      glFx = {
+        canvas: gc,
+        apply(src, cw, ch) {
+          if (gc.width !== cw || gc.height !== ch) { gc.width = cw; gc.height = ch; gl.viewport(0,0,cw,ch); }
+          gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
+          gl.uniform1f(uH, funHueVal);
+          gl.uniform1f(uS, funSatVal/100);
+          gl.uniform1f(uB, funBriVal/100);
+          gl.uniform1f(uC, funConVal/100);
+          gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+        }
+      };
+    }
+  } catch(e) { /* WebGL unavailable, recording will be unfiltered */ }
+}
 
 function recordFrame() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (vw && vh) {
     const { sx, sy, cw, ch } = cropRect(vw, vh);
-    if (recCanvas.width !== cw || recCanvas.height !== ch) {
-      recCanvas.width = cw; recCanvas.height = ch;
-    }
+    if (recCanvas.width !== cw || recCanvas.height !== ch) { recCanvas.width = cw; recCanvas.height = ch; }
     const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
+
+    function drawSrc(ctx, filter) {
+      ctx.filter = filter;
+      if (isMirrored) {
+        ctx.save(); ctx.scale(-1,1);
+        ctx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
+        ctx.restore();
+      } else {
+        ctx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
+      }
+    }
+
     if (hasFx) {
-      // Draw filtered frame onto stage canvas, then blit raw pixels to recCanvas.
-      // This ensures captureStream always reads pre-baked filtered pixels.
-      if (fxStageCanvas.width !== cw || fxStageCanvas.height !== ch) {
-        fxStageCanvas.width = cw; fxStageCanvas.height = ch;
-      }
-      fxStageCtx.filter = fxFilter();
-      if (isMirrored) {
-        fxStageCtx.save(); fxStageCtx.scale(-1, 1);
-        fxStageCtx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
-        fxStageCtx.restore();
+      if (fxStageCanvas.width !== cw || fxStageCanvas.height !== ch) { fxStageCanvas.width = cw; fxStageCanvas.height = ch; }
+      if (CTX_FILTER_OK) {
+        // Modern browsers: bake filter directly on stage canvas, blit to recCanvas
+        drawSrc(fxStageCtx, fxFilter());
+        recCtx.filter = 'none'; recCtx.drawImage(fxStageCanvas, 0, 0);
+      } else if (glFx) {
+        // iOS < 18 fallback: crop+mirror to stage, apply WebGL color shader, blit result
+        drawSrc(fxStageCtx, 'none');
+        glFx.apply(fxStageCanvas, cw, ch);
+        recCtx.filter = 'none'; recCtx.drawImage(glFx.canvas, 0, 0);
       } else {
-        fxStageCtx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
+        drawSrc(recCtx, 'none'); // no filter support at all
       }
-      recCtx.filter = 'none';
-      recCtx.drawImage(fxStageCanvas, 0, 0);
     } else {
-      recCtx.filter = 'none';
-      if (isMirrored) {
-        recCtx.save(); recCtx.scale(-1, 1);
-        recCtx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
-        recCtx.restore();
-      } else {
-        recCtx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
-      }
+      drawSrc(recCtx, 'none');
     }
   }
   recRafId = requestAnimationFrame(recordFrame);
