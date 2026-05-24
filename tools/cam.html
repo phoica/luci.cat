@@ -201,7 +201,7 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 .controls{
   padding:10px 14px 12px;
   display:flex;flex-direction:column;gap:8px;
-  overflow-x:hidden;overflow-y:auto;
+  overflow-x:hidden;overflow-y:scroll;  /* always-on scrollbar prevents layout shift */
   max-height:46vh;
   scrollbar-width:thin;scrollbar-color:var(--border-s) transparent;
   transition:max-height .3s ease,opacity .2s,padding .3s;
@@ -843,7 +843,7 @@ body[data-theme="light"] .gallery-hdr-title{
         </div>
 
         <!-- Fun FX (unlocked by tapping logo) -->
-        <div id="funSection" style="display:none">
+        <div id="funSection" style="display:none;flex-direction:column;gap:8px">
           <div class="sec">✦ FX</div>
           <div class="crow ctrl-bump">
             <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
@@ -1616,7 +1616,7 @@ function loadSettings() {
     if (s.leMode) setLeMode(s.leMode, false);
     if (typeof s.funUnlocked === 'boolean' && s.funUnlocked) {
       funUnlocked = true;
-      funSection.style.display = '';
+      funSection.style.display = 'flex';
     }
     if (typeof s.funHue === 'number') { funHueVal = s.funHue; funHueSldr.value = funHueVal; }
     if (typeof s.funSat === 'number') { funSatVal = s.funSat; funSatSldr.value = funSatVal; }
@@ -1815,7 +1815,7 @@ function buildConstraints(deviceId) {
   const res = { width: { ideal: 1920 }, height: { ideal: 1080 } };
   if (!deviceId) {
     const mob = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-    return { video: mob ? { facingMode: { ideal: 'environment' }, ...res } : res, audio: false };
+    return { video: mob ? { facingMode: { ideal: 'user' }, ...res } : res, audio: false };
   }
   const lbl = (devices.find(d => d.deviceId === deviceId)?.label || '').toLowerCase();
   const isFront = lbl.includes('front') || lbl.includes('facetime') ||
@@ -2587,7 +2587,8 @@ function bindControls() {
   capHideBtn.addEventListener('click',    toggleControls);
   logoTitle.addEventListener('click', () => {
     funUnlocked = !funUnlocked;
-    funSection.style.display = funUnlocked ? '' : 'none';
+    funSection.style.display = funUnlocked ? 'flex' : 'none';
+    controlsEl.scrollTop = 0;
     if (!funUnlocked) {
       funHueVal = 0; funSatVal = 100; funBriVal = 100; funConVal = 100;
       funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100; funConSldr.value = 100;
