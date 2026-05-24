@@ -292,6 +292,8 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 #funSatSldr{background:linear-gradient(to right,hsl(200,0%,55%),hsl(200,50%,55%),hsl(120,90%,50%),hsl(60,100%,50%),hsl(0,100%,55%))}
 #funBriSldr{background:linear-gradient(to right,#111 0%,#4a7a9b 45%,#fff 100%)}
 #funConSldr{background:linear-gradient(to right,#808080,#bbb 35%,#eee 50%,#333 65%,#111)}
+#funAbrSldr{background:linear-gradient(to right,#555 0%,#ff3030 35%,#fff 50%,#3030ff 65%,#555 100%)}
+#funPxlSldr{background:linear-gradient(to right,#2a4a60 0%,#7040b0 55%,#c060ff 100%)}
 /* FX rows: slider + sensor button strip */
 .fx-row{display:flex;flex-direction:column;gap:3px}
 .snsr-row{display:flex;gap:4px;padding-left:54px}/* align with slider (48px label + 6px gap) */
@@ -706,6 +708,7 @@ body[data-theme="light"] .gallery-hdr-title{
             <div class="crop-v" id="cdRight"></div>
           </div>
           <canvas id="recCanvas" style="display:none"></canvas>
+          <canvas id="fxCanvas" style="position:absolute;inset:0;width:100%;height:100%;display:none;pointer-events:none;z-index:2"></canvas>
           <div class="capture-flash" id="captureFlash"></div>
           <div class="rec-badge" id="recBadge"><span class="rec-dot"></span><span data-i18n="rec">REC</span></div>
 
@@ -901,6 +904,28 @@ body[data-theme="light"] .gallery-hdr-title{
               <input type="range" class="fun-slider" id="funConSldr" min="0" max="200" value="100">
             </div>
             <div class="snsr-row" data-fx="con">
+              <button class="snsr-tgl" data-sensor="gyr">GYR</button>
+              <button class="snsr-tgl" data-sensor="acc">ACC</button>
+              <button class="snsr-tgl" data-sensor="com">COM</button>
+            </div>
+          </div>
+          <div class="fx-row">
+            <div class="crow">
+              <span class="clbl"><i class="cdot" style="--d:#ff6b9d"></i><span>Abr</span></span>
+              <input type="range" class="fun-slider" id="funAbrSldr" min="0" max="20" step="0.5" value="0">
+            </div>
+            <div class="snsr-row" data-fx="abr">
+              <button class="snsr-tgl" data-sensor="gyr">GYR</button>
+              <button class="snsr-tgl" data-sensor="acc">ACC</button>
+              <button class="snsr-tgl" data-sensor="com">COM</button>
+            </div>
+          </div>
+          <div class="fx-row">
+            <div class="crow">
+              <span class="clbl"><i class="cdot" style="--d:#9d6bff"></i><span>Pxl</span></span>
+              <input type="range" class="fun-slider" id="funPxlSldr" min="1" max="32" step="1" value="1">
+            </div>
+            <div class="snsr-row" data-fx="pxl">
               <button class="snsr-tgl" data-sensor="gyr">GYR</button>
               <button class="snsr-tgl" data-sensor="acc">ACC</button>
               <button class="snsr-tgl" data-sensor="com">COM</button>
@@ -1188,12 +1213,13 @@ let isoMin = 0, isoMax = 0;
 let leDurIdx       = 0;
 let funUnlocked  = false;
 let funHueVal = 0, funSatVal = 100, funBriVal = 100, funConVal = 100;
+let funAbrVal = 0, funPxlVal = 1;
 // snsrOn[fx] = 'gyr'|'acc'|'com'|null  (radio-style per effect)
-let snsrOn      = { hue: null, sat: null, bri: null, con: null };
+let snsrOn      = { hue: null, sat: null, bri: null, con: null, abr: null, pxl: null };
 // baseline = slider value when sensor was (re-)zeroed; zero = sensor reading at that moment
-let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100 };
-let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0   };
-let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false };
+let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 };
+let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0,   abr: 0, pxl: 0 };
+let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let orientPermGranted = false, motionPermGranted = false;
 let leMode         = 'average';
 let leCapturing    = false;
@@ -1258,6 +1284,10 @@ const funHueSldr  = $('funHueSldr');
 const funSatSldr  = $('funSatSldr');
 const funBriSldr  = $('funBriSldr');
 const funConSldr  = $('funConSldr');
+const funAbrSldr  = $('funAbrSldr');
+const funPxlSldr  = $('funPxlSldr');
+const fxCanvas    = $('fxCanvas');
+const fxCtx       = fxCanvas.getContext('2d', { willReadFrequently: true });
 const logoTitle   = document.querySelector('.header h1');
 const camSel       = $('cameraSelector');
 const zoomRow      = $('zoomRow');
@@ -1666,7 +1696,10 @@ function loadSettings() {
     if (typeof s.funSat === 'number') { funSatVal = s.funSat; funSatSldr.value = funSatVal; }
     if (typeof s.funBri === 'number') { funBriVal = s.funBri; funBriSldr.value = funBriVal; }
     if (typeof s.funCon === 'number') { funConVal = s.funCon; funConSldr.value = funConVal; }
-    if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100) applyFunFilters();
+    if (typeof s.funAbr === 'number') { funAbrVal = s.funAbr; funAbrSldr.value = funAbrVal; }
+    if (typeof s.funPxl === 'number') { funPxlVal = s.funPxl; funPxlSldr.value = funPxlVal; }
+    if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100
+     || funAbrVal !== 0 || funPxlVal !== 1) applyFunFilters();
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
@@ -1682,6 +1715,7 @@ function saveSettings() {
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funUnlocked, funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
+      funAbr: funAbrVal, funPxl: funPxlVal,
       recFps,
     }));
   } catch {}
@@ -1709,15 +1743,98 @@ function pct(slider) {
 function fxFilter() {
   return `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%) contrast(${funConVal}%)`;
 }
+
+// Offscreen canvases for the canvas-2D fxCanvas preview pipeline
+const _fxTmp = document.createElement('canvas');
+const _fxTmpCtx = _fxTmp.getContext('2d', { willReadFrequently: true });
+const _pxlTmp = document.createElement('canvas');
+const _pxlTmpCtx = _pxlTmp.getContext('2d');
+let fxRafId = null;
+let _abrSrcBuf = null; // pre-allocated pixel buffer for chromatic aberration
+
 function applyFunFilters() {
-  preview.style.filter = fxFilter();
+  if (funAbrVal > 0 || funPxlVal > 1) {
+    preview.style.visibility = 'hidden';
+    preview.style.filter = 'none';
+    fxCanvas.style.display = '';
+    if (!fxRafId) fxRafId = requestAnimationFrame(renderFxOverlay);
+  } else {
+    preview.style.visibility = '';
+    preview.style.filter = fxFilter();
+    fxCanvas.style.display = 'none';
+    if (fxRafId) { cancelAnimationFrame(fxRafId); fxRafId = null; }
+  }
 }
-const FX_SLIDERS = { hue: () => funHueSldr, sat: () => funSatSldr, bri: () => funBriSldr, con: () => funConSldr };
+
+function renderFxOverlay() {
+  if (fxCanvas.style.display === 'none') { fxRafId = null; return; }
+  const vw = preview.videoWidth, vh = preview.videoHeight;
+  if (!vw || !vh) { fxRafId = requestAnimationFrame(renderFxOverlay); return; }
+  const vp = viewport.getBoundingClientRect();
+  const cw = Math.round(vp.width), ch = Math.round(vp.height);
+  if (!cw || !ch) { fxRafId = requestAnimationFrame(renderFxOverlay); return; }
+  if (fxCanvas.width !== cw || fxCanvas.height !== ch) { fxCanvas.width = cw; fxCanvas.height = ch; }
+  if (_fxTmp.width !== cw || _fxTmp.height !== ch) { _fxTmp.width = cw; _fxTmp.height = ch; }
+
+  // Draw video to temp canvas with object-fit:cover + optional CSS color filters
+  const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
+  _fxTmpCtx.filter = hasColorFx && CTX_FILTER_OK ? fxFilter() : 'none';
+  const vidAR = vw / vh, vpAR = cw / ch;
+  let sx, sy, sw, sh;
+  if (vidAR > vpAR) { sh = vh; sw = vh * vpAR; sx = (vw - sw) / 2; sy = 0; }
+  else              { sw = vw; sh = vw / vpAR; sx = 0; sy = (vh - sh) / 2; }
+  if (isMirrored) {
+    _fxTmpCtx.save(); _fxTmpCtx.scale(-1, 1);
+    _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, -cw, 0, cw, ch);
+    _fxTmpCtx.restore();
+  } else {
+    _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, 0, 0, cw, ch);
+  }
+  _fxTmpCtx.filter = 'none';
+
+  // Pixelate: draw to tiny canvas, scale back up without smoothing
+  if (funPxlVal > 1) {
+    const bs = Math.round(funPxlVal);
+    const pw = Math.max(1, Math.floor(cw / bs));
+    const ph = Math.max(1, Math.floor(ch / bs));
+    if (_pxlTmp.width !== pw || _pxlTmp.height !== ph) { _pxlTmp.width = pw; _pxlTmp.height = ph; }
+    _pxlTmpCtx.drawImage(_fxTmp, 0, 0, pw, ph);
+    _fxTmpCtx.imageSmoothingEnabled = false;
+    _fxTmpCtx.drawImage(_pxlTmp, 0, 0, cw, ch);
+    _fxTmpCtx.imageSmoothingEnabled = true;
+  }
+
+  // Chromatic aberration: shift R channel right, B channel left
+  if (funAbrVal > 0) {
+    const shift = Math.max(1, Math.round(funAbrVal * cw / 1000));
+    const id = _fxTmpCtx.getImageData(0, 0, cw, ch);
+    const len = cw * ch * 4;
+    if (!_abrSrcBuf || _abrSrcBuf.length !== len) _abrSrcBuf = new Uint8ClampedArray(len);
+    _abrSrcBuf.set(id.data);
+    const d = id.data;
+    for (let y = 0; y < ch; y++) {
+      const rowOff = y * cw;
+      for (let x = 0; x < cw; x++) {
+        const i = (rowOff + x) * 4;
+        d[i]   = _abrSrcBuf[(rowOff + Math.min(cw - 1, x + shift)) * 4];
+        d[i+2] = _abrSrcBuf[(rowOff + Math.max(0, x - shift)) * 4 + 2];
+      }
+    }
+    _fxTmpCtx.putImageData(id, 0, 0);
+  }
+
+  fxCtx.drawImage(_fxTmp, 0, 0);
+  fxRafId = requestAnimationFrame(renderFxOverlay);
+}
+
+const FX_SLIDERS = { hue: () => funHueSldr, sat: () => funSatSldr, bri: () => funBriSldr, con: () => funConSldr, abr: () => funAbrSldr, pxl: () => funPxlSldr };
 function setFxVal(fx, val) {
   if (fx === 'hue') funHueVal = val;
   else if (fx === 'sat') funSatVal = val;
   else if (fx === 'bri') funBriVal = val;
   else if (fx === 'con') funConVal = val;
+  else if (fx === 'abr') funAbrVal = val;
+  else if (fx === 'pxl') funPxlVal = val;
   FX_SLIDERS[fx]().value = val;
 }
 function updateSnsrBtns() {
@@ -1742,7 +1859,7 @@ function compassDelta(curr, zero) {
   if (d < -180) d += 360;
   return d;
 }
-const FX_CURRENT = { hue: () => funHueVal, sat: () => funSatVal, bri: () => funBriVal, con: () => funConVal };
+const FX_CURRENT = { hue: () => funHueVal, sat: () => funSatVal, bri: () => funBriVal, con: () => funConVal, abr: () => funAbrVal, pxl: () => funPxlVal };
 async function toggleSensor(fx, sensor) {
   const prev = snsrOn[fx];
   const next = prev === sensor ? null : sensor;
@@ -1773,7 +1890,7 @@ async function toggleSensor(fx, sensor) {
     snsrNeedsZero[fx] = true;
   } else {
     // Sensor deactivated — snap value back to neutral default
-    const def = { hue: 0, sat: 100, bri: 100, con: 100 }[fx];
+    const def = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 }[fx];
     setFxVal(fx, def);
     applyFunFilters();
     saveSettings();
@@ -1793,13 +1910,23 @@ function onOrientation(e) {
     let val;
     if (fx === 'hue') {
       const delta = s === 'gyr'
-        ? (raw - snsrZero[fx]) * 2                    // tilt ±90° → ±180°
-        : compassDelta(raw, snsrZero[fx]);             // compass wraparound-safe delta
+        ? (raw - snsrZero[fx]) * 2
+        : compassDelta(raw, snsrZero[fx]);
       val = Math.max(-180, Math.min(180, Math.round(base + delta)));
+    } else if (fx === 'abr') {
+      const delta = s === 'gyr'
+        ? (raw - snsrZero[fx]) * (20/90)
+        : compassDelta(raw, snsrZero[fx]) * (20/180);
+      val = Math.max(0, Math.min(20, +((base + delta)).toFixed(1)));
+    } else if (fx === 'pxl') {
+      const delta = s === 'gyr'
+        ? (raw - snsrZero[fx]) * (31/90)
+        : compassDelta(raw, snsrZero[fx]) * (31/180);
+      val = Math.max(1, Math.min(32, Math.round(base + delta)));
     } else {
       const delta = s === 'gyr'
-        ? (raw - snsrZero[fx]) * (100/90)             // tilt ±90° → ±100%
-        : compassDelta(raw, snsrZero[fx]) * (100/180); // compass ±180° → ±100%
+        ? (raw - snsrZero[fx]) * (100/90)
+        : compassDelta(raw, snsrZero[fx]) * (100/180);
       val = Math.max(0, Math.min(200, Math.round(base + delta)));
     }
     setFxVal(fx, val); changed = true;
@@ -1816,9 +1943,13 @@ function onMotion(e) {
     const delta = (x - snsrZero[fx]);
     let val;
     if (fx === 'hue') {
-      val = Math.max(-180, Math.min(180, Math.round(base + delta * 18)));      // ±10 m/s² → ±180°
+      val = Math.max(-180, Math.min(180, Math.round(base + delta * 18)));
+    } else if (fx === 'abr') {
+      val = Math.max(0, Math.min(20, +((base + delta * (20/9.8))).toFixed(1)));
+    } else if (fx === 'pxl') {
+      val = Math.max(1, Math.min(32, Math.round(base + delta * (31/9.8))));
     } else {
-      val = Math.max(0, Math.min(200, Math.round(base + delta * (100/9.8)))); // ±9.8 → ±100%
+      val = Math.max(0, Math.min(200, Math.round(base + delta * (100/9.8))));
     }
     setFxVal(fx, val); changed = true;
   });
@@ -2463,15 +2594,26 @@ function cropRect(srcW, srcH) {
 function drawToCanvas(src, sx, sy, cw, ch) {
   capCanvas.width = cw; capCanvas.height = ch;
   const ctx = capCanvas.getContext('2d');
-  if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100) {
-    ctx.filter = fxFilter();
+  const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100
+              || funAbrVal !== 0 || funPxlVal !== 1;
+  function drawSrc(destCtx, filter) {
+    destCtx.filter = filter;
+    if (isMirrored) {
+      destCtx.save(); destCtx.scale(-1, 1);
+      destCtx.drawImage(src, sx, sy, cw, ch, -cw, 0, cw, ch);
+      destCtx.restore();
+    } else {
+      destCtx.drawImage(src, sx, sy, cw, ch, 0, 0, cw, ch);
+    }
+    destCtx.filter = 'none';
   }
-  if (isMirrored) {
-    ctx.save(); ctx.scale(-1, 1);
-    ctx.drawImage(src, sx, sy, cw, ch, -cw, 0, cw, ch);
-    ctx.restore();
+  if (hasFx && glFx) {
+    if (fxStageCanvas.width !== cw || fxStageCanvas.height !== ch) { fxStageCanvas.width = cw; fxStageCanvas.height = ch; }
+    drawSrc(fxStageCtx, 'none');
+    glFx.apply(fxStageCanvas, cw, ch);
+    ctx.drawImage(glFx.canvas, 0, 0);
   } else {
-    ctx.drawImage(src, sx, sy, cw, ch, 0, 0, cw, ch);
+    drawSrc(ctx, hasFx && CTX_FILTER_OK ? fxFilter() : 'none');
   }
 }
 
@@ -2540,78 +2682,85 @@ const CTX_FILTER_OK = typeof _ftest.filter === 'string';
 const fxStageCanvas = document.createElement('canvas');
 const fxStageCtx    = fxStageCanvas.getContext('2d');
 
-// WebGL fallback for browsers without ctx.filter (e.g. iOS < 18).
-// Implements hue-rotate → saturate → brightness → contrast via shader,
-// matching the CSS filter spec matrices exactly.
-let glFx = null;
-if (!CTX_FILTER_OK) {
+// WebGL effect pipeline: hue-rotate, saturate, brightness, contrast, chromatic aberration, pixelate.
+// Always created (not gated on CTX_FILTER_OK) so new effects work on all platforms.
+function _buildGlFx() {
   try {
     const gc = document.createElement('canvas');
     const gl = gc.getContext('webgl') || gc.getContext('experimental-webgl');
-    if (gl) {
-      const vs = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0,1);}';
-      const fs = [
-        'precision mediump float;',
-        'uniform sampler2D u;uniform float h,s,b,c;varying vec2 v;',
-        'void main(){',
-        '  vec4 px=texture2D(u,v);vec3 rgb=px.rgb;',
-        '  float r=h*.01745329,ca=cos(r),sa=sin(r);',
-        // CSS hue-rotate matrix (column-major for GLSL)
-        '  rgb=clamp(mat3(',
-        '    .213+ca*.787-sa*.213,.213-ca*.213+sa*.143,.213-ca*.213-sa*.787,',
-        '    .715-ca*.715-sa*.715,.715+ca*.285+sa*.14,.715-ca*.715+sa*.715,',
-        '    .072-ca*.072+sa*.928,.072-ca*.072-sa*.283,.072+ca*.928+sa*.072',
-        '  )*rgb,0.,1.);',
-        '  float lm=dot(rgb,vec3(.2126,.7152,.0722));',
-        '  rgb=clamp(mix(vec3(lm),rgb,s),0.,1.);', // saturate
-        '  rgb=clamp(rgb*b,0.,1.);',               // brightness
-        '  rgb=clamp((rgb-.5)*c+.5,0.,1.);',       // contrast
-        '  gl_FragColor=vec4(rgb,px.a);}',
-      ].join('');
-      function mkSh(t, src) {
-        const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); return s;
-      }
-      const prog = gl.createProgram();
-      gl.attachShader(prog, mkSh(gl.VERTEX_SHADER, vs));
-      gl.attachShader(prog, mkSh(gl.FRAGMENT_SHADER, fs));
-      gl.linkProgram(prog); gl.useProgram(prog);
-      const buf = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
-      const aLoc = gl.getAttribLocation(prog, 'a');
-      gl.enableVertexAttribArray(aLoc);
-      gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
-      const tex = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, tex);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.uniform1i(gl.getUniformLocation(prog, 'u'), 0);
-      const uH = gl.getUniformLocation(prog,'h'), uS = gl.getUniformLocation(prog,'s'),
-            uB = gl.getUniformLocation(prog,'b'), uC = gl.getUniformLocation(prog,'c');
-      glFx = {
-        canvas: gc,
-        apply(src, cw, ch) {
-          if (gc.width !== cw || gc.height !== ch) { gc.width = cw; gc.height = ch; gl.viewport(0,0,cw,ch); }
-          gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
-          gl.uniform1f(uH, funHueVal);
-          gl.uniform1f(uS, funSatVal/100);
-          gl.uniform1f(uB, funBriVal/100);
-          gl.uniform1f(uC, funConVal/100);
-          gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
-        }
-      };
+    if (!gl) return null;
+    const vs = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0,1);}';
+    const fs = [
+      'precision mediump float;',
+      'uniform sampler2D u;uniform float h,s,b,c,abr,pxl;uniform vec2 res;varying vec2 v;',
+      'void main(){',
+      '  vec2 uv=v;',
+      '  if(pxl>1.5){vec2 bs=vec2(pxl)/res;uv=floor(uv/bs)*bs+bs*.5;uv=clamp(uv,0.,1.);}',
+      '  float ar=abr/res.x;',
+      '  vec4 px;',
+      '  px.r=texture2D(u,clamp(vec2(uv.x+ar,uv.y),0.,1.)).r;',
+      '  px.g=texture2D(u,uv).g;',
+      '  px.b=texture2D(u,clamp(vec2(uv.x-ar,uv.y),0.,1.)).b;',
+      '  px.a=texture2D(u,uv).a;',
+      '  vec3 rgb=px.rgb;',
+      '  float r=h*.01745329,ca=cos(r),sa=sin(r);',
+      '  rgb=clamp(mat3(',
+      '    .213+ca*.787-sa*.213,.213-ca*.213+sa*.143,.213-ca*.213-sa*.787,',
+      '    .715-ca*.715-sa*.715,.715+ca*.285+sa*.14,.715-ca*.715+sa*.715,',
+      '    .072-ca*.072+sa*.928,.072-ca*.072-sa*.283,.072+ca*.928+sa*.072',
+      '  )*rgb,0.,1.);',
+      '  float lm=dot(rgb,vec3(.2126,.7152,.0722));',
+      '  rgb=clamp(mix(vec3(lm),rgb,s),0.,1.);',
+      '  rgb=clamp(rgb*b,0.,1.);',
+      '  rgb=clamp((rgb-.5)*c+.5,0.,1.);',
+      '  gl_FragColor=vec4(rgb,px.a);}',
+    ].join('');
+    function mkSh(t, src) {
+      const s = gl.createShader(t); gl.shaderSource(s, src); gl.compileShader(s); return s;
     }
-  } catch(e) { /* WebGL unavailable, recording will be unfiltered */ }
+    const prog = gl.createProgram();
+    gl.attachShader(prog, mkSh(gl.VERTEX_SHADER, vs));
+    gl.attachShader(prog, mkSh(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(prog); gl.useProgram(prog);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,1,1]), gl.STATIC_DRAW);
+    const aLoc = gl.getAttribLocation(prog, 'a');
+    gl.enableVertexAttribArray(aLoc);
+    gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.uniform1i(gl.getUniformLocation(prog, 'u'), 0);
+    const uH=gl.getUniformLocation(prog,'h'), uS=gl.getUniformLocation(prog,'s'),
+          uB=gl.getUniformLocation(prog,'b'), uC=gl.getUniformLocation(prog,'c'),
+          uAbr=gl.getUniformLocation(prog,'abr'), uRes=gl.getUniformLocation(prog,'res'),
+          uPxl=gl.getUniformLocation(prog,'pxl');
+    return {
+      canvas: gc,
+      apply(src, cw, ch) {
+        if (gc.width !== cw || gc.height !== ch) { gc.width = cw; gc.height = ch; gl.viewport(0,0,cw,ch); }
+        gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,src);
+        gl.uniform1f(uH, funHueVal); gl.uniform1f(uS, funSatVal/100);
+        gl.uniform1f(uB, funBriVal/100); gl.uniform1f(uC, funConVal/100);
+        gl.uniform1f(uAbr, funAbrVal); gl.uniform2f(uRes, cw, ch); gl.uniform1f(uPxl, funPxlVal);
+        gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      }
+    };
+  } catch(e) { return null; }
 }
+const glFx = _buildGlFx();
 
 function recordFrame() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (vw && vh) {
     const { sx, sy, cw, ch } = cropRect(vw, vh);
     if (recCanvas.width !== cw || recCanvas.height !== ch) { recCanvas.width = cw; recCanvas.height = ch; }
-    const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
+    const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100
+               || funAbrVal !== 0 || funPxlVal !== 1;
 
     function drawSrc(ctx, filter) {
       ctx.filter = filter;
@@ -2626,17 +2775,15 @@ function recordFrame() {
 
     if (hasFx) {
       if (fxStageCanvas.width !== cw || fxStageCanvas.height !== ch) { fxStageCanvas.width = cw; fxStageCanvas.height = ch; }
-      if (CTX_FILTER_OK) {
-        // Modern browsers: bake filter directly on stage canvas, blit to recCanvas
-        drawSrc(fxStageCtx, fxFilter());
-        recCtx.filter = 'none'; recCtx.drawImage(fxStageCanvas, 0, 0);
-      } else if (glFx) {
-        // iOS < 18 fallback: crop+mirror to stage, apply WebGL color shader, blit result
+      if (glFx) {
         drawSrc(fxStageCtx, 'none');
         glFx.apply(fxStageCanvas, cw, ch);
         recCtx.filter = 'none'; recCtx.drawImage(glFx.canvas, 0, 0);
+      } else if (CTX_FILTER_OK) {
+        drawSrc(fxStageCtx, fxFilter());
+        recCtx.filter = 'none'; recCtx.drawImage(fxStageCanvas, 0, 0);
       } else {
-        drawSrc(recCtx, 'none'); // no filter support at all
+        drawSrc(recCtx, 'none');
       }
     } else {
       drawSrc(recCtx, 'none');
@@ -2804,8 +2951,10 @@ function bindControls() {
     controlsEl.scrollTop = 0;
     if (!funUnlocked) {
       funHueVal = 0; funSatVal = 100; funBriVal = 100; funConVal = 100;
+      funAbrVal = 0; funPxlVal = 1;
       funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100; funConSldr.value = 100;
-      snsrOn = { hue: null, sat: null, bri: null, con: null };
+      funAbrSldr.value = 0; funPxlSldr.value = 1;
+      snsrOn = { hue: null, sat: null, bri: null, con: null, abr: null, pxl: null };
       syncSensorListeners();
       updateSnsrBtns();
       applyFunFilters();
@@ -2817,6 +2966,8 @@ function bindControls() {
   funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; snsrNeedsZero.sat = true; } applyFunFilters(); saveSettings(); });
   funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; snsrNeedsZero.bri = true; } applyFunFilters(); saveSettings(); });
   funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; snsrNeedsZero.con = true; } applyFunFilters(); saveSettings(); });
+  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; snsrNeedsZero.abr = true; } applyFunFilters(); saveSettings(); });
+  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; snsrNeedsZero.pxl = true; } applyFunFilters(); saveSettings(); });
   funSection.addEventListener('click', e => {
     const btn = e.target.closest('.snsr-tgl');
     if (!btn) return;
