@@ -288,6 +288,17 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 #funHueSldr{background:linear-gradient(to right,hsl(0,90%,55%),hsl(45,90%,55%),hsl(90,90%,55%),hsl(135,90%,55%),hsl(180,90%,55%),hsl(225,90%,55%),hsl(270,90%,55%),hsl(315,90%,55%),hsl(360,90%,55%))}
 #funSatSldr{background:linear-gradient(to right,hsl(200,0%,55%),hsl(200,50%,55%),hsl(120,90%,50%),hsl(60,100%,50%),hsl(0,100%,55%))}
 #funBriSldr{background:linear-gradient(to right,#111 0%,#4a7a9b 45%,#fff 100%)}
+#funConSldr{background:linear-gradient(to right,#808080,#bbb 35%,#eee 50%,#333 65%,#111)}
+/* Compact inline gyro toggles — one per FX row */
+.gyro-tgl{
+  width:100%;height:26px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:3px;border:1px solid var(--border);background:var(--glass2);
+  color:var(--text-m);cursor:pointer;transition:all .15s;padding:5px 8px;
+}
+.gyro-tgl.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+body[data-theme="light"] .gyro-tgl.on{color:#fff}
+.gyro-tgl svg{width:13px;height:13px;flex-shrink:0}
 
 /* ── Pill rows ── */
 .pill-row{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -346,7 +357,8 @@ body[data-theme="light"] .tgl.on{color:#fff}
 /* ── Capture bar (full width, always at bottom of .app) ── */
 .capture-bar{
   flex-shrink:0;
-  padding:5px 16px env(safe-area-inset-bottom);
+  padding:0 16px;
+  padding-bottom:env(safe-area-inset-bottom);
   background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   border-top:1px solid var(--border);position:relative;
 }
@@ -355,7 +367,13 @@ body[data-theme="light"] .tgl.on{color:#fff}
   background:linear-gradient(90deg,transparent,var(--cx),transparent);
   opacity:.4;
 }
-.capture-row{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0}
+/* 1fr auto 1fr guarantees the shutter is always at exact 50% regardless of side button sizes */
+.capture-row{
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:9px 0;     /* equal breathing room above and below the buttons */
+  max-width:300px;   /* keeps side buttons close on wide screens */
+  width:100%;margin:0 auto;
+}
 .cap-left{display:flex;justify-content:flex-start;padding-left:6px}
 .cap-right{display:flex;justify-content:flex-end;padding-right:6px}
 
@@ -608,9 +626,6 @@ body[data-theme="light"] .gallery-hdr-title{
   .ctrl-bump{margin-top:0}
   .sec{margin-top:3px}
   .crow{gap:5px}
-  .capture-row{grid-template-columns:auto auto auto;justify-content:center;gap:24px}
-  .cap-left{padding-left:0}
-  .cap-right{padding-right:0}
 }
 
 @media(max-height:620px) and (max-width:639px){
@@ -833,20 +848,22 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="crow ctrl-bump">
             <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
             <input type="range" class="fun-slider" id="funHueSldr" min="-180" max="180" value="0">
+            <button class="gyro-tgl" id="gyroHueTgl" title="Gyro → Hue"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
           </div>
           <div class="crow">
             <span class="clbl"><i class="cdot" style="--d:#60e8a0"></i><span>Sat</span></span>
             <input type="range" class="fun-slider" id="funSatSldr" min="0" max="200" value="100">
+            <button class="gyro-tgl" id="gyroSatTgl" title="Gyro → Sat"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
           </div>
           <div class="crow">
             <span class="clbl"><i class="cdot" style="--d:#e8d860"></i><span>Bright</span></span>
             <input type="range" class="fun-slider" id="funBriSldr" min="0" max="200" value="100">
+            <button class="gyro-tgl" id="gyroBriTgl" title="Gyro → Brightness"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
           </div>
-          <div class="tgl-row">
-            <button class="tgl" id="gyroTgl">
-              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg>
-              <span>Gyro→Hue</span>
-            </button>
+          <div class="crow">
+            <span class="clbl"><i class="cdot" style="--d:#c0c0ff"></i><span>Con</span></span>
+            <input type="range" class="fun-slider" id="funConSldr" min="0" max="200" value="100">
+            <button class="gyro-tgl" id="gyroConTgl" title="Gyro → Contrast"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg></button>
           </div>
         </div>
 
@@ -1127,8 +1144,9 @@ let isoMin = 0, isoMax = 0;
 // Long exposure
 let leDurIdx       = 0;
 let funUnlocked  = false;
-let funHueVal    = 0, funSatVal = 100, funBriVal = 100;
-let gyroActive   = false;
+let funHueVal = 0, funSatVal = 100, funBriVal = 100, funConVal = 100;
+let gyroHue = false, gyroSat = false, gyroBri = false, gyroCon = false;
+let gyroPermGranted = false;
 let leMode         = 'average';
 let leCapturing    = false;
 let leInterval     = null;
@@ -1191,7 +1209,11 @@ const funSection  = $('funSection');
 const funHueSldr  = $('funHueSldr');
 const funSatSldr  = $('funSatSldr');
 const funBriSldr  = $('funBriSldr');
-const gyroTgl     = $('gyroTgl');
+const funConSldr  = $('funConSldr');
+const gyroHueTgl  = $('gyroHueTgl');
+const gyroSatTgl  = $('gyroSatTgl');
+const gyroBriTgl  = $('gyroBriTgl');
+const gyroConTgl  = $('gyroConTgl');
 const logoTitle   = document.querySelector('.header h1');
 const camSel       = $('cameraSelector');
 const zoomRow      = $('zoomRow');
@@ -1599,7 +1621,8 @@ function loadSettings() {
     if (typeof s.funHue === 'number') { funHueVal = s.funHue; funHueSldr.value = funHueVal; }
     if (typeof s.funSat === 'number') { funSatVal = s.funSat; funSatSldr.value = funSatVal; }
     if (typeof s.funBri === 'number') { funBriVal = s.funBri; funBriSldr.value = funBriVal; }
-    if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100) applyFunFilters();
+    if (typeof s.funCon === 'number') { funConVal = s.funCon; funConSldr.value = funConVal; }
+    if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100) applyFunFilters();
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     updateSoundBtn();
@@ -1613,7 +1636,7 @@ function saveSettings() {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
-      funUnlocked, funHue: funHueVal, funSat: funSatVal, funBri: funBriVal,
+      funUnlocked, funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
     }));
   } catch {}
 }
@@ -1637,35 +1660,56 @@ function pct(slider) {
 }
 
 // ── Fun FX ────────────────────────────────────────────────────────────────
+function fxFilter() {
+  return `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%) contrast(${funConVal}%)`;
+}
 function applyFunFilters() {
-  preview.style.filter = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`;
+  preview.style.filter = fxFilter();
 }
-function updateGyroBtn() {
-  gyroTgl.classList.toggle('on', gyroActive);
+function updateGyroBtns() {
+  gyroHueTgl.classList.toggle('on', gyroHue);
+  gyroSatTgl.classList.toggle('on', gyroSat);
+  gyroBriTgl.classList.toggle('on', gyroBri);
+  gyroConTgl.classList.toggle('on', gyroCon);
 }
-async function toggleGyro() {
-  if (gyroActive) {
-    gyroActive = false;
+async function toggleGyroFor(param) {
+  const wasAny = gyroHue || gyroSat || gyroBri || gyroCon;
+  if (param === 'hue') gyroHue = !gyroHue;
+  else if (param === 'sat') gyroSat = !gyroSat;
+  else if (param === 'bri') gyroBri = !gyroBri;
+  else if (param === 'con') gyroCon = !gyroCon;
+  const nowAny = gyroHue || gyroSat || gyroBri || gyroCon;
+  if (nowAny && !wasAny) {
+    if (!gyroPermGranted && typeof DeviceOrientationEvent !== 'undefined' &&
+        typeof DeviceOrientationEvent.requestPermission === 'function') {
+      try {
+        const perm = await DeviceOrientationEvent.requestPermission();
+        if (perm !== 'granted') { showToast('Gyro permission denied'); }
+        else gyroPermGranted = true;
+      } catch { showToast('Gyro unavailable'); }
+      if (!gyroPermGranted) {
+        if (param === 'hue') gyroHue = false;
+        else if (param === 'sat') gyroSat = false;
+        else if (param === 'bri') gyroBri = false;
+        else if (param === 'con') gyroCon = false;
+        updateGyroBtns(); return;
+      }
+    }
+    if (!window.DeviceOrientationEvent) { showToast('Gyro unavailable'); return; }
+    window.addEventListener('deviceorientation', onOrientation);
+  } else if (!nowAny && wasAny) {
     window.removeEventListener('deviceorientation', onOrientation);
-    updateGyroBtn(); return;
   }
-  if (typeof DeviceOrientationEvent !== 'undefined' &&
-      typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try {
-      const perm = await DeviceOrientationEvent.requestPermission();
-      if (perm !== 'granted') { showToast('Gyro permission denied'); return; }
-    } catch { showToast('Gyro unavailable'); return; }
-  }
-  if (!window.DeviceOrientationEvent) { showToast('Gyro unavailable'); return; }
-  gyroActive = true;
-  window.addEventListener('deviceorientation', onOrientation);
-  updateGyroBtn();
+  updateGyroBtns();
 }
 function onOrientation(e) {
-  if (!gyroActive) return;
-  const angle = Math.round((e.gamma ?? 0) * 2);
-  funHueVal = Math.max(-180, Math.min(180, angle));
-  funHueSldr.value = funHueVal;
+  const g = e.gamma ?? 0;
+  // hue: gamma * 2 maps -90°→-180, 0→0, 90°→180
+  if (gyroHue) { funHueVal = Math.max(-180, Math.min(180, Math.round(g * 2))); funHueSldr.value = funHueVal; }
+  // sat/bri/con: gamma maps -90°→0%, 0→100%, 90°→200%
+  if (gyroSat) { funSatVal = Math.max(0, Math.min(200, Math.round(g * (100/90) + 100))); funSatSldr.value = funSatVal; }
+  if (gyroBri) { funBriVal = Math.max(0, Math.min(200, Math.round(g * (100/90) + 100))); funBriSldr.value = funBriVal; }
+  if (gyroCon) { funConVal = Math.max(0, Math.min(200, Math.round(g * (100/90) + 100))); funConSldr.value = funConVal; }
   applyFunFilters();
 }
 
@@ -2249,8 +2293,8 @@ function finishLongExposure() {
   leOverlay.classList.add('hidden');
   capCanvas.width = leW; capCanvas.height = leH;
   const ctx = capCanvas.getContext('2d');
-  const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100;
-  if (hasFx) ctx.filter = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`;
+  const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
+  if (hasFx) ctx.filter = fxFilter();
   if (leMode === 'average' && leAccum) {
     // putImageData ignores ctx.filter — pipe through a temp canvas first
     const tmp = document.createElement('canvas');
@@ -2307,8 +2351,8 @@ function cropRect(srcW, srcH) {
 function drawToCanvas(src, sx, sy, cw, ch) {
   capCanvas.width = cw; capCanvas.height = ch;
   const ctx = capCanvas.getContext('2d');
-  if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100) {
-    ctx.filter = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`;
+  if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100) {
+    ctx.filter = fxFilter();
   }
   if (isMirrored) {
     ctx.save(); ctx.scale(-1, 1);
@@ -2383,9 +2427,8 @@ function recordFrame() {
       recCanvas.width = cw; recCanvas.height = ch;
     }
     const ctx = recCanvas.getContext('2d');
-    ctx.filter = (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100)
-      ? `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`
-      : 'none';
+    ctx.filter = (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100)
+      ? fxFilter() : 'none';
     if (isMirrored) {
       ctx.save(); ctx.scale(-1, 1);
       ctx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
@@ -2546,8 +2589,11 @@ function bindControls() {
     funUnlocked = !funUnlocked;
     funSection.style.display = funUnlocked ? '' : 'none';
     if (!funUnlocked) {
-      funHueVal = 0; funSatVal = 100; funBriVal = 100;
-      funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100;
+      funHueVal = 0; funSatVal = 100; funBriVal = 100; funConVal = 100;
+      funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100; funConSldr.value = 100;
+      gyroHue = false; gyroSat = false; gyroBri = false; gyroCon = false;
+      window.removeEventListener('deviceorientation', onOrientation);
+      updateGyroBtns();
       applyFunFilters();
     }
     saveSettings();
@@ -2556,7 +2602,11 @@ function bindControls() {
   funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; applyFunFilters(); saveSettings(); });
   funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; applyFunFilters(); saveSettings(); });
   funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; applyFunFilters(); saveSettings(); });
-  gyroTgl.addEventListener('click', toggleGyro);
+  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; applyFunFilters(); saveSettings(); });
+  gyroHueTgl.addEventListener('click', () => toggleGyroFor('hue'));
+  gyroSatTgl.addEventListener('click', () => toggleGyroFor('sat'));
+  gyroBriTgl.addEventListener('click', () => toggleGyroFor('bri'));
+  gyroConTgl.addEventListener('click', () => toggleGyroFor('con'));
   permBtn.addEventListener('click',       () => startCamera());
   blindBtn.addEventListener('click',      toggleBlindMode);
   retryBtn.addEventListener('click', () => {
