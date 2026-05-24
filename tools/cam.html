@@ -294,6 +294,7 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 .snsr-row{display:flex;gap:4px;padding-left:54px}/* align with slider (48px label + 6px gap) */
 .snsr-tgl{
   flex:1;padding:3px 0;
+  display:flex;align-items:center;justify-content:center;
   font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
   font-family:'JetBrains Mono',monospace;
   border:1px solid var(--border);background:var(--glass2);color:var(--text-m);
@@ -1752,6 +1753,12 @@ async function toggleSensor(fx, sensor) {
   if (next !== null) {
     snsrBaseline[fx] = FX_CURRENT[fx]();
     snsrNeedsZero[fx] = true;
+  } else {
+    // Sensor deactivated — snap value back to neutral default
+    const def = { hue: 0, sat: 100, bri: 100, con: 100 }[fx];
+    setFxVal(fx, def);
+    applyFunFilters();
+    saveSettings();
   }
   syncSensorListeners();
   updateSnsrBtns();
@@ -2505,6 +2512,12 @@ async function capturePhoto() {
 
 // ── Video recording ────────────────────────────────────────────────────────
 const recCanvas = $('recCanvas');
+const recCtx    = recCanvas.getContext('2d');
+
+// Intermediate canvas: filter is baked here first so captureStream on recCanvas
+// always receives already-filtered pixels (avoids GPU-path capture missing ctx.filter).
+const fxStageCanvas = document.createElement('canvas');
+const fxStageCtx    = fxStageCanvas.getContext('2d');
 
 function recordFrame() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
@@ -2513,15 +2526,32 @@ function recordFrame() {
     if (recCanvas.width !== cw || recCanvas.height !== ch) {
       recCanvas.width = cw; recCanvas.height = ch;
     }
-    const ctx = recCanvas.getContext('2d');
-    ctx.filter = (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100)
-      ? fxFilter() : 'none';
-    if (isMirrored) {
-      ctx.save(); ctx.scale(-1, 1);
-      ctx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
-      ctx.restore();
+    const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
+    if (hasFx) {
+      // Draw filtered frame onto stage canvas, then blit raw pixels to recCanvas.
+      // This ensures captureStream always reads pre-baked filtered pixels.
+      if (fxStageCanvas.width !== cw || fxStageCanvas.height !== ch) {
+        fxStageCanvas.width = cw; fxStageCanvas.height = ch;
+      }
+      fxStageCtx.filter = fxFilter();
+      if (isMirrored) {
+        fxStageCtx.save(); fxStageCtx.scale(-1, 1);
+        fxStageCtx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
+        fxStageCtx.restore();
+      } else {
+        fxStageCtx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
+      }
+      recCtx.filter = 'none';
+      recCtx.drawImage(fxStageCanvas, 0, 0);
     } else {
-      ctx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
+      recCtx.filter = 'none';
+      if (isMirrored) {
+        recCtx.save(); recCtx.scale(-1, 1);
+        recCtx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
+        recCtx.restore();
+      } else {
+        recCtx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
+      }
     }
   }
   recRafId = requestAnimationFrame(recordFrame);
