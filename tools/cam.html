@@ -1753,6 +1753,12 @@ async function toggleSensor(fx, sensor) {
   if (next !== null) {
     snsrBaseline[fx] = FX_CURRENT[fx]();
     snsrNeedsZero[fx] = true;
+  } else {
+    // Sensor deactivated — snap value back to neutral default
+    const def = { hue: 0, sat: 100, bri: 100, con: 100 }[fx];
+    setFxVal(fx, def);
+    applyFunFilters();
+    saveSettings();
   }
   syncSensorListeners();
   updateSnsrBtns();
