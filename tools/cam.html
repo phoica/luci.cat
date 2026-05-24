@@ -408,8 +408,8 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Horizontal handles (top/bottom) */
 .crop-h{
-  position:absolute;transform:translate(-50%,-50%);
-  width:52px;height:22px;cursor:row-resize;pointer-events:all;
+  position:absolute;
+  width:52px;height:22px;cursor:row-resize;pointer-events:all;touch-action:none;
   display:flex;align-items:center;justify-content:center;
 }
 .crop-h::after{
@@ -418,14 +418,19 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 /* Vertical handles (left/right) */
 .crop-v{
-  position:absolute;transform:translate(-50%,-50%);
-  width:22px;height:52px;cursor:col-resize;pointer-events:all;
+  position:absolute;
+  width:22px;height:52px;cursor:col-resize;pointer-events:all;touch-action:none;
   display:flex;align-items:center;justify-content:center;
 }
 .crop-v::after{
   content:'';display:block;width:3px;height:36px;border-radius:2px;
   background:rgba(255,255,255,.85);box-shadow:1px 0 4px rgba(0,0,0,.4);
 }
+/* Each handle sits fully inside the crop region — always accessible */
+#cdTop    { transform:translate(-50%,0) }
+#cdBottom { transform:translate(-50%,-100%) }
+#cdLeft   { transform:translate(0,-50%) }
+#cdRight  { transform:translate(-100%,-50%) }
 
 /* ── Custom ratio row ── */
 .custom-ratio-row{display:flex;align-items:center;gap:8px;padding:2px 0}
@@ -1425,30 +1430,20 @@ function resetCrop() {
 
 function makeDraggable(el, onDrag) {
   let sx, sy, sv;
-  function start(e) {
-    const p = e.touches?.[0] || e;
-    sx = p.clientX; sy = p.clientY;
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    el.setPointerCapture(e.pointerId);
+    sx = e.clientX; sy = e.clientY;
     sv = { t: cropT, b: cropB, l: cropL, r: cropR };
-    document.addEventListener('mousemove', move);
-    document.addEventListener('touchmove', move, { passive: false });
-    document.addEventListener('mouseup', end);
-    document.addEventListener('touchend', end);
+  });
+  el.addEventListener('pointermove', e => {
+    if (!el.hasPointerCapture(e.pointerId)) return;
     e.preventDefault();
-  }
-  function move(e) {
-    const p = e.touches?.[0] || e;
-    onDrag(p.clientX - sx, p.clientY - sy, sv);
+    onDrag(e.clientX - sx, e.clientY - sy, sv);
     updateCropRegion();
-    e.preventDefault();
-  }
-  function end() {
-    document.removeEventListener('mousemove', move);
-    document.removeEventListener('touchmove', move);
-    document.removeEventListener('mouseup', end);
-    document.removeEventListener('touchend', end);
-  }
-  el.addEventListener('mousedown', start);
-  el.addEventListener('touchstart', start, { passive: false });
+  });
+  el.addEventListener('pointerup',     e => el.releasePointerCapture(e.pointerId));
+  el.addEventListener('pointercancel', e => el.releasePointerCapture(e.pointerId));
 }
 
 function initCrop() {
@@ -1552,9 +1547,15 @@ function toggleControls() {
   ctrlVisible = !ctrlVisible;
   controlsEl.classList.toggle('hidden', !ctrlVisible);
   body.classList.toggle('controls-open', ctrlVisible);
-  shutterBtn.classList.toggle('ghost', !ctrlVisible);
-  recordCell.style.opacity = ctrlVisible ? '' : '0.15';
+  if (isBlindMode) {
+    shutterBtn.classList.toggle('ghost', !ctrlVisible);
+    recordCell.style.opacity = ctrlVisible ? '' : '0.15';
+  } else {
+    shutterBtn.classList.remove('ghost');
+    recordCell.style.opacity = '';
+  }
   capHideBtn.classList.toggle('revealed', !ctrlVisible);
+  if (currentRatio === 'free') requestAnimationFrame(updateCropRegion);
 }
 
 // ── Blind mode ─────────────────────────────────────────────────────────────
