@@ -2243,10 +2243,16 @@ function finishLongExposure() {
   leOverlay.classList.add('hidden');
   capCanvas.width = leW; capCanvas.height = leH;
   const ctx = capCanvas.getContext('2d');
+  const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100;
+  if (hasFx) ctx.filter = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`;
   if (leMode === 'average' && leAccum) {
-    const img = ctx.createImageData(leW, leH);
+    // putImageData ignores ctx.filter — pipe through a temp canvas first
+    const tmp = document.createElement('canvas');
+    tmp.width = leW; tmp.height = leH;
+    const img = tmp.getContext('2d').createImageData(leW, leH);
     for (let i = 0; i < leAccum.length; i++) img.data[i] = Math.round(leAccum[i]);
-    ctx.putImageData(img, 0, 0);
+    tmp.getContext('2d').putImageData(img, 0, 0);
+    ctx.drawImage(tmp, 0, 0);
   } else if (leStackCanvas) {
     ctx.drawImage(leStackCanvas, 0, 0);
   }
