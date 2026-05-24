@@ -421,7 +421,7 @@ body[data-theme="light"] .tgl.on{color:#fff}
 .crop-ui{position:absolute;inset:0;z-index:4;display:none;pointer-events:none}
 .viewport[data-ratio="free"] .crop-ui{display:block}
 .crop-region{
-  position:absolute;pointer-events:none;
+  position:absolute;pointer-events:none;cursor:move;touch-action:none;
   border:1px solid rgba(255,255,255,.55);
   box-shadow:0 0 0 9999px rgba(0,0,0,.42);
   transition:none;
@@ -682,6 +682,7 @@ body[data-theme="light"] .gallery-hdr-title{
             <div class="crop-v" id="cdLeft"></div>
             <div class="crop-v" id="cdRight"></div>
           </div>
+          <canvas id="recCanvas" style="display:none"></canvas>
           <div class="capture-flash" id="captureFlash"></div>
           <div class="rec-badge" id="recBadge"><span class="rec-dot"></span><span data-i18n="rec">REC</span></div>
 
@@ -1099,6 +1100,7 @@ let recordedChunks = [];
 let recInterval    = null;
 let recSecs        = 0;
 let audioStream    = null;
+let recRafId       = null;
 let ready          = false;
 let ctrlVisible    = true;
 let toastTimer     = null;
@@ -1460,10 +1462,11 @@ function updateCropRegion() {
   cropL = Math.max(0, Math.min(cropL, w - cropR - minSz));
   cropR = Math.max(0, Math.min(cropR, w - cropL - minSz));
 
-  cropRegion.style.top    = cropT + 'px';
-  cropRegion.style.left   = cropL + 'px';
-  cropRegion.style.right  = cropR + 'px';
-  cropRegion.style.bottom = cropB + 'px';
+  cropRegion.style.top          = cropT + 'px';
+  cropRegion.style.left         = cropL + 'px';
+  cropRegion.style.right        = cropR + 'px';
+  cropRegion.style.bottom       = cropB + 'px';
+  cropRegion.style.pointerEvents = (cropT || cropB || cropL || cropR) ? 'all' : 'none';
 
   const midX = cropL + (w - cropL - cropR) / 2;
   const midY = cropT + (h - cropT - cropB) / 2;
@@ -1507,6 +1510,32 @@ function initCrop() {
   makeDraggable(cdBottom, (dx, dy, s) => { cropB = Math.max(0, s.b - dy); });
   makeDraggable(cdLeft,   (dx, dy, s) => { cropL = Math.max(0, s.l + dx); });
   makeDraggable(cdRight,  (dx, dy, s) => { cropR = Math.max(0, s.r - dx); });
+  // Drag whole crop box
+  { let sx, sy, sl, sr, st, sb, didDrag = false;
+    cropRegion.addEventListener('pointerdown', e => {
+      if (!(cropT || cropB || cropL || cropR)) return;
+      didDrag = false;
+      cropRegion.setPointerCapture(e.pointerId);
+      sx = e.clientX; sy = e.clientY;
+      sl = cropL; sr = cropR; st = cropT; sb = cropB;
+    });
+    cropRegion.addEventListener('pointermove', e => {
+      if (!cropRegion.hasPointerCapture(e.pointerId)) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!didDrag && Math.hypot(dx, dy) < 5) return;
+      didDrag = true;
+      const r = viewport.getBoundingClientRect(), w = r.width, h = r.height;
+      const boxW = w - sl - sr, boxH = h - st - sb;
+      const newL = Math.max(0, Math.min(w - boxW, sl + dx));
+      const newT = Math.max(0, Math.min(h - boxH, st + dy));
+      cropL = newL; cropR = Math.max(0, w - newL - boxW);
+      cropT = newT; cropB = Math.max(0, h - newT - boxH);
+      updateCropRegion();
+    });
+    cropRegion.addEventListener('pointerup',     e => cropRegion.releasePointerCapture(e.pointerId));
+    cropRegion.addEventListener('pointercancel', e => cropRegion.releasePointerCapture(e.pointerId));
+  }
+
   // Double-tap viewport to reset crop
   let lastTap = 0;
   vpWrap.addEventListener('touchend', e => {
@@ -2332,10 +2361,40 @@ async function capturePhoto() {
 }
 
 // ── Video recording ────────────────────────────────────────────────────────
+const recCanvas = $('recCanvas');
+
+function recordFrame() {
+  const vw = preview.videoWidth, vh = preview.videoHeight;
+  if (vw && vh) {
+    const { sx, sy, cw, ch } = cropRect(vw, vh);
+    if (recCanvas.width !== cw || recCanvas.height !== ch) {
+      recCanvas.width = cw; recCanvas.height = ch;
+    }
+    const ctx = recCanvas.getContext('2d');
+    ctx.filter = (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100)
+      ? `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`
+      : 'none';
+    if (isMirrored) {
+      ctx.save(); ctx.scale(-1, 1);
+      ctx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
+      ctx.restore();
+    } else {
+      ctx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
+    }
+  }
+  recRafId = requestAnimationFrame(recordFrame);
+}
+
 async function startRecording() {
   if (!ready || !stream || isRecording) return;
-  const tracks = [...stream.getVideoTracks()];
-  const recStream = new MediaStream(tracks);
+  // Prime canvas dimensions before captureStream
+  const vw = preview.videoWidth, vh = preview.videoHeight;
+  if (vw && vh) {
+    const { cw, ch } = cropRect(vw, vh);
+    recCanvas.width = cw; recCanvas.height = ch;
+  }
+  const recStream = recCanvas.captureStream(30);
+  recordFrame(); // start render loop
 
   recordedChunks = [];
   const types = ['video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=h264,opus','video/webm;codecs=vp9,opus','video/webm'];
@@ -2362,6 +2421,7 @@ async function startRecording() {
 }
 function stopRecording() {
   if (!isRecording || !mediaRecorder) return;
+  cancelAnimationFrame(recRafId); recRafId = null;
   mediaRecorder.stop(); isRecording = false;
   clearInterval(recInterval);
   audioStream?.getTracks().forEach(t => t.stop());
