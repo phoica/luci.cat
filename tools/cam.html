@@ -1300,6 +1300,7 @@ let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 };
 let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0,   abr: 0, pxl: 0 };
 let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let fxCyclic = false;
+let lastMouseX = -1;
 let orientPermGranted = false, motionPermGranted = false;
 let leMode         = 'average';
 let leCapturing    = false;
@@ -2049,7 +2050,11 @@ let fxRafId = null;
 let _abrSrcBuf = null; // pre-allocated pixel buffer for chromatic aberration
 
 function applyFunFilters() {
-  if (funAbrVal > 0 || funPxlVal > 1) {
+  const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
+  // Use WebGL overlay whenever abr/pxl are active, OR when on a platform where
+  // canvas 2D filter doesn't work (iOS < 18) and there are colour FX to apply.
+  const needOverlay = funAbrVal > 0 || funPxlVal > 1 || (!CTX_FILTER_OK && glFx && hasColorFx);
+  if (needOverlay) {
     preview.style.visibility = 'hidden';
     preview.style.filter = 'none';
     fxCanvas.style.display = '';
@@ -2072,54 +2077,65 @@ function renderFxOverlay() {
   if (fxCanvas.width !== cw || fxCanvas.height !== ch) { fxCanvas.width = cw; fxCanvas.height = ch; }
   if (_fxTmp.width !== cw || _fxTmp.height !== ch) { _fxTmp.width = cw; _fxTmp.height = ch; }
 
-  // Draw video to temp canvas with object-fit:cover + optional CSS color filters
-  const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
-  _fxTmpCtx.filter = hasColorFx && CTX_FILTER_OK ? fxFilter() : 'none';
   const vidAR = vw / vh, vpAR = cw / ch;
   let sx, sy, sw, sh;
   if (vidAR > vpAR) { sh = vh; sw = vh * vpAR; sx = (vw - sw) / 2; sy = 0; }
   else              { sw = vw; sh = vw / vpAR; sx = 0; sy = (vh - sh) / 2; }
-  if (isMirrored) {
-    _fxTmpCtx.save(); _fxTmpCtx.scale(-1, 1);
-    _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, -cw, 0, cw, ch);
-    _fxTmpCtx.restore();
-  } else {
-    _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, 0, 0, cw, ch);
-  }
-  _fxTmpCtx.filter = 'none';
 
-  // Pixelate: draw to tiny canvas, scale back up without smoothing
-  if (funPxlVal > 1) {
-    const bs = Math.round(funPxlVal);
-    const pw = Math.max(1, Math.floor(cw / bs));
-    const ph = Math.max(1, Math.floor(ch / bs));
-    if (_pxlTmp.width !== pw || _pxlTmp.height !== ph) { _pxlTmp.width = pw; _pxlTmp.height = ph; }
-    _pxlTmpCtx.drawImage(_fxTmp, 0, 0, pw, ph);
-    _fxTmpCtx.imageSmoothingEnabled = false;
-    _fxTmpCtx.drawImage(_pxlTmp, 0, 0, cw, ch);
-    _fxTmpCtx.imageSmoothingEnabled = true;
-  }
-
-  // Chromatic aberration: shift R channel right, B channel left
-  if (funAbrVal > 0) {
-    const shift = Math.max(1, Math.round(funAbrVal * cw / 1000));
-    const id = _fxTmpCtx.getImageData(0, 0, cw, ch);
-    const len = cw * ch * 4;
-    if (!_abrSrcBuf || _abrSrcBuf.length !== len) _abrSrcBuf = new Uint8ClampedArray(len);
-    _abrSrcBuf.set(id.data);
-    const d = id.data;
-    for (let y = 0; y < ch; y++) {
-      const rowOff = y * cw;
-      for (let x = 0; x < cw; x++) {
-        const i = (rowOff + x) * 4;
-        d[i]   = _abrSrcBuf[(rowOff + Math.min(cw - 1, x + shift)) * 4];
-        d[i+2] = _abrSrcBuf[(rowOff + Math.max(0, x - shift)) * 4 + 2];
-      }
+  if (glFx) {
+    // WebGL path: draw raw frame to temp, then single shader pass for all 6 FX
+    _fxTmpCtx.filter = 'none';
+    if (isMirrored) {
+      _fxTmpCtx.save(); _fxTmpCtx.scale(-1, 1);
+      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, -cw, 0, cw, ch);
+      _fxTmpCtx.restore();
+    } else {
+      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, 0, 0, cw, ch);
     }
-    _fxTmpCtx.putImageData(id, 0, 0);
+    glFx.apply(_fxTmp, cw, ch);
+    fxCtx.drawImage(glFx.canvas, 0, 0);
+  } else {
+    // Canvas 2D fallback: CSS filter for colour FX, pixel loops for abr/pxl
+    const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
+    _fxTmpCtx.filter = hasColorFx && CTX_FILTER_OK ? fxFilter() : 'none';
+    if (isMirrored) {
+      _fxTmpCtx.save(); _fxTmpCtx.scale(-1, 1);
+      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, -cw, 0, cw, ch);
+      _fxTmpCtx.restore();
+    } else {
+      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, 0, 0, cw, ch);
+    }
+    _fxTmpCtx.filter = 'none';
+    if (funPxlVal > 1) {
+      const bs = Math.round(funPxlVal);
+      const pw = Math.max(1, Math.floor(cw / bs));
+      const ph = Math.max(1, Math.floor(ch / bs));
+      if (_pxlTmp.width !== pw || _pxlTmp.height !== ph) { _pxlTmp.width = pw; _pxlTmp.height = ph; }
+      _pxlTmpCtx.drawImage(_fxTmp, 0, 0, pw, ph);
+      _fxTmpCtx.imageSmoothingEnabled = false;
+      _fxTmpCtx.drawImage(_pxlTmp, 0, 0, cw, ch);
+      _fxTmpCtx.imageSmoothingEnabled = true;
+    }
+    if (funAbrVal > 0) {
+      const shift = Math.max(1, Math.round(funAbrVal * cw / 1000));
+      const id = _fxTmpCtx.getImageData(0, 0, cw, ch);
+      const len = cw * ch * 4;
+      if (!_abrSrcBuf || _abrSrcBuf.length !== len) _abrSrcBuf = new Uint8ClampedArray(len);
+      _abrSrcBuf.set(id.data);
+      const d = id.data;
+      for (let y = 0; y < ch; y++) {
+        const rowOff = y * cw;
+        for (let x = 0; x < cw; x++) {
+          const i = (rowOff + x) * 4;
+          d[i]   = _abrSrcBuf[(rowOff + Math.min(cw - 1, x + shift)) * 4];
+          d[i+2] = _abrSrcBuf[(rowOff + Math.max(0, x - shift)) * 4 + 2];
+        }
+      }
+      _fxTmpCtx.putImageData(id, 0, 0);
+    }
+    fxCtx.drawImage(_fxTmp, 0, 0);
   }
 
-  fxCtx.drawImage(_fxTmp, 0, 0);
   fxRafId = requestAnimationFrame(renderFxOverlay);
 }
 
@@ -2199,7 +2215,12 @@ async function toggleSensor(fx, sensor) {
   snsrOn[fx] = next;
   if (next !== null) {
     snsrBaseline[fx] = FX_CURRENT[fx]();
-    snsrNeedsZero[fx] = true;
+    if (sensor === 'mse') {
+      snsrZero[fx] = lastMouseX >= 0 ? lastMouseX : window.innerWidth / 2;
+      snsrNeedsZero[fx] = false;
+    } else {
+      snsrNeedsZero[fx] = true;
+    }
   } else {
     // Sensor deactivated — snap value back to neutral default
     const def = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 }[fx];
@@ -3285,13 +3306,18 @@ function bindControls() {
     saveSettings();
     showToast(funUnlocked ? '✦ FX unlocked' : 'FX off', 1500);
   });
-  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; snsrNeedsZero.hue = true; } applyFunFilters(); saveSettings(); });
-  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; snsrNeedsZero.sat = true; } applyFunFilters(); saveSettings(); });
-  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; snsrNeedsZero.bri = true; } applyFunFilters(); saveSettings(); });
-  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; snsrNeedsZero.con = true; } applyFunFilters(); saveSettings(); });
-  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; snsrNeedsZero.abr = true; } applyFunFilters(); saveSettings(); });
-  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; snsrNeedsZero.pxl = true; } applyFunFilters(); saveSettings(); });
+  function reZeroSensor(fx) {
+    if (snsrOn[fx] === 'mse') { snsrZero[fx] = lastMouseX >= 0 ? lastMouseX : snsrZero[fx]; snsrNeedsZero[fx] = false; }
+    else snsrNeedsZero[fx] = true;
+  }
+  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; reZeroSensor('hue'); } applyFunFilters(); saveSettings(); });
+  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; reZeroSensor('sat'); } applyFunFilters(); saveSettings(); });
+  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; reZeroSensor('bri'); } applyFunFilters(); saveSettings(); });
+  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); saveSettings(); });
+  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); saveSettings(); });
+  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); saveSettings(); });
   fxCycleTgl.addEventListener('click', () => { fxCyclic = !fxCyclic; updateFxCycleTgl(); saveSettings(); });
+  window.addEventListener('mousemove', e => { lastMouseX = e.clientX; }, { passive: true });
   funSection.addEventListener('click', e => {
     const btn = e.target.closest('.snsr-tgl');
     if (!btn) return;
