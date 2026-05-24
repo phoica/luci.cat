@@ -330,18 +330,21 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 #funPxlSldr{background:linear-gradient(to right,#2a4a60 0%,#7040b0 55%,#c060ff 100%)}
 /* FX rows: slider + sensor button strip */
 .fx-row{display:flex;flex-direction:column;gap:3px}
-.fx-row .crow{grid-template-columns:48px 18px 1fr}/* label | inv-btn | slider */
-.inv-btn{
-  width:18px;height:18px;flex-shrink:0;padding:0;
+.fx-row .crow{grid-template-columns:48px 18px 1fr 22px}/* label | inv | slider | bnc */
+.inv-btn,.bnc-btn{
+  height:18px;flex-shrink:0;padding:0 2px;
   display:flex;align-items:center;justify-content:center;
-  font-size:11px;line-height:1;
+  font-size:7px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
   border:1px solid var(--border);background:var(--glass2);color:var(--text-d);
-  border-radius:2px;cursor:pointer;transition:all .15s;
+  border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap;
 }
-.inv-btn:hover{border-color:var(--cx);color:var(--cx)}
-.inv-btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
-body[data-theme="light"] .inv-btn.on{color:#fff}
-.snsr-row{display:flex;gap:4px;padding-left:72px}/* 48px label + 18px btn + 6px gap */
+.inv-btn{width:18px}
+.bnc-btn{width:22px}
+.inv-btn:hover,.bnc-btn:hover{border-color:var(--cx);color:var(--cx)}
+.inv-btn.on,.bnc-btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+body[data-theme="light"] .inv-btn.on,body[data-theme="light"] .bnc-btn.on{color:#fff}
+.snsr-row{display:flex;gap:4px;padding-left:78px;padding-right:28px}/* align under slider track */
 .snsr-tgl{
   flex:1;padding:3px 0;
   display:flex;align-items:center;justify-content:center;
@@ -705,6 +708,12 @@ body[data-theme="light"] .gallery-hdr-title{
       <div class="header">
         <h1 data-i18n="title">Cam</h1>
         <span class="hdr-space"></span>
+        <button class="icon-btn" id="reloadCamBtn" title="Reload camera" aria-label="Reload camera">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13.5 6A6 6 0 1 0 12 11.5"/>
+            <path d="M13.5 2.5v3.5H10"/>
+          </svg>
+        </button>
         <button class="icon-btn lang-btn" id="langBtn" data-i18n-title="language" aria-label="Language" title="Language">EN</button>
         <!-- Shutter sound -->
         <button class="icon-btn" id="soundBtn" data-i18n-title="toggleSound" data-i18n-aria="toggleSound"></button>
@@ -935,17 +944,15 @@ body[data-theme="light"] .gallery-hdr-title{
           <button class="pill" data-fps="60">60fps</button>
         </div>
 
-        <!-- Fun FX (unlocked by tapping logo) -->
-        <div id="funSection" style="display:none;flex-direction:column;gap:8px">
+        <!-- FX controls -->
+        <div id="funSection" style="display:flex;flex-direction:column;gap:8px">
           <div class="sec">✦ FX</div>
-          <div class="pill-row">
-            <button class="pill" id="fxCycleTgl">— Clamp</button>
-          </div>
           <div class="fx-row ctrl-bump">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
-              <button class="inv-btn" title="Invert">↕</button>
+              <button class="inv-btn" title="Invert">INV</button>
               <input type="range" class="fun-slider" id="funHueSldr" min="-180" max="180" value="0">
+              <button class="bnc-btn" title="Bounce">BNC</button>
             </div>
             <div class="snsr-row" data-fx="hue">
               <button class="snsr-tgl" data-sensor="gyr">GYR</button>
@@ -958,8 +965,9 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#60e8a0"></i><span>Sat</span></span>
-              <button class="inv-btn" title="Invert">↕</button>
+              <button class="inv-btn" title="Invert">INV</button>
               <input type="range" class="fun-slider" id="funSatSldr" min="0" max="200" value="100">
+              <button class="bnc-btn" title="Bounce">BNC</button>
             </div>
             <div class="snsr-row" data-fx="sat">
               <button class="snsr-tgl" data-sensor="gyr">GYR</button>
@@ -972,8 +980,9 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#e8d860"></i><span>Bright</span></span>
-              <button class="inv-btn" title="Invert">↕</button>
+              <button class="inv-btn" title="Invert">INV</button>
               <input type="range" class="fun-slider" id="funBriSldr" min="0" max="200" value="100">
+              <button class="bnc-btn" title="Bounce">BNC</button>
             </div>
             <div class="snsr-row" data-fx="bri">
               <button class="snsr-tgl" data-sensor="gyr">GYR</button>
@@ -986,8 +995,9 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#c0c0ff"></i><span>Con</span></span>
-              <button class="inv-btn" title="Invert">↕</button>
+              <button class="inv-btn" title="Invert">INV</button>
               <input type="range" class="fun-slider" id="funConSldr" min="0" max="200" value="100">
+              <button class="bnc-btn" title="Bounce">BNC</button>
             </div>
             <div class="snsr-row" data-fx="con">
               <button class="snsr-tgl" data-sensor="gyr">GYR</button>
@@ -1000,8 +1010,9 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#ff6b9d"></i><span>Abr</span></span>
-              <button class="inv-btn" title="Invert">↕</button>
+              <button class="inv-btn" title="Invert">INV</button>
               <input type="range" class="fun-slider" id="funAbrSldr" min="0" max="20" step="0.5" value="0">
+              <button class="bnc-btn" title="Bounce">BNC</button>
             </div>
             <div class="snsr-row" data-fx="abr">
               <button class="snsr-tgl" data-sensor="gyr">GYR</button>
@@ -1014,8 +1025,9 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#9d6bff"></i><span>Pxl</span></span>
-              <button class="inv-btn" title="Invert">↕</button>
+              <button class="inv-btn" title="Invert">INV</button>
               <input type="range" class="fun-slider" id="funPxlSldr" min="1" max="32" step="1" value="1">
+              <button class="bnc-btn" title="Bounce">BNC</button>
             </div>
             <div class="snsr-row" data-fx="pxl">
               <button class="snsr-tgl" data-sensor="gyr">GYR</button>
@@ -1313,7 +1325,6 @@ let expTimeMin = 0, expTimeMax = 0, expTimeLogMin = 0, expTimeLogRange = 1;
 let isoMin = 0, isoMax = 0;
 // Long exposure
 let leDurIdx       = 0;
-let funUnlocked  = false;
 let funHueVal = 0, funSatVal = 100, funBriVal = 100, funConVal = 100;
 let funAbrVal = 0, funPxlVal = 1;
 // snsrOn[fx] = 'gyr'|'acc'|'com'|null  (radio-style per effect)
@@ -1322,8 +1333,8 @@ let snsrOn      = { hue: null, sat: null, bri: null, con: null, abr: null, pxl: 
 let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 };
 let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0,   abr: 0, pxl: 0 };
 let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
-let fxCyclic = false;
-let fxInvert = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
+let fxInvert  = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
+let fxBounce  = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let orientPermGranted = false, motionPermGranted = false;
 let micPermGranted = false;
 let micStream = null, micAudioCtx = null, micAnalyser = null, micBuf = null;
@@ -1409,7 +1420,7 @@ const funBriSldr  = $('funBriSldr');
 const funConSldr  = $('funConSldr');
 const funAbrSldr  = $('funAbrSldr');
 const funPxlSldr  = $('funPxlSldr');
-const fxCycleTgl  = $('fxCycleTgl');
+const reloadCamBtn = $('reloadCamBtn');
 const fxCanvas    = $('fxCanvas');
 const fxCtx       = fxCanvas.getContext('2d', { willReadFrequently: true });
 const logoTitle   = document.querySelector('.header h1');
@@ -2011,10 +2022,6 @@ function loadSettings() {
     updateCFBorder();
     updateCFColorBtn();
     if (s.leMode) setLeMode(s.leMode, false);
-    if (typeof s.funUnlocked === 'boolean' && s.funUnlocked) {
-      funUnlocked = true;
-      funSection.style.display = 'flex';
-    }
     if (typeof s.funHue === 'number') { funHueVal = s.funHue; funHueSldr.value = funHueVal; }
     if (typeof s.funSat === 'number') { funSatVal = s.funSat; funSatSldr.value = funSatVal; }
     if (typeof s.funBri === 'number') { funBriVal = s.funBri; funBriSldr.value = funBriVal; }
@@ -2026,16 +2033,16 @@ function loadSettings() {
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
-    if (typeof s.fxCyclic === 'boolean') { fxCyclic = s.fxCyclic; updateFxCycleTgl(); }
-    if (s.fxInvert && typeof s.fxInvert === 'object') {
-      Object.keys(fxInvert).forEach(fx => {
-        if (typeof s.fxInvert[fx] === 'boolean') fxInvert[fx] = s.fxInvert[fx];
-      });
-      funSection.querySelectorAll('.inv-btn').forEach(btn => {
+    function loadFxFlags(key, obj, cls) {
+      if (s[key] && typeof s[key] === 'object')
+        Object.keys(obj).forEach(fx => { if (typeof s[key][fx] === 'boolean') obj[fx] = s[key][fx]; });
+      funSection.querySelectorAll('.' + cls).forEach(btn => {
         const fx = btn.closest('.fx-row').querySelector('.snsr-row').dataset.fx;
-        btn.classList.toggle('on', fxInvert[fx]);
+        btn.classList.toggle('on', obj[fx]);
       });
     }
+    loadFxFlags('fxInvert', fxInvert, 'inv-btn');
+    loadFxFlags('fxBounce', fxBounce, 'bnc-btn');
     updateSoundBtn();
   } catch {
     applyTheme(0, false);
@@ -2047,9 +2054,9 @@ function saveSettings() {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
-      funUnlocked, funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
+      funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
-      recFps, fxCyclic, fxInvert,
+      recFps, fxInvert, fxBounce,
     }));
   } catch {}
 }
@@ -2216,15 +2223,11 @@ const FX_RANGE   = { hue: [-180, 180], sat: [0, 200], bri: [0, 200], con: [0, 20
 function fxApply(raw, fx) {
   const [min, max] = FX_RANGE[fx];
   if (fxInvert[fx]) raw = min + max - raw;
-  if (!fxCyclic) return Math.max(min, Math.min(max, raw));
+  if (!fxBounce[fx]) return Math.max(min, Math.min(max, raw));
   const range = max - min;
   let v = ((raw - min) % (2 * range) + 2 * range) % (2 * range);
   if (v > range) v = 2 * range - v;
   return v + min;
-}
-function updateFxCycleTgl() {
-  fxCycleTgl.classList.toggle('active', fxCyclic);
-  fxCycleTgl.textContent = fxCyclic ? '↺ Bounce' : '— Clamp';
 }
 async function toggleSensor(fx, sensor) {
   const prev = snsrOn[fx];
@@ -3355,23 +3358,7 @@ function bindControls() {
   reviewDiscardBtn.addEventListener('click', closeReview);
   initVideoReview();
   capHideBtn.addEventListener('click',    toggleControls);
-  logoTitle.addEventListener('click', () => {
-    funUnlocked = !funUnlocked;
-    funSection.style.display = funUnlocked ? 'flex' : 'none';
-    controlsEl.scrollTop = 0;
-    if (!funUnlocked) {
-      funHueVal = 0; funSatVal = 100; funBriVal = 100; funConVal = 100;
-      funAbrVal = 0; funPxlVal = 1;
-      funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100; funConSldr.value = 100;
-      funAbrSldr.value = 0; funPxlSldr.value = 1;
-      snsrOn = { hue: null, sat: null, bri: null, con: null, abr: null, pxl: null };
-      syncSensorListeners();
-      updateSnsrBtns();
-      applyFunFilters();
-    }
-    saveSettings();
-    showToast(funUnlocked ? '✦ FX unlocked' : 'FX off', 1500);
-  });
+  reloadCamBtn.addEventListener('click', () => startCamera());
   function reZeroSensor(fx) {
     if (snsrOn[fx] !== 'mse') snsrNeedsZero[fx] = true;
   }
@@ -3381,16 +3368,13 @@ function bindControls() {
   funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); saveSettings(); });
   funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); saveSettings(); });
   funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); saveSettings(); });
-  fxCycleTgl.addEventListener('click', () => { fxCyclic = !fxCyclic; updateFxCycleTgl(); saveSettings(); });
   funSection.addEventListener('click', e => {
+    const fxRow = e.target.closest('.fx-row');
+    const fx = fxRow?.querySelector('.snsr-row')?.dataset.fx;
     const inv = e.target.closest('.inv-btn');
-    if (inv) {
-      const fx = inv.closest('.fx-row').querySelector('.snsr-row').dataset.fx;
-      fxInvert[fx] = !fxInvert[fx];
-      inv.classList.toggle('on', fxInvert[fx]);
-      saveSettings();
-      return;
-    }
+    if (inv && fx) { fxInvert[fx] = !fxInvert[fx]; inv.classList.toggle('on', fxInvert[fx]); saveSettings(); return; }
+    const bnc = e.target.closest('.bnc-btn');
+    if (bnc && fx) { fxBounce[fx] = !fxBounce[fx]; bnc.classList.toggle('on', fxBounce[fx]); saveSettings(); return; }
     const btn = e.target.closest('.snsr-tgl');
     if (!btn) return;
     toggleSensor(btn.closest('.snsr-row').dataset.fx, btn.dataset.sensor);
