@@ -1390,16 +1390,22 @@ function updateSoundBtn() {
 }
 function toggleSound() {
   soundEnabled = !soundEnabled;
-  if (soundEnabled) playShutterBlip();
+  if (soundEnabled) {
+    // Create + resume AudioContext once here (user gesture) so it stays running
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) {
+      if (!audioCtx) audioCtx = new Ctx();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    playShutterBlip();
+  }
   updateSoundBtn();
   saveSettings();
 }
 function playShutterBlip() {
   try {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return;
-    if (!audioCtx) audioCtx = new Ctx();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
+    // Only play if context already running — never claim audio session mid-use
+    if (!audioCtx || audioCtx.state !== 'running') return;
     const t0 = audioCtx.currentTime;
     // Two light sine partials — fundamental + octave — quiet pluck-like click
     [[1700, 0.11], [3400, 0.035]].forEach(([freq, peak]) => {
@@ -2243,10 +2249,16 @@ function finishLongExposure() {
   leOverlay.classList.add('hidden');
   capCanvas.width = leW; capCanvas.height = leH;
   const ctx = capCanvas.getContext('2d');
+  const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100;
+  if (hasFx) ctx.filter = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`;
   if (leMode === 'average' && leAccum) {
-    const img = ctx.createImageData(leW, leH);
+    // putImageData ignores ctx.filter — pipe through a temp canvas first
+    const tmp = document.createElement('canvas');
+    tmp.width = leW; tmp.height = leH;
+    const img = tmp.getContext('2d').createImageData(leW, leH);
     for (let i = 0; i < leAccum.length; i++) img.data[i] = Math.round(leAccum[i]);
-    ctx.putImageData(img, 0, 0);
+    tmp.getContext('2d').putImageData(img, 0, 0);
+    ctx.drawImage(tmp, 0, 0);
   } else if (leStackCanvas) {
     ctx.drawImage(leStackCanvas, 0, 0);
   }
