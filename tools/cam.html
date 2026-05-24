@@ -1300,7 +1300,6 @@ let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 };
 let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0,   abr: 0, pxl: 0 };
 let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let fxCyclic = false;
-let lastMouseX = -1;
 let orientPermGranted = false, motionPermGranted = false;
 let leMode         = 'average';
 let leCapturing    = false;
@@ -2215,12 +2214,7 @@ async function toggleSensor(fx, sensor) {
   snsrOn[fx] = next;
   if (next !== null) {
     snsrBaseline[fx] = FX_CURRENT[fx]();
-    if (sensor === 'mse') {
-      snsrZero[fx] = lastMouseX >= 0 ? lastMouseX : window.innerWidth / 2;
-      snsrNeedsZero[fx] = false;
-    } else {
-      snsrNeedsZero[fx] = true;
-    }
+    if (sensor !== 'mse') snsrNeedsZero[fx] = true;
   } else {
     // Sensor deactivated — snap value back to neutral default
     const def = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 }[fx];
@@ -2279,12 +2273,11 @@ function onMouseMove(e) {
   let changed = false;
   Object.keys(snsrOn).forEach(fx => {
     if (snsrOn[fx] !== 'mse') return;
-    if (snsrNeedsZero[fx]) { snsrZero[fx] = e.clientX; snsrNeedsZero[fx] = false; }
-    const delta = e.clientX - snsrZero[fx];
     const [min, max] = FX_RANGE[fx];
-    const scale = (max - min) / (window.innerWidth || 400);
-    const r = fxApply(snsrBaseline[fx] + delta * scale, fx);
-    const val = fx === 'abr' ? +r.toFixed(1) : Math.round(r);
+    const cx = (window.innerWidth || 400) / 2;
+    const t = 1 - Math.min(1, Math.abs(e.clientX - cx) / cx); // 1 at center, 0 at edges
+    const raw = min + t * (max - min);
+    const val = fx === 'abr' ? +raw.toFixed(1) : Math.round(raw);
     setFxVal(fx, val); changed = true;
   });
   if (changed) applyFunFilters();
@@ -3307,8 +3300,7 @@ function bindControls() {
     showToast(funUnlocked ? '✦ FX unlocked' : 'FX off', 1500);
   });
   function reZeroSensor(fx) {
-    if (snsrOn[fx] === 'mse') { snsrZero[fx] = lastMouseX >= 0 ? lastMouseX : snsrZero[fx]; snsrNeedsZero[fx] = false; }
-    else snsrNeedsZero[fx] = true;
+    if (snsrOn[fx] !== 'mse') snsrNeedsZero[fx] = true;
   }
   funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; reZeroSensor('hue'); } applyFunFilters(); saveSettings(); });
   funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; reZeroSensor('sat'); } applyFunFilters(); saveSettings(); });
@@ -3317,7 +3309,6 @@ function bindControls() {
   funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); saveSettings(); });
   funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); saveSettings(); });
   fxCycleTgl.addEventListener('click', () => { fxCyclic = !fxCyclic; updateFxCycleTgl(); saveSettings(); });
-  window.addEventListener('mousemove', e => { lastMouseX = e.clientX; }, { passive: true });
   funSection.addEventListener('click', e => {
     const btn = e.target.closest('.snsr-tgl');
     if (!btn) return;
