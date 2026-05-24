@@ -170,6 +170,40 @@ body.controls-open .viewport-wrap{transform:translateY(-11%)}
 .review-actions{display:flex;gap:10px;flex-shrink:0;width:100%}
 .review-actions .perm-btn{flex:1;margin-top:0}
 .review-discard-btn{background:transparent!important;border:1px solid rgba(255,255,255,.3)!important;color:#fff!important}
+
+/* ── Video review + trim ── */
+.vid-review-overlay{padding:12px 0 0;justify-content:flex-start;gap:0;background:rgba(0,0,0,.97)}
+#reviewVid{width:100%;flex:1 1 auto;min-height:0;object-fit:contain;display:block;background:#000}
+.trim-panel{flex-shrink:0;padding:10px 14px 8px;display:flex;flex-direction:column;gap:6px}
+.trim-track-wrap{position:relative;height:40px;cursor:crosshair;user-select:none}
+.trim-full-bar{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);height:5px;border-radius:3px;background:rgba(255,255,255,.18)}
+.trim-sel-bar{position:absolute;top:50%;transform:translateY(-50%);height:5px;background:var(--accent);pointer-events:none;border-radius:2px}
+.trim-handle{
+  position:absolute;top:50%;transform:translate(-50%,-50%);
+  width:18px;height:30px;border-radius:3px;background:#fff;
+  box-shadow:0 1px 6px rgba(0,0,0,.7);cursor:ew-resize;touch-action:none;z-index:2;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+}
+.trim-handle::before,.trim-handle::after{
+  content:'';width:2px;height:12px;background:rgba(0,0,0,.3);border-radius:1px;flex-shrink:0;
+}
+.trim-cursor{
+  position:absolute;top:2px;bottom:2px;width:2px;background:rgba(255,255,255,.85);
+  transform:translateX(-50%);pointer-events:none;z-index:3;border-radius:1px;
+}
+.trim-times{
+  display:flex;justify-content:space-between;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-m);
+}
+.trim-times .trim-dur{color:var(--accent);font-weight:700}
+.trim-processing{
+  flex-shrink:0;display:flex;align-items:center;gap:8px;
+  padding:6px 14px 8px;
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.5px;color:var(--text-m);
+}
+.trim-prog-track{flex:1;height:4px;background:rgba(255,255,255,.12);border-radius:2px;overflow:hidden}
+.trim-prog-fill{height:100%;background:var(--accent);border-radius:2px;width:0%;transition:width .12s linear}
+.vid-review-overlay .review-actions{padding:10px 14px calc(env(safe-area-inset-bottom) + 12px);gap:10px;flex-shrink:0;width:100%;display:flex}
 .overlay-icon{width:58px;height:58px;opacity:.5;margin-bottom:4px}
 .overlay p{font-size:15px;color:rgba(255,255,255,.72);max-width:260px;line-height:1.5}
 .perm-btn{
@@ -749,6 +783,34 @@ body[data-theme="light"] .gallery-hdr-title{
               <button class="perm-btn" id="reviewSaveBtn" data-i18n="reviewKeep">Keep</button>
             </div>
           </div>
+
+          <!-- Video review + trim overlay -->
+          <div class="overlay review-overlay vid-review-overlay hidden" id="vidReviewOverlay">
+            <video id="reviewVid" autoplay loop playsinline muted></video>
+            <div class="trim-panel" id="trimPanel" style="display:none">
+              <div class="trim-track-wrap" id="trimTrackWrap">
+                <div class="trim-full-bar"></div>
+                <div class="trim-sel-bar" id="trimSelBar"></div>
+                <div class="trim-handle" id="trimHandleL"></div>
+                <div class="trim-handle" id="trimHandleR"></div>
+                <div class="trim-cursor" id="trimCursorEl"></div>
+              </div>
+              <div class="trim-times">
+                <span id="trimT0">0:00.0</span>
+                <span class="trim-dur" id="trimDurEl">0:00.0</span>
+                <span id="trimT1">0:00.0</span>
+              </div>
+            </div>
+            <div class="trim-processing hidden" id="trimProcessing">
+              <span>Processing</span>
+              <div class="trim-prog-track"><div class="trim-prog-fill" id="trimProgFill"></div></div>
+              <button class="le-cancel" id="trimCancelProc">Cancel</button>
+            </div>
+            <div class="review-actions">
+              <button class="perm-btn review-discard-btn" id="vidDiscardBtn">Discard</button>
+              <button class="perm-btn" id="vidKeepBtn">Save</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1193,6 +1255,14 @@ let isTorchOn      = false;
 let soundEnabled   = false;
 let reviewModeOn   = false;
 let pendingReviewBlob = null;
+// Video review + trim
+let pendingVideoBlob  = null;
+let pendingVideoUrl   = null;
+let vidExt            = 'webm';
+let trimStartT        = 0;
+let trimEndT          = 0;
+let isTrimmable       = false;
+let trimCancelled     = false;
 let audioCtx       = null;
 let deviceHasTorch = false;
 let customW        = 16, customH = 9;
@@ -1264,6 +1334,22 @@ const reviewModeBtn = $('reviewModeBtn');
 const reviewOverlay = $('reviewOverlay');
 const reviewImg     = $('reviewImg');
 const reviewSaveBtn = $('reviewSaveBtn');
+const vidReviewOverlay = $('vidReviewOverlay');
+const reviewVid     = $('reviewVid');
+const trimPanel     = $('trimPanel');
+const trimTrackWrap = $('trimTrackWrap');
+const trimSelBar    = $('trimSelBar');
+const trimHandleL   = $('trimHandleL');
+const trimHandleR   = $('trimHandleR');
+const trimCursorEl  = $('trimCursorEl');
+const trimT0        = $('trimT0');
+const trimT1        = $('trimT1');
+const trimDurEl     = $('trimDurEl');
+const trimProcessing= $('trimProcessing');
+const trimProgFill  = $('trimProgFill');
+const trimCancelProc= $('trimCancelProc');
+const vidDiscardBtn = $('vidDiscardBtn');
+const vidKeepBtn    = $('vidKeepBtn');
 const reviewDiscardBtn = $('reviewDiscardBtn');
 const sessionBtn    = $('sessionBtn');
 const sessionPill   = $('sessionPill');
@@ -1552,6 +1638,204 @@ function commitReview() {
     saveBlob(blob, `cam_${timestamp()}.png`);
     if (!localStorage.getItem('cam_save_ok')) { localStorage.setItem('cam_save_ok', '1'); showToast(t('photoReady')); }
   }
+}
+
+// ── Video review + trim ────────────────────────────────────────────────────
+function fmtVidTime(s) {
+  const m = Math.floor(s / 60);
+  const raw = s % 60;
+  const str = raw.toFixed(1);
+  return `${m}:${raw < 10 ? '0' : ''}${str}`;
+}
+
+function updateTrimUI() {
+  const dur = reviewVid.duration || 1;
+  const sP = (trimStartT / dur * 100).toFixed(2);
+  const eP = (trimEndT   / dur * 100).toFixed(2);
+  trimHandleL.style.left = sP + '%';
+  trimHandleR.style.left = eP + '%';
+  trimSelBar.style.left  = sP + '%';
+  trimSelBar.style.width = ((trimEndT - trimStartT) / dur * 100).toFixed(2) + '%';
+  trimT0.textContent     = fmtVidTime(trimStartT);
+  trimT1.textContent     = fmtVidTime(trimEndT);
+  trimDurEl.textContent  = fmtVidTime(trimEndT - trimStartT);
+  const untrimmed = trimStartT < 0.05 && trimEndT > (reviewVid.duration || 0) - 0.05;
+  vidKeepBtn.textContent = untrimmed ? 'Save' : 'Save trim';
+}
+
+function openVideoReview(blob, ext) {
+  pendingVideoBlob = blob;
+  pendingVideoUrl  = URL.createObjectURL(blob);
+  vidExt           = ext || 'webm';
+  trimStartT = 0; trimEndT = 0; isTrimmable = false; trimCancelled = false;
+  trimPanel.style.display = 'none';
+  trimProcessing.classList.add('hidden');
+  vidKeepBtn.disabled = vidDiscardBtn.disabled = false;
+  vidKeepBtn.textContent = 'Save';
+  reviewVid.src = pendingVideoUrl;
+  vidReviewOverlay.classList.remove('hidden');
+  reviewVid.addEventListener('loadedmetadata', function onMeta() {
+    reviewVid.removeEventListener('loadedmetadata', onMeta);
+    const dur = reviewVid.duration;
+    isTrimmable = isFinite(dur) && dur > 0.5;
+    if (isTrimmable) {
+      trimEndT = dur;
+      trimPanel.style.display = '';
+      updateTrimUI();
+    }
+  });
+}
+
+function closeVideoReview() {
+  trimCancelled = true;
+  vidReviewOverlay.classList.add('hidden');
+  reviewVid.pause();
+  reviewVid.src = '';
+  if (pendingVideoUrl) { URL.revokeObjectURL(pendingVideoUrl); pendingVideoUrl = null; }
+  pendingVideoBlob = null;
+}
+
+async function commitVideoReview() {
+  if (!pendingVideoBlob) return;
+  const dur = reviewVid.duration || 0;
+  const needsTrim = isTrimmable && (trimStartT > 0.05 || trimEndT < dur - 0.05);
+  if (needsTrim) {
+    await reencodeSegment(pendingVideoBlob, trimStartT, trimEndT);
+  } else {
+    const blob = pendingVideoBlob;
+    const filename = `cam_${timestamp()}.${vidExt}`;
+    closeVideoReview();
+    if (isSessionMode) {
+      if (sessionPhotos.length >= SESSION_MAX) { showToast(t('sessionFullSave'), 3000); openGallery(); saveBlob(blob, filename); return; }
+      addToSession(blob, { isVideo: true, ext: vidExt });
+    } else {
+      saveBlob(blob, filename);
+    }
+  }
+}
+
+async function reencodeSegment(sourceBlob, start, end) {
+  trimCancelled = false;
+  trimProcessing.classList.remove('hidden');
+  trimProgFill.style.width = '0%';
+  vidKeepBtn.disabled = vidDiscardBtn.disabled = true;
+
+  const url = URL.createObjectURL(sourceBlob);
+  const vid = document.createElement('video');
+  vid.src = url; vid.preload = 'auto';
+  await new Promise(r => { vid.addEventListener('loadedmetadata', r, { once: true }); vid.load(); });
+  if (trimCancelled) { URL.revokeObjectURL(url); closeVideoReview(); return; }
+
+  const vw = vid.videoWidth  || recCanvas.width  || 1280;
+  const vh = vid.videoHeight || recCanvas.height || 720;
+  const cvs = document.createElement('canvas');
+  cvs.width = vw; cvs.height = vh;
+  const ctx2 = cvs.getContext('2d');
+  const duration = end - start;
+
+  // Route video audio to MediaStream without playing through speakers
+  let audioTrack = null;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) {
+      const ac = new AC();
+      vid.muted = false; vid.volume = 0;
+      const src = ac.createMediaElementSource(vid);
+      const dst = ac.createMediaStreamDestination();
+      src.connect(dst);
+      audioTrack = dst.stream.getAudioTracks()[0] || null;
+    }
+  } catch { vid.muted = true; }
+
+  const stream = cvs.captureStream(recFps);
+  if (audioTrack) stream.addTrack(audioTrack);
+
+  const types = ['video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=vp9,opus','video/webm'];
+  const recMime = types.find(m => { try { return MediaRecorder.isTypeSupported(m); } catch { return false; } }) || '';
+  const chunks = [];
+  const mr = new MediaRecorder(stream, recMime ? { mimeType: recMime, videoBitsPerSecond: 8_000_000 } : {});
+  mr.ondataavailable = e => { if (e.data?.size > 0) chunks.push(e.data); };
+
+  await new Promise(resolve => {
+    if (trimCancelled) { resolve(); return; }
+    mr.onstop = resolve;
+    vid.currentTime = start;
+    vid.addEventListener('seeked', () => {
+      if (trimCancelled) { resolve(); return; }
+      mr.start(250);
+      vid.play();
+      let rafId;
+      function capture() {
+        if (trimCancelled || vid.currentTime >= end - 0.05 || vid.ended) {
+          mr.stop(); vid.pause(); cancelAnimationFrame(rafId); return;
+        }
+        ctx2.drawImage(vid, 0, 0, vw, vh);
+        trimProgFill.style.width = Math.min(99, ((vid.currentTime - start) / duration) * 100).toFixed(0) + '%';
+        rafId = requestAnimationFrame(capture);
+      }
+      rafId = requestAnimationFrame(capture);
+    }, { once: true });
+  });
+
+  URL.revokeObjectURL(url);
+  if (trimCancelled) { closeVideoReview(); return; }
+
+  const resultBlob = new Blob(chunks, { type: recMime || sourceBlob.type || 'video/webm' });
+  const ext = recMime.includes('mp4') ? 'mp4' : 'webm';
+  const filename = `cam_trim_${timestamp()}.${ext}`;
+  trimProgFill.style.width = '100%';
+  closeVideoReview();
+  if (isSessionMode) {
+    if (sessionPhotos.length >= SESSION_MAX) { showToast(t('sessionFullSave'), 3000); openGallery(); saveBlob(resultBlob, filename); return; }
+    addToSession(resultBlob, { isVideo: true, ext });
+  } else {
+    saveBlob(resultBlob, filename);
+  }
+}
+
+function initVideoReview() {
+  // Drag trim handles
+  function makeTrimDrag(handle, isStart) {
+    handle.addEventListener('pointerdown', e => { e.preventDefault(); handle.setPointerCapture(e.pointerId); });
+    handle.addEventListener('pointermove', e => {
+      if (!handle.hasPointerCapture(e.pointerId)) return;
+      const rect = trimTrackWrap.getBoundingClientRect();
+      const frac = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      const dur = reviewVid.duration || 1;
+      const t = frac * dur;
+      if (isStart) {
+        trimStartT = Math.max(0, Math.min(trimEndT - 0.1, t));
+        reviewVid.pause();
+        reviewVid.currentTime = trimStartT;
+      } else {
+        trimEndT = Math.min(dur, Math.max(trimStartT + 0.1, t));
+      }
+      updateTrimUI();
+    });
+    handle.addEventListener('pointerup',     e => handle.releasePointerCapture(e.pointerId));
+    handle.addEventListener('pointercancel', e => handle.releasePointerCapture(e.pointerId));
+  }
+  makeTrimDrag(trimHandleL, true);
+  makeTrimDrag(trimHandleR, false);
+
+  // Tap track to seek
+  trimTrackWrap.addEventListener('click', e => {
+    if (!isTrimmable || e.target === trimHandleL || e.target === trimHandleR) return;
+    const rect = trimTrackWrap.getBoundingClientRect();
+    reviewVid.currentTime = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * (reviewVid.duration || 1);
+    reviewVid.play();
+  });
+
+  // Playback cursor
+  reviewVid.addEventListener('timeupdate', () => {
+    if (!isTrimmable) return;
+    const dur = reviewVid.duration || 1;
+    trimCursorEl.style.left = (reviewVid.currentTime / dur * 100).toFixed(2) + '%';
+  });
+
+  vidDiscardBtn.addEventListener('click', closeVideoReview);
+  vidKeepBtn.addEventListener('click', commitVideoReview);
+  trimCancelProc.addEventListener('click', () => { trimCancelled = true; });
 }
 
 // ── Crop ───────────────────────────────────────────────────────────────────
@@ -2794,6 +3078,7 @@ function recordFrame() {
 
 async function startRecording() {
   if (!ready || !stream || isRecording) return;
+  if (!vidReviewOverlay.classList.contains('hidden')) return;
   // Prime canvas dimensions before captureStream
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (vw && vh) {
@@ -2851,6 +3136,10 @@ function saveVideo() {
   const mime = mediaRecorder?.mimeType || 'video/webm';
   const ext  = mime.includes('mp4') ? 'mp4' : 'webm';
   const blob = new Blob(recordedChunks, { type: mime });
+  if (reviewModeOn) {
+    openVideoReview(blob, ext);
+    return;
+  }
   const filename = `cam_${timestamp()}.${ext}`;
   if (isSessionMode) {
     if (sessionPhotos.length >= SESSION_MAX) {
@@ -2903,6 +3192,10 @@ function onKey(e) {
     if (e.key === 'Escape') { e.preventDefault(); closeReview(); return; }
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); commitReview(); return; }
   }
+  if (!vidReviewOverlay.classList.contains('hidden')) {
+    if (e.key === 'Escape') { e.preventDefault(); closeVideoReview(); return; }
+    if (e.key === 'Enter') { e.preventDefault(); commitVideoReview(); return; }
+  }
   const isVol = e.key === 'AudioVolumeUp'   || e.key === 'AudioVolumeDown' ||
                 e.key === 'VolumeUp'         || e.key === 'VolumeDown' ||
                 e.code === 'AudioVolumeUp'   || e.code === 'AudioVolumeDown';
@@ -2944,6 +3237,7 @@ function bindControls() {
   reviewModeBtn.addEventListener('click', toggleReviewMode);
   reviewSaveBtn.addEventListener('click', commitReview);
   reviewDiscardBtn.addEventListener('click', closeReview);
+  initVideoReview();
   capHideBtn.addEventListener('click',    toggleControls);
   logoTitle.addEventListener('click', () => {
     funUnlocked = !funUnlocked;
