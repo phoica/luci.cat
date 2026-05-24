@@ -940,6 +940,7 @@ body[data-theme="light"] .gallery-hdr-title{
               <button class="snsr-tgl" data-sensor="acc">ACC</button>
               <button class="snsr-tgl" data-sensor="com">COM</button>
               <button class="snsr-tgl" data-sensor="mse">MSE</button>
+              <button class="snsr-tgl" data-sensor="mic">MIC</button>
             </div>
           </div>
           <div class="fx-row">
@@ -952,6 +953,7 @@ body[data-theme="light"] .gallery-hdr-title{
               <button class="snsr-tgl" data-sensor="acc">ACC</button>
               <button class="snsr-tgl" data-sensor="com">COM</button>
               <button class="snsr-tgl" data-sensor="mse">MSE</button>
+              <button class="snsr-tgl" data-sensor="mic">MIC</button>
             </div>
           </div>
           <div class="fx-row">
@@ -964,6 +966,7 @@ body[data-theme="light"] .gallery-hdr-title{
               <button class="snsr-tgl" data-sensor="acc">ACC</button>
               <button class="snsr-tgl" data-sensor="com">COM</button>
               <button class="snsr-tgl" data-sensor="mse">MSE</button>
+              <button class="snsr-tgl" data-sensor="mic">MIC</button>
             </div>
           </div>
           <div class="fx-row">
@@ -976,6 +979,7 @@ body[data-theme="light"] .gallery-hdr-title{
               <button class="snsr-tgl" data-sensor="acc">ACC</button>
               <button class="snsr-tgl" data-sensor="com">COM</button>
               <button class="snsr-tgl" data-sensor="mse">MSE</button>
+              <button class="snsr-tgl" data-sensor="mic">MIC</button>
             </div>
           </div>
           <div class="fx-row">
@@ -988,6 +992,7 @@ body[data-theme="light"] .gallery-hdr-title{
               <button class="snsr-tgl" data-sensor="acc">ACC</button>
               <button class="snsr-tgl" data-sensor="com">COM</button>
               <button class="snsr-tgl" data-sensor="mse">MSE</button>
+              <button class="snsr-tgl" data-sensor="mic">MIC</button>
             </div>
           </div>
           <div class="fx-row">
@@ -1000,6 +1005,7 @@ body[data-theme="light"] .gallery-hdr-title{
               <button class="snsr-tgl" data-sensor="acc">ACC</button>
               <button class="snsr-tgl" data-sensor="com">COM</button>
               <button class="snsr-tgl" data-sensor="mse">MSE</button>
+              <button class="snsr-tgl" data-sensor="mic">MIC</button>
             </div>
           </div>
         </div>
@@ -1301,6 +1307,9 @@ let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0,   abr: 0, pxl: 0 };
 let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let fxCyclic = false;
 let orientPermGranted = false, motionPermGranted = false;
+let micPermGranted = false;
+let micStream = null, micAudioCtx = null, micAnalyser = null, micBuf = null;
+let micRafId = null, micLevel = 0;
 let leMode         = 'average';
 let leCapturing    = false;
 let leInterval     = null;
@@ -1960,6 +1969,7 @@ function init() {
 window.addEventListener('beforeunload', () => {
   stream?.getTracks().forEach(t => t.stop());
   audioStream?.getTracks().forEach(t => t.stop());
+  micStream?.getTracks().forEach(t => t.stop());
 });
 
 // ── Settings ───────────────────────────────────────────────────────────────
@@ -2157,12 +2167,15 @@ function syncSensorListeners() {
   const needOrient = fxKeys.some(f => snsrOn[f] === 'gyr' || snsrOn[f] === 'com');
   const needMotion = fxKeys.some(f => snsrOn[f] === 'acc');
   const needMouse  = fxKeys.some(f => snsrOn[f] === 'mse');
+  const needMic    = fxKeys.some(f => snsrOn[f] === 'mic');
   window.removeEventListener('deviceorientation', onOrientation);
   window.removeEventListener('devicemotion', onMotion);
   window.removeEventListener('mousemove', onMouseMove);
   if (needOrient) window.addEventListener('deviceorientation', onOrientation);
   if (needMotion) window.addEventListener('devicemotion', onMotion);
   if (needMouse)  window.addEventListener('mousemove', onMouseMove);
+  if (needMic && !micRafId) micRafId = requestAnimationFrame(onMicFrame);
+  if (!needMic && micRafId) { cancelAnimationFrame(micRafId); micRafId = null; micLevel = 0; }
 }
 function compassDelta(curr, zero) {
   // Returns signed delta (-180..180) between two compass angles (0-360)
@@ -2208,6 +2221,19 @@ async function toggleSensor(fx, sensor) {
       }
       motionPermGranted = true;
     }
+    if (sensor === 'mic' && !micPermGranted) {
+      try {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        const AC = window.AudioContext || window.webkitAudioContext;
+        micAudioCtx = new AC();
+        micAnalyser = micAudioCtx.createAnalyser();
+        micAnalyser.fftSize = 256;
+        micBuf = new Uint8Array(micAnalyser.fftSize);
+        micAudioCtx.createMediaStreamSource(micStream).connect(micAnalyser);
+        micPermGranted = true;
+      } catch { showToast('Microphone unavailable'); return; }
+    }
+    if (sensor === 'mic' && micAudioCtx?.state === 'suspended') micAudioCtx.resume();
   }
   snsrOn[fx] = next;
   if (next !== null) {
@@ -2279,6 +2305,27 @@ function onMouseMove(e) {
     setFxVal(fx, val); changed = true;
   });
   if (changed) applyFunFilters();
+}
+
+function onMicFrame() {
+  if (!micAnalyser || !Object.values(snsrOn).some(s => s === 'mic')) { micRafId = null; micLevel = 0; return; }
+  micAnalyser.getByteTimeDomainData(micBuf);
+  // RMS of waveform → amplitude 0..1
+  let sum = 0;
+  for (let i = 0; i < micBuf.length; i++) { const v = (micBuf[i] - 128) / 128; sum += v * v; }
+  const rms = Math.sqrt(sum / micBuf.length);
+  // Fast attack, slow decay — makes effects punch on loud sounds and fade smoothly
+  micLevel = Math.max(Math.min(1, rms * 6), micLevel * 0.88);
+  let changed = false;
+  Object.keys(snsrOn).forEach(fx => {
+    if (snsrOn[fx] !== 'mic') return;
+    const [min, max] = FX_RANGE[fx];
+    const r = fxApply(min + micLevel * (max - min), fx);
+    const val = fx === 'abr' ? +r.toFixed(1) : Math.round(r);
+    setFxVal(fx, val); changed = true;
+  });
+  if (changed) applyFunFilters();
+  micRafId = requestAnimationFrame(onMicFrame);
 }
 
 // ── Toggle controls ────────────────────────────────────────────────────────
