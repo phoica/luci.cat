@@ -2054,12 +2054,10 @@ function applyFunFilters() {
   // canvas 2D filter doesn't work (iOS < 18) and there are colour FX to apply.
   const needOverlay = funAbrVal > 0 || funPxlVal > 1 || (!CTX_FILTER_OK && glFx && hasColorFx);
   if (needOverlay) {
-    preview.style.visibility = 'hidden';
-    preview.style.filter = 'none';
+    preview.style.filter = 'none'; // fxCanvas (z-index 2) covers preview; keep it visible for drawImage
     fxCanvas.style.display = '';
     if (!fxRafId) fxRafId = requestAnimationFrame(renderFxOverlay);
   } else {
-    preview.style.visibility = '';
     preview.style.filter = fxFilter();
     fxCanvas.style.display = 'none';
     if (fxRafId) { cancelAnimationFrame(fxRafId); fxRafId = null; }
@@ -3014,7 +3012,7 @@ const fxStageCtx    = fxStageCanvas.getContext('2d');
 function _buildGlFx() {
   try {
     const gc = document.createElement('canvas');
-    const gl = gc.getContext('webgl') || gc.getContext('experimental-webgl');
+    const gl = gc.getContext('webgl', { preserveDrawingBuffer: true }) || gc.getContext('experimental-webgl', { preserveDrawingBuffer: true });
     if (!gl) return null;
     const vs = 'attribute vec2 a;varying vec2 v;void main(){v=vec2(a.x*.5+.5,.5-a.y*.5);gl_Position=vec4(a,0,1);}';
     const fs = [
