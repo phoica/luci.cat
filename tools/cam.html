@@ -851,6 +851,14 @@ body[data-theme="light"] .gallery-hdr-title{
           <span class="cval" id="focusVal">Auto</span>
         </div>
 
+        <!-- Recording FPS -->
+        <div class="sec">Rec</div>
+        <div class="pill-row" id="fpsSelector">
+          <button class="pill" data-fps="24">24fps</button>
+          <button class="pill active" data-fps="30">30fps</button>
+          <button class="pill" data-fps="60">60fps</button>
+        </div>
+
         <!-- Fun FX (unlocked by tapping logo) -->
         <div id="funSection" style="display:none;flex-direction:column;gap:8px">
           <div class="sec">✦ FX</div>
@@ -1151,6 +1159,7 @@ let recordedChunks = [];
 let recInterval    = null;
 let recSecs        = 0;
 let audioStream    = null;
+let recFps         = 30;
 let recRafId       = null;
 let ready          = false;
 let ctrlVisible    = true;
@@ -1660,6 +1669,7 @@ function loadSettings() {
     if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100) applyFunFilters();
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
+    if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
     updateSoundBtn();
   } catch {
     applyTheme(0, false);
@@ -1672,6 +1682,7 @@ function saveSettings() {
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funUnlocked, funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
+      recFps,
     }));
   } catch {}
 }
@@ -2642,8 +2653,16 @@ async function startRecording() {
     const { cw, ch } = cropRect(vw, vh);
     recCanvas.width = cw; recCanvas.height = ch;
   }
-  const recStream = recCanvas.captureStream(30);
+  const recStream = recCanvas.captureStream(recFps);
   recordFrame(); // start render loop
+
+  // Capture microphone audio and add to recording stream
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    audioStream.getAudioTracks().forEach(t => recStream.addTrack(t));
+  } catch {
+    showToast(t('micBlocked'), 2500);
+  }
 
   recordedChunks = [];
   const types = ['video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=h264,opus','video/webm;codecs=vp9,opus','video/webm'];
@@ -2846,6 +2865,17 @@ function bindControls() {
   customHInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
   document.querySelectorAll('#leModeRow .pill').forEach(b =>
     b.addEventListener('click', () => setLeMode(b.dataset.leMode)));
+  function setRecFps(fps) {
+    recFps = fps;
+    document.querySelectorAll('#fpsSelector .pill').forEach(b =>
+      b.classList.toggle('active', +b.dataset.fps === fps));
+    saveSettings();
+  }
+  // Restore saved FPS selection in UI
+  document.querySelectorAll('#fpsSelector .pill').forEach(b => {
+    b.classList.toggle('active', +b.dataset.fps === recFps);
+    b.addEventListener('click', () => setRecFps(+b.dataset.fps));
+  });
   document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s =>
     s.addEventListener('click', () => { setCFColor(s.dataset.color); updateCFColorBtn(); closeCFPopup(); }));
   cfPicker.addEventListener('input', () => {
