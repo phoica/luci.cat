@@ -64,6 +64,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;color:var
   font-family:'Silkscreen',monospace;font-size:19px;font-weight:400;letter-spacing:2px;
   background:linear-gradient(110deg,var(--accent) 30%,var(--cx));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  cursor:pointer;user-select:none
 }
 body[data-theme="light"] .header h1{
   background:linear-gradient(110deg,var(--accent),var(--cx));
@@ -268,6 +269,25 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
   transform:rotate(45deg);
 }
 .cslider:active::-webkit-slider-thumb{box-shadow:0 0 12px var(--accent-glow),0 0 0 4px var(--accent-dim)}
+
+/* ── Fun FX sliders ── */
+.fun-slider{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:8px;border-radius:4px;outline:none;border:none;cursor:pointer;
+}
+.fun-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:16px;border-radius:50%;
+  background:#fff;border:2px solid rgba(0,0,0,.25);
+  box-shadow:0 1px 5px rgba(0,0,0,.55);cursor:pointer;
+}
+.fun-slider::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;border:2px solid rgba(0,0,0,.25);
+  background:#fff;cursor:pointer;
+}
+#funHueSldr{background:linear-gradient(to right,hsl(0,90%,55%),hsl(45,90%,55%),hsl(90,90%,55%),hsl(135,90%,55%),hsl(180,90%,55%),hsl(225,90%,55%),hsl(270,90%,55%),hsl(315,90%,55%),hsl(360,90%,55%))}
+#funSatSldr{background:linear-gradient(to right,hsl(200,0%,55%),hsl(200,50%,55%),hsl(120,90%,50%),hsl(60,100%,50%),hsl(0,100%,55%))}
+#funBriSldr{background:linear-gradient(to right,#111 0%,#4a7a9b 45%,#fff 100%)}
 
 /* ── Pill rows ── */
 .pill-row{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -806,6 +826,29 @@ body[data-theme="light"] .gallery-hdr-title{
           <span class="cval" id="focusVal">Auto</span>
         </div>
 
+        <!-- Fun FX (unlocked by tapping logo) -->
+        <div id="funSection" style="display:none">
+          <div class="sec">✦ FX</div>
+          <div class="crow ctrl-bump">
+            <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
+            <input type="range" class="fun-slider" id="funHueSldr" min="-180" max="180" value="0">
+          </div>
+          <div class="crow">
+            <span class="clbl"><i class="cdot" style="--d:#60e8a0"></i><span>Sat</span></span>
+            <input type="range" class="fun-slider" id="funSatSldr" min="0" max="200" value="100">
+          </div>
+          <div class="crow">
+            <span class="clbl"><i class="cdot" style="--d:#e8d860"></i><span>Bright</span></span>
+            <input type="range" class="fun-slider" id="funBriSldr" min="0" max="200" value="100">
+          </div>
+          <div class="tgl-row">
+            <button class="tgl" id="gyroTgl">
+              <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="7" cy="7" r="5"/><path d="M7 2a5 5 0 0 1 5 5M4 4l-1.5-2L4 0"/></svg>
+              <span>Gyro→Hue</span>
+            </button>
+          </div>
+        </div>
+
       </div><!-- /controls -->
     </div><!-- /right-panel -->
 
@@ -1081,6 +1124,9 @@ let expTimeMin = 0, expTimeMax = 0, expTimeLogMin = 0, expTimeLogRange = 1;
 let isoMin = 0, isoMax = 0;
 // Long exposure
 let leDurIdx       = 0;
+let funUnlocked  = false;
+let funHueVal    = 0, funSatVal = 100, funBriVal = 100;
+let gyroActive   = false;
 let leMode         = 'average';
 let leCapturing    = false;
 let leInterval     = null;
@@ -1139,6 +1185,12 @@ const galleryClear  = $('galleryClear');
 const fsBtn         = $('fsBtn');
 const blindBtn      = $('blindBtn');
 const capHideBtn   = $('capHideBtn');
+const funSection  = $('funSection');
+const funHueSldr  = $('funHueSldr');
+const funSatSldr  = $('funSatSldr');
+const funBriSldr  = $('funBriSldr');
+const gyroTgl     = $('gyroTgl');
+const logoTitle   = document.querySelector('.header h1');
 const camSel       = $('cameraSelector');
 const zoomRow      = $('zoomRow');
 const zoomSlider   = $('zoomSlider');
@@ -1504,12 +1556,15 @@ function loadSettings() {
     }
     updateCFBorder();
     updateCFColorBtn();
-    if (typeof s.leDurIdx === 'number' && s.leDurIdx >= 0 && s.leDurIdx <= 12) {
-      leDurIdx = s.leDurIdx;
-      leDurSldr.value = leDurIdx;
-      updateLeDurDisplay();
-    }
     if (s.leMode) setLeMode(s.leMode, false);
+    if (typeof s.funUnlocked === 'boolean' && s.funUnlocked) {
+      funUnlocked = true;
+      funSection.style.display = '';
+    }
+    if (typeof s.funHue === 'number') { funHueVal = s.funHue; funHueSldr.value = funHueVal; }
+    if (typeof s.funSat === 'number') { funSatVal = s.funSat; funSatSldr.value = funSatVal; }
+    if (typeof s.funBri === 'number') { funBriVal = s.funBri; funBriSldr.value = funBriVal; }
+    if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100) applyFunFilters();
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     updateSoundBtn();
@@ -1522,7 +1577,8 @@ function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
       theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
-      cf: isCF, cfColor, leDurIdx, leMode, lang: curLang, soundEnabled, reviewModeOn,
+      cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
+      funUnlocked, funHue: funHueVal, funSat: funSatVal, funBri: funBriVal,
     }));
   } catch {}
 }
@@ -1543,6 +1599,39 @@ function pct(slider) {
   const val = parseFloat(slider.value);
   const p = Math.max(0, Math.min(100, ((val - min) / (max - min)) * 100));
   slider.style.setProperty('--pct', p.toFixed(1));
+}
+
+// ── Fun FX ────────────────────────────────────────────────────────────────
+function applyFunFilters() {
+  preview.style.filter = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`;
+}
+function updateGyroBtn() {
+  gyroTgl.classList.toggle('on', gyroActive);
+}
+async function toggleGyro() {
+  if (gyroActive) {
+    gyroActive = false;
+    window.removeEventListener('deviceorientation', onOrientation);
+    updateGyroBtn(); return;
+  }
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const perm = await DeviceOrientationEvent.requestPermission();
+      if (perm !== 'granted') { showToast('Gyro permission denied'); return; }
+    } catch { showToast('Gyro unavailable'); return; }
+  }
+  if (!window.DeviceOrientationEvent) { showToast('Gyro unavailable'); return; }
+  gyroActive = true;
+  window.addEventListener('deviceorientation', onOrientation);
+  updateGyroBtn();
+}
+function onOrientation(e) {
+  if (!gyroActive) return;
+  const angle = Math.round((e.gamma ?? 0) * 2);
+  funHueVal = Math.max(-180, Math.min(180, angle));
+  funHueSldr.value = funHueVal;
+  applyFunFilters();
 }
 
 // ── Toggle controls ────────────────────────────────────────────────────────
@@ -2177,6 +2266,9 @@ function cropRect(srcW, srcH) {
 function drawToCanvas(src, sx, sy, cw, ch) {
   capCanvas.width = cw; capCanvas.height = ch;
   const ctx = capCanvas.getContext('2d');
+  if (funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100) {
+    ctx.filter = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%)`;
+  }
   if (isMirrored) {
     ctx.save(); ctx.scale(-1, 1);
     ctx.drawImage(src, sx, sy, cw, ch, -cw, 0, cw, ch);
@@ -2242,26 +2334,7 @@ async function capturePhoto() {
 // ── Video recording ────────────────────────────────────────────────────────
 async function startRecording() {
   if (!ready || !stream || isRecording) return;
-  // Request the mic separately with high-quality, unprocessed audio
-  audioStream = null;
-  try {
-    audioStream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl:  false,
-        sampleRate:       48000,
-        sampleSize:       16,
-        channelCount:     2,
-      },
-      video: false,
-    });
-  } catch (err) {
-    if (err.name === 'NotAllowedError') { showToast(t('micBlocked'), 3000); }
-    else { showToast(t('noMic'), 2400); }
-  }
-
-  const tracks = [...stream.getVideoTracks(), ...(audioStream?.getAudioTracks() ?? [])];
+  const tracks = [...stream.getVideoTracks()];
   const recStream = new MediaStream(tracks);
 
   recordedChunks = [];
@@ -2397,6 +2470,21 @@ function bindControls() {
   reviewSaveBtn.addEventListener('click', commitReview);
   reviewDiscardBtn.addEventListener('click', closeReview);
   capHideBtn.addEventListener('click',    toggleControls);
+  logoTitle.addEventListener('click', () => {
+    funUnlocked = !funUnlocked;
+    funSection.style.display = funUnlocked ? '' : 'none';
+    if (!funUnlocked) {
+      funHueVal = 0; funSatVal = 100; funBriVal = 100;
+      funHueSldr.value = 0; funSatSldr.value = 100; funBriSldr.value = 100;
+      applyFunFilters();
+    }
+    saveSettings();
+    showToast(funUnlocked ? '✦ FX unlocked' : 'FX off', 1500);
+  });
+  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; applyFunFilters(); saveSettings(); });
+  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; applyFunFilters(); saveSettings(); });
+  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; applyFunFilters(); saveSettings(); });
+  gyroTgl.addEventListener('click', toggleGyro);
   permBtn.addEventListener('click',       () => startCamera());
   blindBtn.addEventListener('click',      toggleBlindMode);
   retryBtn.addEventListener('click', () => {
