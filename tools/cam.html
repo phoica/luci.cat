@@ -1300,6 +1300,7 @@ let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 };
 let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0,   abr: 0, pxl: 0 };
 let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let fxCyclic = false;
+let lastMouseX = -1;
 let orientPermGranted = false, motionPermGranted = false;
 let leMode         = 'average';
 let leCapturing    = false;
@@ -2199,7 +2200,12 @@ async function toggleSensor(fx, sensor) {
   snsrOn[fx] = next;
   if (next !== null) {
     snsrBaseline[fx] = FX_CURRENT[fx]();
-    snsrNeedsZero[fx] = true;
+    if (sensor === 'mse') {
+      snsrZero[fx] = lastMouseX >= 0 ? lastMouseX : window.innerWidth / 2;
+      snsrNeedsZero[fx] = false;
+    } else {
+      snsrNeedsZero[fx] = true;
+    }
   } else {
     // Sensor deactivated — snap value back to neutral default
     const def = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 }[fx];
@@ -3285,13 +3291,18 @@ function bindControls() {
     saveSettings();
     showToast(funUnlocked ? '✦ FX unlocked' : 'FX off', 1500);
   });
-  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; snsrNeedsZero.hue = true; } applyFunFilters(); saveSettings(); });
-  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; snsrNeedsZero.sat = true; } applyFunFilters(); saveSettings(); });
-  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; snsrNeedsZero.bri = true; } applyFunFilters(); saveSettings(); });
-  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; snsrNeedsZero.con = true; } applyFunFilters(); saveSettings(); });
-  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; snsrNeedsZero.abr = true; } applyFunFilters(); saveSettings(); });
-  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; snsrNeedsZero.pxl = true; } applyFunFilters(); saveSettings(); });
+  function reZeroSensor(fx) {
+    if (snsrOn[fx] === 'mse') { snsrZero[fx] = lastMouseX >= 0 ? lastMouseX : snsrZero[fx]; snsrNeedsZero[fx] = false; }
+    else snsrNeedsZero[fx] = true;
+  }
+  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; reZeroSensor('hue'); } applyFunFilters(); saveSettings(); });
+  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; reZeroSensor('sat'); } applyFunFilters(); saveSettings(); });
+  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; reZeroSensor('bri'); } applyFunFilters(); saveSettings(); });
+  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); saveSettings(); });
+  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); saveSettings(); });
+  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); saveSettings(); });
   fxCycleTgl.addEventListener('click', () => { fxCyclic = !fxCyclic; updateFxCycleTgl(); saveSettings(); });
+  window.addEventListener('mousemove', e => { lastMouseX = e.clientX; }, { passive: true });
   funSection.addEventListener('click', e => {
     const btn = e.target.closest('.snsr-tgl');
     if (!btn) return;
