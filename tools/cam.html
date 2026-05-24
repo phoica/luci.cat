@@ -330,7 +330,18 @@ body[data-theme="light"] .right-panel{background:rgba(228,216,194,.42)}
 #funPxlSldr{background:linear-gradient(to right,#2a4a60 0%,#7040b0 55%,#c060ff 100%)}
 /* FX rows: slider + sensor button strip */
 .fx-row{display:flex;flex-direction:column;gap:3px}
-.snsr-row{display:flex;gap:4px;padding-left:54px}/* align with slider (48px label + 6px gap) */
+.fx-row .crow{grid-template-columns:48px 18px 1fr}/* label | inv-btn | slider */
+.inv-btn{
+  width:18px;height:18px;flex-shrink:0;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;line-height:1;
+  border:1px solid var(--border);background:var(--glass2);color:var(--text-d);
+  border-radius:2px;cursor:pointer;transition:all .15s;
+}
+.inv-btn:hover{border-color:var(--cx);color:var(--cx)}
+.inv-btn.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+body[data-theme="light"] .inv-btn.on{color:#fff}
+.snsr-row{display:flex;gap:4px;padding-left:72px}/* 48px label + 18px btn + 6px gap */
 .snsr-tgl{
   flex:1;padding:3px 0;
   display:flex;align-items:center;justify-content:center;
@@ -933,6 +944,7 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row ctrl-bump">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
+              <button class="inv-btn" title="Invert">↕</button>
               <input type="range" class="fun-slider" id="funHueSldr" min="-180" max="180" value="0">
             </div>
             <div class="snsr-row" data-fx="hue">
@@ -946,6 +958,7 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#60e8a0"></i><span>Sat</span></span>
+              <button class="inv-btn" title="Invert">↕</button>
               <input type="range" class="fun-slider" id="funSatSldr" min="0" max="200" value="100">
             </div>
             <div class="snsr-row" data-fx="sat">
@@ -959,6 +972,7 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#e8d860"></i><span>Bright</span></span>
+              <button class="inv-btn" title="Invert">↕</button>
               <input type="range" class="fun-slider" id="funBriSldr" min="0" max="200" value="100">
             </div>
             <div class="snsr-row" data-fx="bri">
@@ -972,6 +986,7 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#c0c0ff"></i><span>Con</span></span>
+              <button class="inv-btn" title="Invert">↕</button>
               <input type="range" class="fun-slider" id="funConSldr" min="0" max="200" value="100">
             </div>
             <div class="snsr-row" data-fx="con">
@@ -985,6 +1000,7 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#ff6b9d"></i><span>Abr</span></span>
+              <button class="inv-btn" title="Invert">↕</button>
               <input type="range" class="fun-slider" id="funAbrSldr" min="0" max="20" step="0.5" value="0">
             </div>
             <div class="snsr-row" data-fx="abr">
@@ -998,6 +1014,7 @@ body[data-theme="light"] .gallery-hdr-title{
           <div class="fx-row">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#9d6bff"></i><span>Pxl</span></span>
+              <button class="inv-btn" title="Invert">↕</button>
               <input type="range" class="fun-slider" id="funPxlSldr" min="1" max="32" step="1" value="1">
             </div>
             <div class="snsr-row" data-fx="pxl">
@@ -1306,6 +1323,7 @@ let snsrBaseline = { hue: 0, sat: 100, bri: 100, con: 100, abr: 0, pxl: 1 };
 let snsrZero     = { hue: 0, sat: 0,   bri: 0,   con: 0,   abr: 0, pxl: 0 };
 let snsrNeedsZero = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let fxCyclic = false;
+let fxInvert = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let orientPermGranted = false, motionPermGranted = false;
 let micPermGranted = false;
 let micStream = null, micAudioCtx = null, micAnalyser = null, micBuf = null;
@@ -2009,6 +2027,15 @@ function loadSettings() {
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
     if (typeof s.fxCyclic === 'boolean') { fxCyclic = s.fxCyclic; updateFxCycleTgl(); }
+    if (s.fxInvert && typeof s.fxInvert === 'object') {
+      Object.keys(fxInvert).forEach(fx => {
+        if (typeof s.fxInvert[fx] === 'boolean') fxInvert[fx] = s.fxInvert[fx];
+      });
+      funSection.querySelectorAll('.inv-btn').forEach(btn => {
+        const fx = btn.closest('.fx-row').querySelector('.snsr-row').dataset.fx;
+        btn.classList.toggle('on', fxInvert[fx]);
+      });
+    }
     updateSoundBtn();
   } catch {
     applyTheme(0, false);
@@ -2022,7 +2049,7 @@ function saveSettings() {
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funUnlocked, funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
-      recFps, fxCyclic,
+      recFps, fxCyclic, fxInvert,
     }));
   } catch {}
 }
@@ -2188,6 +2215,7 @@ const FX_CURRENT = { hue: () => funHueVal, sat: () => funSatVal, bri: () => funB
 const FX_RANGE   = { hue: [-180, 180], sat: [0, 200], bri: [0, 200], con: [0, 200], abr: [0, 20], pxl: [1, 32] };
 function fxApply(raw, fx) {
   const [min, max] = FX_RANGE[fx];
+  if (fxInvert[fx]) raw = min + max - raw;
   if (!fxCyclic) return Math.max(min, Math.min(max, raw));
   const range = max - min;
   let v = ((raw - min) % (2 * range) + 2 * range) % (2 * range);
@@ -2300,8 +2328,8 @@ function onMouseMove(e) {
     const [min, max] = FX_RANGE[fx];
     const cx = (window.innerWidth || 400) / 2;
     const t = 1 - Math.min(1, Math.abs(e.clientX - cx) / cx); // 1 at center, 0 at edges
-    const raw = min + t * (max - min);
-    const val = fx === 'abr' ? +raw.toFixed(1) : Math.round(raw);
+    const r = fxApply(min + t * (max - min), fx);
+    const val = fx === 'abr' ? +r.toFixed(1) : Math.round(r);
     setFxVal(fx, val); changed = true;
   });
   if (changed) applyFunFilters();
@@ -3355,6 +3383,14 @@ function bindControls() {
   funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); saveSettings(); });
   fxCycleTgl.addEventListener('click', () => { fxCyclic = !fxCyclic; updateFxCycleTgl(); saveSettings(); });
   funSection.addEventListener('click', e => {
+    const inv = e.target.closest('.inv-btn');
+    if (inv) {
+      const fx = inv.closest('.fx-row').querySelector('.snsr-row').dataset.fx;
+      fxInvert[fx] = !fxInvert[fx];
+      inv.classList.toggle('on', fxInvert[fx]);
+      saveSettings();
+      return;
+    }
     const btn = e.target.closest('.snsr-tgl');
     if (!btn) return;
     toggleSensor(btn.closest('.snsr-row').dataset.fx, btn.dataset.sensor);
