@@ -376,6 +376,7 @@ body[data-theme="light"] .snsr-tgl.on{color:#fff}
 .pill:hover{border-color:var(--cx);color:var(--cx)}
 .pill.active{background:var(--accent);border-color:var(--accent);color:var(--bg)}
 body[data-theme="light"] .pill.active{color:#fff}
+.pill:disabled{opacity:.3;cursor:not-allowed;pointer-events:none}
 
 /* ── Toggle pills ── */
 .tgl-row{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
@@ -868,6 +869,20 @@ body[data-theme="light"] .gallery-hdr-title{
           <span class="cr-hint" data-i18n="ratioHint">ratio</span>
         </div>
 
+        <div class="sec">Quality</div>
+        <div class="pill-row" id="qualitySelector">
+          <button class="pill" data-quality="fhd">FHD</button>
+          <button class="pill active" data-quality="hd">HD</button>
+          <button class="pill" data-quality="sd">SD</button>
+          <button class="pill" data-quality="custom">Custom</button>
+        </div>
+        <div class="custom-ratio-row" id="customQualRow" style="display:none">
+          <input type="number" id="customQualW" min="1" max="9999" value="1280">
+          <span class="cr-sep">×</span>
+          <input type="number" id="customQualH" min="1" max="9999" value="720">
+          <span class="cr-hint">px</span>
+        </div>
+
         <!-- Zoom (hardware) -->
         <div class="crow ctrl-bump" id="zoomRow" style="display:none">
           <span class="clbl"><i class="cdot" style="--d:#7ed1ff"></i><span data-i18n="zoom">Zoom</span></span>
@@ -1299,6 +1314,9 @@ let recInterval    = null;
 let recSecs        = 0;
 let audioStream    = null;
 let recFps         = 30;
+let recQuality     = 'hd';
+let recQualW       = 1280, recQualH = 720;
+let camMaxW        = 9999, camMaxH  = 9999;
 let recRafId       = null;
 let ready          = false;
 let ctrlVisible    = true;
@@ -1449,6 +1467,9 @@ const isoVal       = $('isoVal');
 const customRatioRow = $('customRatioRow');
 const customWInput   = $('customW');
 const customHInput   = $('customH');
+const customQualRow  = $('customQualRow');
+const customQualWInput = $('customQualW');
+const customQualHInput = $('customQualH');
 const leDurSldr    = $('leDurSlider');
 const leDurVal     = $('leDurVal');
 const leModeRow    = $('leModeRow');
@@ -2042,6 +2063,9 @@ function loadSettings() {
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
+    if (['fhd','hd','sd','custom'].includes(s.recQuality)) setQuality(s.recQuality, false, false);
+    if (typeof s.recQualW === 'number') { recQualW = s.recQualW; customQualWInput.value = recQualW; }
+    if (typeof s.recQualH === 'number') { recQualH = s.recQualH; customQualHInput.value = recQualH; }
     function loadFxFlags(key, obj, cls) {
       if (s[key] && typeof s[key] === 'object')
         Object.keys(obj).forEach(fx => { if (typeof s[key][fx] === 'boolean') obj[fx] = s[key][fx]; });
@@ -2065,7 +2089,7 @@ function saveSettings() {
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
-      recFps, fxInvert, fxBounce,
+      recFps, recQuality, recQualW, recQualH, fxInvert, fxBounce,
     }));
   } catch {}
 }
@@ -2466,8 +2490,12 @@ async function saveBlobsBatch(items) {
 }
 
 // ── Camera ─────────────────────────────────────────────────────────────────
+const QUALITY_RES = { fhd: [1920, 1080], hd: [1280, 720], sd: [854, 480] };
 function buildConstraints(deviceId) {
-  const res = { width: { ideal: 1920 }, height: { ideal: 1080 } };
+  const [qw, qh] = recQuality === 'custom'
+    ? [Math.max(1, Math.min(camMaxW, recQualW)), Math.max(1, Math.min(camMaxH, recQualH))]
+    : (QUALITY_RES[recQuality] ?? [1280, 720]);
+  const res = { width: { ideal: qw }, height: { ideal: qh } };
   if (!deviceId) {
     const mob = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     return { video: mob ? { facingMode: { ideal: 'user' }, ...res } : res, audio: false };
@@ -2637,6 +2665,10 @@ function detectCapabilities() {
 
   if (!track?.getCapabilities) return;
   const caps = track.getCapabilities();
+
+  if (caps.width?.max)  camMaxW = caps.width.max;
+  if (caps.height?.max) camMaxH = caps.height.max;
+  updateQualityPills();
 
   if (caps.torch) { deviceHasTorch = true; torchTgl.style.display = ''; }
 
@@ -2866,6 +2898,25 @@ function setRatio(ratio, save = true) {
   }
   resetCrop();
   if (save) saveSettings();
+}
+
+// ── Video quality ──────────────────────────────────────────────────────────
+function updateQualityPills() {
+  document.querySelectorAll('#qualitySelector .pill').forEach(p => {
+    const q = p.dataset.quality;
+    if (q === 'custom') { p.disabled = false; return; }
+    const [w, h] = QUALITY_RES[q];
+    p.disabled = w > camMaxW || h > camMaxH;
+    if (p.disabled) p.classList.remove('active');
+  });
+}
+function setQuality(q, restart = true, save = true) {
+  recQuality = q;
+  customQualRow.style.display = q === 'custom' ? '' : 'none';
+  document.querySelectorAll('#qualitySelector .pill').forEach(p =>
+    p.classList.toggle('active', p.dataset.quality === q));
+  if (save) saveSettings();
+  if (restart && ready) startCamera(currentDeviceId);
 }
 
 // ── Long exposure ──────────────────────────────────────────────────────────
@@ -3444,6 +3495,20 @@ function bindControls() {
     }));
   customWInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
   customHInput.addEventListener('change', () => { applyCustomRatio(); saveSettings(); });
+  document.querySelectorAll('#qualitySelector .pill').forEach(b =>
+    b.addEventListener('click', () => { if (!b.disabled) setQuality(b.dataset.quality); }));
+  customQualWInput.addEventListener('change', () => {
+    recQualW = Math.max(1, parseInt(customQualWInput.value) || 1280);
+    customQualWInput.value = recQualW;
+    saveSettings();
+    if (ready) startCamera(currentDeviceId);
+  });
+  customQualHInput.addEventListener('change', () => {
+    recQualH = Math.max(1, parseInt(customQualHInput.value) || 720);
+    customQualHInput.value = recQualH;
+    saveSettings();
+    if (ready) startCamera(currentDeviceId);
+  });
   document.querySelectorAll('#leModeRow .pill').forEach(b =>
     b.addEventListener('click', () => setLeMode(b.dataset.leMode)));
   function setRecFps(fps) {
