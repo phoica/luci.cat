@@ -964,12 +964,17 @@ body[data-theme="light"] .gallery-hdr-title{
           <span class="cval" id="focusVal">Auto</span>
         </div>
 
-        <!-- Recording FPS -->
+        <!-- Recording FPS + audio source -->
         <div class="sec">Rec</div>
         <div class="pill-row" id="fpsSelector">
           <button class="pill" data-fps="24">24fps</button>
           <button class="pill active" data-fps="30">30fps</button>
           <button class="pill" data-fps="60">60fps</button>
+        </div>
+        <div class="pill-row" id="audioSrcSelector">
+          <button class="pill active" data-audiosrc="mic">MIC</button>
+          <button class="pill" data-audiosrc="brw">BRW</button>
+          <button class="pill" data-audiosrc="off">OFF</button>
         </div>
 
         <!-- FX controls -->
@@ -1171,6 +1176,8 @@ const I18N = {
     expCancelled:'Exposure cancelled',
     micBlocked:'Mic blocked — recording video without audio',
     noMic:'No mic available — recording silent',
+    brwAudioBlocked:'Browser audio blocked — recording without audio',
+    brwAudioNone:'No audio track from browser — recording silent',
     camNotAccessible:"Camera isn't accessible in this browser",
     photoReady:'Photo ready — pick "Save to Photos" if prompted',
     apiNotSupported:'Camera API not supported — try Safari or Chrome',
@@ -1211,6 +1218,8 @@ const I18N = {
     expCancelled:'Exposição cancelada',
     micBlocked:'Mic bloqueado — gravando sem áudio',
     noMic:'Sem mic — gravando sem som',
+    brwAudioBlocked:'Áudio do browser bloqueado — gravando sem áudio',
+    brwAudioNone:'Sem faixa de áudio do browser — gravando em silêncio',
     camNotAccessible:'Câmera não acessível neste navegador',
     photoReady:'Foto pronta — escolha "Salvar em Fotos" se aparecer',
     apiNotSupported:'API da câmera não suportada — tente Safari ou Chrome',
@@ -1251,6 +1260,8 @@ const I18N = {
     expCancelled:'Exposició cancel·lada',
     micBlocked:'Mic bloquejat — gravant sense àudio',
     noMic:'Sense mic — gravant sense so',
+    brwAudioBlocked:'Àudio del navegador bloquejat — gravant sense àudio',
+    brwAudioNone:'Cap pista d\'àudio del navegador — gravant en silenci',
     camNotAccessible:'Càmera no accessible en aquest navegador',
     photoReady:'Foto a punt — tria "Desa a Fotos" si surt',
     apiNotSupported:'API de càmera no suportada — prova Safari o Chrome',
@@ -1320,6 +1331,7 @@ let recInterval    = null;
 let recSecs        = 0;
 let audioStream    = null;
 let recFps         = 30;
+let recAudioSrc    = 'mic'; // 'mic' | 'brw' | 'off'
 let recQuality     = 'hd';
 let recQualW       = 1280, recQualH = 720;
 let camMaxW        = 9999, camMaxH  = 9999;
@@ -2073,6 +2085,7 @@ function loadSettings() {
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
+    if (['mic','brw','off'].includes(s.recAudioSrc)) { recAudioSrc = s.recAudioSrc; }
     if (['fhd','hd','sd','custom'].includes(s.recQuality)) setQuality(s.recQuality, false, false);
     if (typeof s.recQualW === 'number') { recQualW = s.recQualW; customQualWInput.value = recQualW; }
     if (typeof s.recQualH === 'number') { recQualH = s.recQualH; customQualHInput.value = recQualH; }
@@ -2099,7 +2112,7 @@ function saveSettings() {
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
-      recFps, recQuality, recQualW, recQualH, fxInvert, fxBounce,
+      recFps, recAudioSrc, recQuality, recQualW, recQualH, fxInvert, fxBounce,
     }));
   } catch {}
 }
@@ -3330,13 +3343,32 @@ async function startRecording() {
   const recStream = recCanvas.captureStream(recFps);
   recordFrame(); // start render loop
 
-  // Capture microphone audio and add to recording stream
-  try {
-    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    audioStream.getAudioTracks().forEach(t => recStream.addTrack(t));
-  } catch {
-    showToast(t('micBlocked'), 2500);
+  // Capture audio and add to recording stream
+  if (recAudioSrc === 'mic') {
+    try {
+      audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      audioStream.getAudioTracks().forEach(t => recStream.addTrack(t));
+    } catch {
+      showToast(t('micBlocked'), 2500);
+    }
+  } else if (recAudioSrc === 'brw') {
+    try {
+      // getDisplayMedia captures tab/system audio; request audio-only if supported
+      const dm = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true });
+      // stop the unwanted video track immediately
+      dm.getVideoTracks().forEach(tr => tr.stop());
+      const aTracks = dm.getAudioTracks();
+      if (aTracks.length) {
+        audioStream = dm;
+        aTracks.forEach(tr => recStream.addTrack(tr));
+      } else {
+        showToast(t('brwAudioNone'), 2500);
+      }
+    } catch {
+      showToast(t('brwAudioBlocked'), 2500);
+    }
   }
+  // recAudioSrc === 'off': no audio track added
 
   recordedChunks = [];
   const types = ['video/mp4;codecs=h264,aac','video/mp4','video/webm;codecs=h264,opus','video/webm;codecs=vp9,opus','video/webm'];
@@ -3586,6 +3618,16 @@ function bindControls() {
   document.querySelectorAll('#fpsSelector .pill').forEach(b => {
     b.classList.toggle('active', +b.dataset.fps === recFps);
     b.addEventListener('click', () => setRecFps(+b.dataset.fps));
+  });
+  function setRecAudioSrc(src) {
+    recAudioSrc = src;
+    document.querySelectorAll('#audioSrcSelector .pill').forEach(b =>
+      b.classList.toggle('active', b.dataset.audiosrc === src));
+    saveSettings();
+  }
+  document.querySelectorAll('#audioSrcSelector .pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.audiosrc === recAudioSrc);
+    b.addEventListener('click', () => setRecAudioSrc(b.dataset.audiosrc));
   });
   document.querySelectorAll('.swatch:not(.swatch-custom)').forEach(s =>
     s.addEventListener('click', () => { setCFColor(s.dataset.color); updateCFColorBtn(); closeCFPopup(); }));
