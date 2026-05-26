@@ -3012,7 +3012,9 @@ async function startLongExposure() {
 
   const vw = preview.videoWidth, vh = preview.videoHeight;
   const scale = Math.min(1, 1920 / Math.max(vw, vh, 1));
-  leW = Math.round(vw * scale); leH = Math.round(vh * scale);
+  const needSwap = camRotation === 90 || camRotation === 270;
+  leW = Math.round((needSwap ? vh : vw) * scale);
+  leH = Math.round((needSwap ? vw : vh) * scale);
   leTotalMs = LE_DURS[leDurIdx] * 1000;
   leElapsed = 0; leFrameCount = 0;
 
@@ -3038,7 +3040,8 @@ async function startLongExposure() {
     const prog = Math.min(leElapsed / leTotalMs, 1);
     leBarFill.style.width = (prog * 100) + '%';
     leTimer.textContent = Math.max(0, (leTotalMs - leElapsed) / 1000).toFixed(1) + 's';
-    tmpCtx.drawImage(preview, 0, 0, leW, leH);
+    const { sx: lsx, sy: lsy, sw: lsw, sh: lsh } = computeVideoCrop(vw, vh, leW, leH);
+    drawVideoRotated(tmpCtx, preview, lsx, lsy, lsw, lsh, leW, leH);
     leFrameCount++;
     if (leMode === 'average') {
       const d = tmpCtx.getImageData(0, 0, leW, leH).data;
@@ -3320,7 +3323,9 @@ async function startRecording() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (vw && vh) {
     const { cw, ch } = cropRect(vw, vh);
-    recCanvas.width = cw; recCanvas.height = ch;
+    const _swap = camRotation === 90 || camRotation === 270;
+    recCanvas.width  = _swap ? ch : cw;
+    recCanvas.height = _swap ? cw : ch;
   }
   const recStream = recCanvas.captureStream(recFps);
   recordFrame(); // start render loop
