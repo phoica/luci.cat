@@ -896,6 +896,10 @@ body[data-theme="light"] .gallery-hdr-title{
             <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 2v10M3 5l-2 2 2 2M11 5l2 2-2 2"/></svg>
             <span data-i18n="mirror">Mirror</span>
           </button>
+          <button class="tgl" id="rotateTgl">
+            <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 7A4.5 4.5 0 1 0 4 3.5"/><path d="M4 1.5v2.5H1.5"/></svg>
+            <span data-i18n="rotate">Rotate</span>
+          </button>
           <button class="tgl" id="torchTgl" style="display:none">
             <svg viewBox="0 0 14 14" fill="currentColor"><path d="M8 1L3 8h3l-1 5 5-7H7l1-5z"/></svg>
             <span data-i18n="flash">Flash</span>
@@ -1140,7 +1144,7 @@ const I18N = {
   en: {
     title:'Cam', camera:'Camera', ratio:'Ratio', free:'Free', custom:'Custom', ratioHint:'ratio',
     zoom:'Zoom', ev:'EV', shutter:'Shutter', iso:'ISO', exp:'Exp', focus:'Focus',
-    mirror:'Mirror', flash:'Flash', colorFrame:'Color Frame',
+    mirror:'Mirror', flash:'Flash', colorFrame:'Color Frame', rotate:'Rotate',
     average:'Average', trails:'Trails', dark:'Dark',
     off:'Off', auto:'Auto', cancel:'Cancel', exposing:'Exposing',
     enableCam:'Tap to enable your camera', enableCamBtn:'Enable Camera',
@@ -1180,7 +1184,7 @@ const I18N = {
   pt: {
     title:'Câm', camera:'Câmera', ratio:'Proporção', free:'Livre', custom:'Personalizada', ratioHint:'proporção',
     zoom:'Zoom', ev:'EV', shutter:'Obturador', iso:'ISO', exp:'Exp', focus:'Foco',
-    mirror:'Espelhar', flash:'Flash', colorFrame:'Moldura Cor',
+    mirror:'Espelhar', flash:'Flash', colorFrame:'Moldura Cor', rotate:'Girar',
     average:'Média', trails:'Rastros', dark:'Escuro',
     off:'Off', auto:'Auto', cancel:'Cancelar', exposing:'Expondo',
     enableCam:'Toque para ativar a câmera', enableCamBtn:'Ativar câmera',
@@ -1220,7 +1224,7 @@ const I18N = {
   ca: {
     title:'Càm', camera:'Càmera', ratio:'Relació', free:'Lliure', custom:'Personal', ratioHint:'relació',
     zoom:'Zoom', ev:'EV', shutter:'Obturador', iso:'ISO', exp:'Exp', focus:'Focus',
-    mirror:'Mirall', flash:'Flaix', colorFrame:'Marc Color',
+    mirror:'Mirall', flash:'Flaix', colorFrame:'Marc Color', rotate:'Girar',
     average:'Mitjana', trails:'Rastres', dark:'Fosc',
     off:'Off', auto:'Auto', cancel:'Cancel·la', exposing:'Exposant',
     enableCam:'Toca per activar la càmera', enableCamBtn:'Activa càmera',
@@ -1307,6 +1311,7 @@ let stream         = null;
 let devices        = [];
 let currentDeviceId= null;
 let isMirrored     = false;
+let camRotation    = 0; // 0 | 90 | 180 | 270
 let currentRatio   = 'free';
 let isRecording    = false;
 let mediaRecorder  = null;
@@ -1394,6 +1399,7 @@ const recordBtn    = $('recordBtn');
 const recordCell   = $('recordCell');
 const recordIcon   = $('recordIcon');
 const mirrorTgl    = $('mirrorTgl');
+const rotateTgl    = $('rotateTgl');
 const torchTgl     = $('torchTgl');
 const cfTgl        = $('cfTgl');
 const cfColorBtn   = $('cfColorBtn');
@@ -2040,6 +2046,7 @@ function loadSettings() {
     const s = JSON.parse(localStorage.getItem('cam_prefs') || '{}');
     applyTheme(THEMES.indexOf(s.theme) >= 0 ? THEMES.indexOf(s.theme) : 0, false);
     if (typeof s.mirrored === 'boolean') setMirror(s.mirrored, false);
+    if ([0,90,180,270].includes(s.camRotation)) setCamRotation(s.camRotation, false);
     if (typeof s.customW === 'number') { customW = s.customW; customWInput.value = customW; }
     if (typeof s.customH === 'number') { customH = s.customH; customHInput.value = customH; }
     if (s.ratio) setRatio(s.ratio, false);
@@ -2088,7 +2095,7 @@ function loadSettings() {
 function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
-      theme: THEMES[themeIdx], mirrored: isMirrored, ratio: currentRatio, customW, customH,
+      theme: THEMES[themeIdx], mirrored: isMirrored, camRotation, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
@@ -2144,6 +2151,30 @@ function applyFunFilters() {
   }
 }
 
+// Draw video frame into ctx (cw×ch canvas) with rotation + mirror applied.
+// Crop (sx,sy,sw,sh) must be computed with rotation-aware vpAR beforehand.
+function drawVideoRotated(ctx, src, sx, sy, sw, sh, outW, outH) {
+  const needSwap = camRotation === 90 || camRotation === 270;
+  const dw = needSwap ? outH : outW;
+  const dh = needSwap ? outW : outH;
+  ctx.save();
+  ctx.translate(outW / 2, outH / 2);
+  ctx.rotate(camRotation * Math.PI / 180);
+  if (isMirrored) ctx.scale(-1, 1);
+  ctx.drawImage(src, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh);
+  ctx.restore();
+}
+
+function computeVideoCrop(vw, vh, outW, outH) {
+  const needSwap = camRotation === 90 || camRotation === 270;
+  const vpAR = needSwap ? outH / outW : outW / outH;
+  const vidAR = vw / vh;
+  let sx, sy, sw, sh;
+  if (vidAR > vpAR) { sh = vh; sw = vh * vpAR; sx = (vw - sw) / 2; sy = 0; }
+  else              { sw = vw; sh = vw / vpAR; sx = 0; sy = (vh - sh) / 2; }
+  return { sx, sy, sw, sh };
+}
+
 function renderFxOverlay() {
   if (fxCanvas.style.display === 'none') { fxRafId = null; return; }
   const vw = preview.videoWidth, vh = preview.videoHeight;
@@ -2154,34 +2185,19 @@ function renderFxOverlay() {
   if (fxCanvas.width !== cw || fxCanvas.height !== ch) { fxCanvas.width = cw; fxCanvas.height = ch; }
   if (_fxTmp.width !== cw || _fxTmp.height !== ch) { _fxTmp.width = cw; _fxTmp.height = ch; }
 
-  const vidAR = vw / vh, vpAR = cw / ch;
-  let sx, sy, sw, sh;
-  if (vidAR > vpAR) { sh = vh; sw = vh * vpAR; sx = (vw - sw) / 2; sy = 0; }
-  else              { sw = vw; sh = vw / vpAR; sx = 0; sy = (vh - sh) / 2; }
+  const { sx, sy, sw, sh } = computeVideoCrop(vw, vh, cw, ch);
 
   if (glFx) {
     // WebGL path: draw raw frame to temp, then single shader pass for all 6 FX
     _fxTmpCtx.filter = 'none';
-    if (isMirrored) {
-      _fxTmpCtx.save(); _fxTmpCtx.scale(-1, 1);
-      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, -cw, 0, cw, ch);
-      _fxTmpCtx.restore();
-    } else {
-      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, 0, 0, cw, ch);
-    }
+    drawVideoRotated(_fxTmpCtx, preview, sx, sy, sw, sh, cw, ch);
     glFx.apply(_fxTmp, cw, ch);
     fxCtx.drawImage(glFx.canvas, 0, 0);
   } else {
     // Canvas 2D fallback: CSS filter for colour FX, pixel loops for abr/pxl
     const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
     _fxTmpCtx.filter = hasColorFx && CTX_FILTER_OK ? fxFilter() : 'none';
-    if (isMirrored) {
-      _fxTmpCtx.save(); _fxTmpCtx.scale(-1, 1);
-      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, -cw, 0, cw, ch);
-      _fxTmpCtx.restore();
-    } else {
-      _fxTmpCtx.drawImage(preview, sx, sy, sw, sh, 0, 0, cw, ch);
-    }
+    drawVideoRotated(_fxTmpCtx, preview, sx, sy, sw, sh, cw, ch);
     _fxTmpCtx.filter = 'none';
     if (funPxlVal > 1) {
       const bs = Math.round(funPxlVal);
@@ -2504,17 +2520,8 @@ function captureFreeze() {
   } else {
     const vw = preview.videoWidth, vh = preview.videoHeight;
     if (!vw || !vh) return;
-    const vidAR = vw/vh, vpAR = cw/ch;
-    let sx, sy, sw, sh;
-    if (vidAR > vpAR) { sh=vh; sw=vh*vpAR; sx=(vw-sw)/2; sy=0; }
-    else              { sw=vw; sh=vw/vpAR; sx=0; sy=(vh-sh)/2; }
-    if (isMirrored) {
-      freezeCtx.save(); freezeCtx.scale(-1,1);
-      freezeCtx.drawImage(preview, sx,sy,sw,sh,-cw,0,cw,ch);
-      freezeCtx.restore();
-    } else {
-      freezeCtx.drawImage(preview, sx,sy,sw,sh,0,0,cw,ch);
-    }
+    const { sx, sy, sw, sh } = computeVideoCrop(vw, vh, cw, ch);
+    drawVideoRotated(freezeCtx, preview, sx, sy, sw, sh, cw, ch);
   }
   clearTimeout(_freezeHideTimer);
   freezeCanvas.style.opacity = '1';
@@ -2842,10 +2849,30 @@ async function setTorch(on) {
 }
 
 // ── Mirror ─────────────────────────────────────────────────────────────────
+function applyPreviewTransform() {
+  const parts = [];
+  if (isMirrored) parts.push('scaleX(-1)');
+  if (camRotation !== 0) parts.push(`rotate(${camRotation}deg)`);
+  if (camRotation === 90 || camRotation === 270) {
+    const vp = viewport.getBoundingClientRect();
+    if (vp.width > 0 && vp.height > 0) {
+      const s = (Math.max(vp.width, vp.height) / Math.min(vp.width, vp.height)).toFixed(4);
+      parts.push(`scale(${s})`);
+    }
+  }
+  preview.style.transform = parts.length ? parts.join(' ') : '';
+}
 function setMirror(val, save = true) {
   isMirrored = val;
   mirrorTgl.classList.toggle('on', val);
-  preview.classList.toggle('mirrored', val);
+  preview.classList.remove('mirrored'); // handled via inline style now
+  applyPreviewTransform();
+  if (save) saveSettings();
+}
+function setCamRotation(deg, save = true) {
+  camRotation = deg;
+  rotateTgl.classList.toggle('on', deg !== 0);
+  applyPreviewTransform();
   if (save) saveSettings();
 }
 
@@ -3092,25 +3119,22 @@ function cropRect(srcW, srcH) {
   return { sx: 0, sy: 0, cw: srcW, ch: srcH };
 }
 function drawToCanvas(src, sx, sy, cw, ch) {
-  capCanvas.width = cw; capCanvas.height = ch;
+  const needSwap = camRotation === 90 || camRotation === 270;
+  const outW = needSwap ? ch : cw;
+  const outH = needSwap ? cw : ch;
+  capCanvas.width = outW; capCanvas.height = outH;
   const ctx = capCanvas.getContext('2d');
   const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100
               || funAbrVal !== 0 || funPxlVal !== 1;
   function drawSrc(destCtx, filter) {
     destCtx.filter = filter;
-    if (isMirrored) {
-      destCtx.save(); destCtx.scale(-1, 1);
-      destCtx.drawImage(src, sx, sy, cw, ch, -cw, 0, cw, ch);
-      destCtx.restore();
-    } else {
-      destCtx.drawImage(src, sx, sy, cw, ch, 0, 0, cw, ch);
-    }
+    drawVideoRotated(destCtx, src, sx, sy, cw, ch, outW, outH);
     destCtx.filter = 'none';
   }
   if (hasFx && glFx) {
-    if (fxStageCanvas.width !== cw || fxStageCanvas.height !== ch) { fxStageCanvas.width = cw; fxStageCanvas.height = ch; }
+    if (fxStageCanvas.width !== outW || fxStageCanvas.height !== outH) { fxStageCanvas.width = outW; fxStageCanvas.height = outH; }
     drawSrc(fxStageCtx, 'none');
-    glFx.apply(fxStageCanvas, cw, ch);
+    glFx.apply(fxStageCanvas, outW, outH);
     ctx.drawImage(glFx.canvas, 0, 0);
   } else {
     drawSrc(ctx, hasFx && CTX_FILTER_OK ? fxFilter() : 'none');
@@ -3258,26 +3282,23 @@ function recordFrame() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (vw && vh) {
     const { sx, sy, cw, ch } = cropRect(vw, vh);
-    if (recCanvas.width !== cw || recCanvas.height !== ch) { recCanvas.width = cw; recCanvas.height = ch; }
+    const needSwap = camRotation === 90 || camRotation === 270;
+    const outW = needSwap ? ch : cw;
+    const outH = needSwap ? cw : ch;
+    if (recCanvas.width !== outW || recCanvas.height !== outH) { recCanvas.width = outW; recCanvas.height = outH; }
     const hasFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100
                || funAbrVal !== 0 || funPxlVal !== 1;
 
     function drawSrc(ctx, filter) {
       ctx.filter = filter;
-      if (isMirrored) {
-        ctx.save(); ctx.scale(-1,1);
-        ctx.drawImage(preview, sx, sy, cw, ch, -cw, 0, cw, ch);
-        ctx.restore();
-      } else {
-        ctx.drawImage(preview, sx, sy, cw, ch, 0, 0, cw, ch);
-      }
+      drawVideoRotated(ctx, preview, sx, sy, cw, ch, outW, outH);
     }
 
     if (hasFx) {
-      if (fxStageCanvas.width !== cw || fxStageCanvas.height !== ch) { fxStageCanvas.width = cw; fxStageCanvas.height = ch; }
+      if (fxStageCanvas.width !== outW || fxStageCanvas.height !== outH) { fxStageCanvas.width = outW; fxStageCanvas.height = outH; }
       if (glFx) {
         drawSrc(fxStageCtx, 'none');
-        glFx.apply(fxStageCanvas, cw, ch);
+        glFx.apply(fxStageCanvas, outW, outH);
         recCtx.filter = 'none'; recCtx.drawImage(glFx.canvas, 0, 0);
       } else if (CTX_FILTER_OK) {
         drawSrc(fxStageCtx, fxFilter());
@@ -3431,6 +3452,8 @@ function bindControls() {
   });
 
   mirrorTgl.addEventListener('click',     () => setMirror(!isMirrored));
+  rotateTgl.addEventListener('click',     () => setCamRotation((camRotation + 90) % 360));
+  new ResizeObserver(() => applyPreviewTransform()).observe(viewport);
   torchTgl.addEventListener('click',      () => setTorch(!isTorchOn));
   cfTgl.addEventListener('click',         () => setCF(!isCF));
   cfColorBtn.addEventListener('click',    (e) => { e.stopPropagation(); toggleCFPopup(); });
