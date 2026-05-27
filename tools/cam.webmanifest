@@ -1,0 +1,19 @@
+{
+  "name": "Cam — luci.cat",
+  "short_name": "Cam",
+  "description": "A camera app. Collects zero data.",
+  "start_url": "/tools/cam.html",
+  "scope": "/tools/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "600x600",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
