@@ -100,6 +100,8 @@ body.blind-mode .viewport-wrap{cursor:crosshair}
 }
 body.controls-open .viewport-wrap{transform:translateY(-11%)}
 .viewport{position:relative;background:var(--bg);overflow:hidden;max-width:100%;max-height:100%}
+.viewport:not([data-ratio="free"]){cursor:grab}
+.viewport:not([data-ratio="free"]).panning{cursor:grabbing}
 .viewport[data-ratio="free"]    {width:100%;height:100%}
 .viewport[data-ratio="1:1"]    {aspect-ratio:1/1}
 .viewport[data-ratio="4:3"]    {aspect-ratio:4/3}
@@ -1323,6 +1325,8 @@ let devices        = [];
 let currentDeviceId= null;
 let isMirrored     = false;
 let camRotation    = 0; // 0 | 90 | 180 | 270
+let camPanX        = 0.5; // 0=left edge, 1=right edge, 0.5=center
+let camPanY        = 0.5; // 0=top edge,  1=bottom edge
 let currentRatio   = 'free';
 let isRecording    = false;
 let mediaRecorder  = null;
@@ -2040,11 +2044,15 @@ function init() {
   applyI18n();
   bindControls();
   initCrop();
+  initPan();
   updateFsBtn();
   updateSoundBtn();
   updateReviewModeBtn();
   toggleControls(); // start with UI docked
   if (!navigator.mediaDevices?.getUserMedia) showError(t('apiNotSupported'));
+  // Seed viewport cache so renderFxOverlay doesn't spin on first frames
+  const _vr = viewport.getBoundingClientRect();
+  _vpW = Math.round(_vr.width); _vpH = Math.round(_vr.height);
 }
 window.addEventListener('beforeunload', () => {
   stream?.getTracks().forEach(t => t.stop());
@@ -2059,6 +2067,8 @@ function loadSettings() {
     applyTheme(THEMES.indexOf(s.theme) >= 0 ? THEMES.indexOf(s.theme) : 0, false);
     if (typeof s.mirrored === 'boolean') setMirror(s.mirrored, false);
     if ([0,90,180,270].includes(s.camRotation)) setCamRotation(s.camRotation, false);
+    if (typeof s.camPanX === 'number') camPanX = Math.max(0, Math.min(1, s.camPanX));
+    if (typeof s.camPanY === 'number') camPanY = Math.max(0, Math.min(1, s.camPanY));
     if (typeof s.customW === 'number') { customW = s.customW; customWInput.value = customW; }
     if (typeof s.customH === 'number') { customH = s.customH; customHInput.value = customH; }
     if (s.ratio) setRatio(s.ratio, false);
@@ -2108,7 +2118,7 @@ function loadSettings() {
 function saveSettings() {
   try {
     localStorage.setItem('cam_prefs', JSON.stringify({
-      theme: THEMES[themeIdx], mirrored: isMirrored, camRotation, ratio: currentRatio, customW, customH,
+      theme: THEMES[themeIdx], mirrored: isMirrored, camRotation, camPanX, camPanY, ratio: currentRatio, customW, customH,
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
@@ -2136,9 +2146,13 @@ function pct(slider) {
 }
 
 // ── Fun FX ────────────────────────────────────────────────────────────────
+let _fxFilterCache = '';
 function fxFilter() {
-  return `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%) contrast(${funConVal}%)`;
+  if (!_fxFilterCache)
+    _fxFilterCache = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%) contrast(${funConVal}%)`;
+  return _fxFilterCache;
 }
+function _invalidateFxFilter() { _fxFilterCache = ''; }
 
 // Offscreen canvases for the canvas-2D fxCanvas preview pipeline
 const _fxTmp = document.createElement('canvas');
@@ -2146,6 +2160,7 @@ const _fxTmpCtx = _fxTmp.getContext('2d', { willReadFrequently: true });
 const _pxlTmp = document.createElement('canvas');
 const _pxlTmpCtx = _pxlTmp.getContext('2d');
 let fxRafId = null;
+let _vpW = 0, _vpH = 0; // cached viewport pixel size, updated by ResizeObserver
 let _abrSrcBuf = null; // pre-allocated pixel buffer for chromatic aberration
 
 function applyFunFilters() {
@@ -2183,8 +2198,13 @@ function computeVideoCrop(vw, vh, outW, outH) {
   const vpAR = needSwap ? outH / outW : outW / outH;
   const vidAR = vw / vh;
   let sx, sy, sw, sh;
-  if (vidAR > vpAR) { sh = vh; sw = vh * vpAR; sx = (vw - sw) / 2; sy = 0; }
-  else              { sw = vw; sh = vw / vpAR; sx = 0; sy = (vh - sh) / 2; }
+  if (vidAR > vpAR) {
+    sh = vh; sw = vh * vpAR;
+    sx = (vw - sw) * camPanX; sy = 0;
+  } else {
+    sw = vw; sh = vw / vpAR;
+    sx = 0; sy = (vh - sh) * camPanY;
+  }
   return { sx, sy, sw, sh };
 }
 
@@ -2192,8 +2212,7 @@ function renderFxOverlay() {
   if (fxCanvas.style.display === 'none') { fxRafId = null; return; }
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (!vw || !vh) { fxRafId = requestAnimationFrame(renderFxOverlay); return; }
-  const vp = viewport.getBoundingClientRect();
-  const cw = Math.round(vp.width), ch = Math.round(vp.height);
+  const cw = _vpW, ch = _vpH;
   if (!cw || !ch) { fxRafId = requestAnimationFrame(renderFxOverlay); return; }
   if (fxCanvas.width !== cw || fxCanvas.height !== ch) { fxCanvas.width = cw; fxCanvas.height = ch; }
   if (_fxTmp.width !== cw || _fxTmp.height !== ch) { _fxTmp.width = cw; _fxTmp.height = ch; }
@@ -2247,10 +2266,10 @@ function renderFxOverlay() {
 
 const FX_SLIDERS = { hue: () => funHueSldr, sat: () => funSatSldr, bri: () => funBriSldr, con: () => funConSldr, abr: () => funAbrSldr, pxl: () => funPxlSldr };
 function setFxVal(fx, val) {
-  if (fx === 'hue') funHueVal = val;
-  else if (fx === 'sat') funSatVal = val;
-  else if (fx === 'bri') funBriVal = val;
-  else if (fx === 'con') funConVal = val;
+  if (fx === 'hue') { funHueVal = val; _invalidateFxFilter(); }
+  else if (fx === 'sat') { funSatVal = val; _invalidateFxFilter(); }
+  else if (fx === 'bri') { funBriVal = val; _invalidateFxFilter(); }
+  else if (fx === 'con') { funConVal = val; _invalidateFxFilter(); }
   else if (fx === 'abr') funAbrVal = val;
   else if (fx === 'pxl') funPxlVal = val;
   FX_SLIDERS[fx]().value = val;
@@ -2389,18 +2408,25 @@ function onMotion(e) {
   });
   if (changed) applyFunFilters();
 }
+let _msePendingX = -1;
 function onMouseMove(e) {
-  let changed = false;
-  Object.keys(snsrOn).forEach(fx => {
-    if (snsrOn[fx] !== 'mse') return;
-    const [min, max] = FX_RANGE[fx];
-    const cx = (window.innerWidth || 400) / 2;
-    const t = 1 - Math.min(1, Math.abs(e.clientX - cx) / cx); // 1 at center, 0 at edges
-    const r = fxApply(min + t * (max - min), fx);
-    const val = fx === 'abr' ? +r.toFixed(1) : Math.round(r);
-    setFxVal(fx, val); changed = true;
+  _msePendingX = e.clientX;
+  if (_msePendingX < 0) return;
+  requestAnimationFrame(() => {
+    if (_msePendingX < 0) return;
+    const clientX = _msePendingX; _msePendingX = -1;
+    let changed = false;
+    Object.keys(snsrOn).forEach(fx => {
+      if (snsrOn[fx] !== 'mse') return;
+      const [min, max] = FX_RANGE[fx];
+      const cx = (window.innerWidth || 400) / 2;
+      const t = 1 - Math.min(1, Math.abs(clientX - cx) / cx);
+      const r = fxApply(min + t * (max - min), fx);
+      const val = fx === 'abr' ? +r.toFixed(1) : Math.round(r);
+      setFxVal(fx, val); changed = true;
+    });
+    if (changed) applyFunFilters();
   });
-  if (changed) applyFunFilters();
 }
 
 function onMicFrame() {
@@ -2524,8 +2550,8 @@ async function saveBlobsBatch(items) {
 // ── Freeze frame (prevents white flash on camera restart) ──────────────────
 let _freezeHideTimer = null;
 function captureFreeze() {
-  const vp = viewport.getBoundingClientRect();
-  const cw = Math.round(vp.width), ch = Math.round(vp.height);
+  const cw = _vpW || Math.round(viewport.getBoundingClientRect().width);
+  const ch = _vpH || Math.round(viewport.getBoundingClientRect().height);
   if (!cw || !ch) return;
   freezeCanvas.width = cw; freezeCanvas.height = ch;
   if (fxCanvas.style.display !== 'none') {
@@ -2612,6 +2638,7 @@ async function startCamera(deviceId = null) {
 
   await enumerateDevices();
   detectCapabilities();
+  applyPan(false);
 }
 
 async function enumerateDevices() {
@@ -2974,7 +3001,63 @@ function setRatio(ratio, save = true) {
     }
   }
   resetCrop();
+  camPanX = 0.5; camPanY = 0.5;
+  applyPan(false);
   if (save) saveSettings();
+}
+
+// ── Pan ────────────────────────────────────────────────────────────────────
+function applyPan(save = true) {
+  if (currentRatio === 'free') {
+    preview.style.objectPosition = '';
+  } else {
+    preview.style.objectPosition = `${camPanX * 100}% ${camPanY * 100}%`;
+  }
+  if (save) saveSettings();
+}
+
+function initPan() {
+  let startX, startY, startPanX, startPanY, moved = false, lastTap = 0;
+
+  viewport.addEventListener('pointerdown', e => {
+    if (currentRatio === 'free') return;
+    if (e.target.closest('.le-overlay:not(.hidden)')) return;
+    const now = Date.now();
+    if (now - lastTap < 320 && !moved) {
+      camPanX = 0.5; camPanY = 0.5;
+      applyPan();
+      lastTap = 0; return;
+    }
+    lastTap = now;
+    startX = e.clientX; startY = e.clientY;
+    startPanX = camPanX; startPanY = camPanY;
+    moved = false;
+    viewport.setPointerCapture(e.pointerId);
+    viewport.classList.add('panning');
+  });
+
+  viewport.addEventListener('pointermove', e => {
+    if (!viewport.hasPointerCapture(e.pointerId)) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if (!moved && Math.hypot(dx, dy) < 6) return;
+    moved = true;
+    camPanX = Math.max(0, Math.min(1, startPanX - dx / (_vpW || 1)));
+    camPanY = Math.max(0, Math.min(1, startPanY - dy / (_vpH || 1)));
+    applyPan(false);
+  });
+
+  const endPan = e => {
+    if (!viewport.hasPointerCapture(e.pointerId)) return;
+    viewport.releasePointerCapture(e.pointerId);
+    viewport.classList.remove('panning');
+    if (moved) {
+      saveSettings();
+      // prevent a drag from firing blind-mode capture
+      viewport.addEventListener('click', ev => ev.stopPropagation(), { once: true, capture: true });
+    }
+  };
+  viewport.addEventListener('pointerup',     endPan);
+  viewport.addEventListener('pointercancel', endPan);
 }
 
 // ── Video quality ──────────────────────────────────────────────────────────
@@ -3490,7 +3573,11 @@ function bindControls() {
 
   mirrorTgl.addEventListener('click',     () => setMirror(!isMirrored));
   rotateTgl.addEventListener('click',     () => setCamRotation((camRotation + 90) % 360));
-  new ResizeObserver(() => applyPreviewTransform()).observe(viewport);
+  new ResizeObserver(entries => {
+    const e = entries[0]?.contentRect;
+    if (e) { _vpW = Math.round(e.width); _vpH = Math.round(e.height); }
+    applyPreviewTransform();
+  }).observe(viewport);
   torchTgl.addEventListener('click',      () => setTorch(!isTorchOn));
   cfTgl.addEventListener('click',         () => setCF(!isCF));
   cfColorBtn.addEventListener('click',    (e) => { e.stopPropagation(); toggleCFPopup(); });
@@ -3534,12 +3621,14 @@ function bindControls() {
   function reZeroSensor(fx) {
     if (snsrOn[fx] !== 'mse') snsrNeedsZero[fx] = true;
   }
-  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; reZeroSensor('hue'); } applyFunFilters(); saveSettings(); });
-  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; reZeroSensor('sat'); } applyFunFilters(); saveSettings(); });
-  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; reZeroSensor('bri'); } applyFunFilters(); saveSettings(); });
-  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); saveSettings(); });
-  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); saveSettings(); });
-  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); saveSettings(); });
+  let _fxSaveTimer = 0;
+  function _fxSliderSave() { clearTimeout(_fxSaveTimer); _fxSaveTimer = setTimeout(saveSettings, 400); }
+  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; _invalidateFxFilter(); if (snsrOn.hue) { snsrBaseline.hue = funHueVal; reZeroSensor('hue'); } applyFunFilters(); _fxSliderSave(); });
+  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; _invalidateFxFilter(); if (snsrOn.sat) { snsrBaseline.sat = funSatVal; reZeroSensor('sat'); } applyFunFilters(); _fxSliderSave(); });
+  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; _invalidateFxFilter(); if (snsrOn.bri) { snsrBaseline.bri = funBriVal; reZeroSensor('bri'); } applyFunFilters(); _fxSliderSave(); });
+  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; _invalidateFxFilter(); if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); _fxSliderSave(); });
+  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); _fxSliderSave(); });
+  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); _fxSliderSave(); });
   funSection.addEventListener('click', e => {
     const fxRow = e.target.closest('.fx-row');
     const fx = fxRow?.querySelector('.snsr-row')?.dataset.fx;
