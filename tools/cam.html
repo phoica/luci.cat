@@ -2045,6 +2045,9 @@ function init() {
   updateReviewModeBtn();
   toggleControls(); // start with UI docked
   if (!navigator.mediaDevices?.getUserMedia) showError(t('apiNotSupported'));
+  // Seed viewport cache so renderFxOverlay doesn't spin on first frames
+  const _vr = viewport.getBoundingClientRect();
+  _vpW = Math.round(_vr.width); _vpH = Math.round(_vr.height);
 }
 window.addEventListener('beforeunload', () => {
   stream?.getTracks().forEach(t => t.stop());
@@ -2136,9 +2139,13 @@ function pct(slider) {
 }
 
 // ── Fun FX ────────────────────────────────────────────────────────────────
+let _fxFilterCache = '';
 function fxFilter() {
-  return `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%) contrast(${funConVal}%)`;
+  if (!_fxFilterCache)
+    _fxFilterCache = `hue-rotate(${funHueVal}deg) saturate(${funSatVal}%) brightness(${funBriVal}%) contrast(${funConVal}%)`;
+  return _fxFilterCache;
 }
+function _invalidateFxFilter() { _fxFilterCache = ''; }
 
 // Offscreen canvases for the canvas-2D fxCanvas preview pipeline
 const _fxTmp = document.createElement('canvas');
@@ -2146,6 +2153,7 @@ const _fxTmpCtx = _fxTmp.getContext('2d', { willReadFrequently: true });
 const _pxlTmp = document.createElement('canvas');
 const _pxlTmpCtx = _pxlTmp.getContext('2d');
 let fxRafId = null;
+let _vpW = 0, _vpH = 0; // cached viewport pixel size, updated by ResizeObserver
 let _abrSrcBuf = null; // pre-allocated pixel buffer for chromatic aberration
 
 function applyFunFilters() {
@@ -2192,8 +2200,7 @@ function renderFxOverlay() {
   if (fxCanvas.style.display === 'none') { fxRafId = null; return; }
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (!vw || !vh) { fxRafId = requestAnimationFrame(renderFxOverlay); return; }
-  const vp = viewport.getBoundingClientRect();
-  const cw = Math.round(vp.width), ch = Math.round(vp.height);
+  const cw = _vpW, ch = _vpH;
   if (!cw || !ch) { fxRafId = requestAnimationFrame(renderFxOverlay); return; }
   if (fxCanvas.width !== cw || fxCanvas.height !== ch) { fxCanvas.width = cw; fxCanvas.height = ch; }
   if (_fxTmp.width !== cw || _fxTmp.height !== ch) { _fxTmp.width = cw; _fxTmp.height = ch; }
@@ -2247,10 +2254,10 @@ function renderFxOverlay() {
 
 const FX_SLIDERS = { hue: () => funHueSldr, sat: () => funSatSldr, bri: () => funBriSldr, con: () => funConSldr, abr: () => funAbrSldr, pxl: () => funPxlSldr };
 function setFxVal(fx, val) {
-  if (fx === 'hue') funHueVal = val;
-  else if (fx === 'sat') funSatVal = val;
-  else if (fx === 'bri') funBriVal = val;
-  else if (fx === 'con') funConVal = val;
+  if (fx === 'hue') { funHueVal = val; _invalidateFxFilter(); }
+  else if (fx === 'sat') { funSatVal = val; _invalidateFxFilter(); }
+  else if (fx === 'bri') { funBriVal = val; _invalidateFxFilter(); }
+  else if (fx === 'con') { funConVal = val; _invalidateFxFilter(); }
   else if (fx === 'abr') funAbrVal = val;
   else if (fx === 'pxl') funPxlVal = val;
   FX_SLIDERS[fx]().value = val;
@@ -2389,18 +2396,25 @@ function onMotion(e) {
   });
   if (changed) applyFunFilters();
 }
+let _msePendingX = -1;
 function onMouseMove(e) {
-  let changed = false;
-  Object.keys(snsrOn).forEach(fx => {
-    if (snsrOn[fx] !== 'mse') return;
-    const [min, max] = FX_RANGE[fx];
-    const cx = (window.innerWidth || 400) / 2;
-    const t = 1 - Math.min(1, Math.abs(e.clientX - cx) / cx); // 1 at center, 0 at edges
-    const r = fxApply(min + t * (max - min), fx);
-    const val = fx === 'abr' ? +r.toFixed(1) : Math.round(r);
-    setFxVal(fx, val); changed = true;
+  _msePendingX = e.clientX;
+  if (_msePendingX < 0) return;
+  requestAnimationFrame(() => {
+    if (_msePendingX < 0) return;
+    const clientX = _msePendingX; _msePendingX = -1;
+    let changed = false;
+    Object.keys(snsrOn).forEach(fx => {
+      if (snsrOn[fx] !== 'mse') return;
+      const [min, max] = FX_RANGE[fx];
+      const cx = (window.innerWidth || 400) / 2;
+      const t = 1 - Math.min(1, Math.abs(clientX - cx) / cx);
+      const r = fxApply(min + t * (max - min), fx);
+      const val = fx === 'abr' ? +r.toFixed(1) : Math.round(r);
+      setFxVal(fx, val); changed = true;
+    });
+    if (changed) applyFunFilters();
   });
-  if (changed) applyFunFilters();
 }
 
 function onMicFrame() {
@@ -2524,8 +2538,8 @@ async function saveBlobsBatch(items) {
 // ── Freeze frame (prevents white flash on camera restart) ──────────────────
 let _freezeHideTimer = null;
 function captureFreeze() {
-  const vp = viewport.getBoundingClientRect();
-  const cw = Math.round(vp.width), ch = Math.round(vp.height);
+  const cw = _vpW || Math.round(viewport.getBoundingClientRect().width);
+  const ch = _vpH || Math.round(viewport.getBoundingClientRect().height);
   if (!cw || !ch) return;
   freezeCanvas.width = cw; freezeCanvas.height = ch;
   if (fxCanvas.style.display !== 'none') {
@@ -3490,7 +3504,11 @@ function bindControls() {
 
   mirrorTgl.addEventListener('click',     () => setMirror(!isMirrored));
   rotateTgl.addEventListener('click',     () => setCamRotation((camRotation + 90) % 360));
-  new ResizeObserver(() => applyPreviewTransform()).observe(viewport);
+  new ResizeObserver(entries => {
+    const e = entries[0]?.contentRect;
+    if (e) { _vpW = Math.round(e.width); _vpH = Math.round(e.height); }
+    applyPreviewTransform();
+  }).observe(viewport);
   torchTgl.addEventListener('click',      () => setTorch(!isTorchOn));
   cfTgl.addEventListener('click',         () => setCF(!isCF));
   cfColorBtn.addEventListener('click',    (e) => { e.stopPropagation(); toggleCFPopup(); });
@@ -3534,12 +3552,14 @@ function bindControls() {
   function reZeroSensor(fx) {
     if (snsrOn[fx] !== 'mse') snsrNeedsZero[fx] = true;
   }
-  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; if (snsrOn.hue) { snsrBaseline.hue = funHueVal; reZeroSensor('hue'); } applyFunFilters(); saveSettings(); });
-  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; if (snsrOn.sat) { snsrBaseline.sat = funSatVal; reZeroSensor('sat'); } applyFunFilters(); saveSettings(); });
-  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; if (snsrOn.bri) { snsrBaseline.bri = funBriVal; reZeroSensor('bri'); } applyFunFilters(); saveSettings(); });
-  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); saveSettings(); });
-  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); saveSettings(); });
-  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); saveSettings(); });
+  let _fxSaveTimer = 0;
+  function _fxSliderSave() { clearTimeout(_fxSaveTimer); _fxSaveTimer = setTimeout(saveSettings, 400); }
+  funHueSldr.addEventListener('input', () => { funHueVal = +funHueSldr.value; _invalidateFxFilter(); if (snsrOn.hue) { snsrBaseline.hue = funHueVal; reZeroSensor('hue'); } applyFunFilters(); _fxSliderSave(); });
+  funSatSldr.addEventListener('input', () => { funSatVal = +funSatSldr.value; _invalidateFxFilter(); if (snsrOn.sat) { snsrBaseline.sat = funSatVal; reZeroSensor('sat'); } applyFunFilters(); _fxSliderSave(); });
+  funBriSldr.addEventListener('input', () => { funBriVal = +funBriSldr.value; _invalidateFxFilter(); if (snsrOn.bri) { snsrBaseline.bri = funBriVal; reZeroSensor('bri'); } applyFunFilters(); _fxSliderSave(); });
+  funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; _invalidateFxFilter(); if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); _fxSliderSave(); });
+  funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); _fxSliderSave(); });
+  funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); _fxSliderSave(); });
   funSection.addEventListener('click', e => {
     const fxRow = e.target.closest('.fx-row');
     const fx = fxRow?.querySelector('.snsr-row')?.dataset.fx;
