@@ -2250,6 +2250,10 @@ function renderFxOverlay() {
     else drawVideoRotated(ctx, preview, sx, sy, sw, sh, cw, ch);
   }
 
+  // Clear fxCanvas before each composite so transparent bar pixels from a previous
+  // rotation don't linger (source-over compositing doesn't overwrite with transparency).
+  fxCtx.clearRect(0, 0, cw, ch);
+
   if (glFx) {
     // WebGL path: draw raw frame to temp, then single shader pass for all 6 FX
     _fxTmpCtx.filter = 'none';
