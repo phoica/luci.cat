@@ -2168,7 +2168,9 @@ function applyFunFilters() {
   const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
   // Use WebGL overlay whenever abr/pxl are active, OR when on a platform where
   // canvas 2D filter doesn't work (iOS < 18) and there are colour FX to apply.
-  const needOverlay = funAbrVal > 0 || funPxlVal > 1 || (!CTX_FILTER_OK && glFx && hasColorFx);
+  // In free mode, rotation is drawn by the canvas (CSS transform is skipped to avoid overflow).
+  const needOverlay = (currentRatio === 'free' && camRotation !== 0)
+    || funAbrVal > 0 || funPxlVal > 1 || (!CTX_FILTER_OK && glFx && hasColorFx);
   if (needOverlay) {
     preview.style.filter = 'none'; // fxCanvas (z-index 2) covers preview; keep it visible for drawImage
     fxCanvas.style.display = '';
@@ -2923,12 +2925,16 @@ async function setTorch(on) {
 function applyPreviewTransform() {
   const parts = [];
   if (isMirrored) parts.push('scaleX(-1)');
-  if (camRotation !== 0) parts.push(`rotate(${camRotation}deg)`);
-  if (camRotation === 90 || camRotation === 270) {
-    const vp = viewport.getBoundingClientRect();
-    if (vp.width > 0 && vp.height > 0) {
-      const s = (Math.max(vp.width, vp.height) / Math.min(vp.width, vp.height)).toFixed(4);
-      parts.push(`scale(${s})`);
+  // In free mode, rotation is handled by the canvas (drawVideoContained).
+  // Applying rotate+scale here overflows the container, so skip it.
+  if (currentRatio !== 'free') {
+    if (camRotation !== 0) parts.push(`rotate(${camRotation}deg)`);
+    if (camRotation === 90 || camRotation === 270) {
+      const vp = viewport.getBoundingClientRect();
+      if (vp.width > 0 && vp.height > 0) {
+        const s = (Math.max(vp.width, vp.height) / Math.min(vp.width, vp.height)).toFixed(4);
+        parts.push(`scale(${s})`);
+      }
     }
   }
   preview.style.transform = parts.length ? parts.join(' ') : '';
@@ -2944,6 +2950,7 @@ function setCamRotation(deg, save = true) {
   camRotation = deg;
   rotateTgl.classList.toggle('on', deg !== 0);
   applyPreviewTransform();
+  applyFunFilters();
   if (save) saveSettings();
 }
 
@@ -3034,6 +3041,8 @@ function setRatio(ratio, save = true) {
   resetCrop();
   camPanX = 0.5; camPanY = 0.5;
   applyPan(false);
+  applyPreviewTransform();
+  applyFunFilters();
   if (save) saveSettings();
 }
 
