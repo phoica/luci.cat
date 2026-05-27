@@ -115,6 +115,7 @@ body.controls-open .viewport-wrap{transform:translateY(-11%)}
 .viewport:not([data-ratio="free"]){width:auto;height:auto;max-width:100%;max-height:100%}
 
 #preview{width:100%;height:100%;object-fit:cover;display:block;background:var(--bg)}
+.viewport[data-ratio="free"] #preview{object-fit:contain}
 #preview.mirrored{transform:scaleX(-1)}
 
 /* Color frame: persistent border on viewport */
@@ -2208,6 +2209,25 @@ function computeVideoCrop(vw, vh, outW, outH) {
   return { sx, sy, sw, sh };
 }
 
+// Draw the full video frame contained (letterboxed) within outW×outH, centered.
+function drawVideoContained(ctx, src, vw, vh, outW, outH) {
+  const needSwap = camRotation === 90 || camRotation === 270;
+  const srcAR = needSwap ? vh / vw : vw / vh;
+  const dstAR = outW / outH;
+  let fitW, fitH;
+  if (srcAR > dstAR) { fitW = outW; fitH = outW / srcAR; }
+  else               { fitH = outH; fitW = outH * srcAR; }
+  ctx.clearRect(0, 0, outW, outH);
+  ctx.save();
+  ctx.translate(outW / 2, outH / 2);
+  ctx.rotate(camRotation * Math.PI / 180);
+  if (isMirrored) ctx.scale(-1, 1);
+  const dw = needSwap ? fitH : fitW;
+  const dh = needSwap ? fitW : fitH;
+  ctx.drawImage(src, 0, 0, vw, vh, -dw / 2, -dh / 2, dw, dh);
+  ctx.restore();
+}
+
 function renderFxOverlay() {
   if (fxCanvas.style.display === 'none') { fxRafId = null; return; }
   const vw = preview.videoWidth, vh = preview.videoHeight;
@@ -2217,19 +2237,26 @@ function renderFxOverlay() {
   if (fxCanvas.width !== cw || fxCanvas.height !== ch) { fxCanvas.width = cw; fxCanvas.height = ch; }
   if (_fxTmp.width !== cw || _fxTmp.height !== ch) { _fxTmp.width = cw; _fxTmp.height = ch; }
 
-  const { sx, sy, sw, sh } = computeVideoCrop(vw, vh, cw, ch);
+  const isFree = currentRatio === 'free';
+  let sx, sy, sw, sh;
+  if (!isFree) ({ sx, sy, sw, sh } = computeVideoCrop(vw, vh, cw, ch));
+
+  function _drawFrameTo(ctx) {
+    if (isFree) drawVideoContained(ctx, preview, vw, vh, cw, ch);
+    else drawVideoRotated(ctx, preview, sx, sy, sw, sh, cw, ch);
+  }
 
   if (glFx) {
     // WebGL path: draw raw frame to temp, then single shader pass for all 6 FX
     _fxTmpCtx.filter = 'none';
-    drawVideoRotated(_fxTmpCtx, preview, sx, sy, sw, sh, cw, ch);
+    _drawFrameTo(_fxTmpCtx);
     glFx.apply(_fxTmp, cw, ch);
     fxCtx.drawImage(glFx.canvas, 0, 0);
   } else {
     // Canvas 2D fallback: CSS filter for colour FX, pixel loops for abr/pxl
     const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
     _fxTmpCtx.filter = hasColorFx && CTX_FILTER_OK ? fxFilter() : 'none';
-    drawVideoRotated(_fxTmpCtx, preview, sx, sy, sw, sh, cw, ch);
+    _drawFrameTo(_fxTmpCtx);
     _fxTmpCtx.filter = 'none';
     if (funPxlVal > 1) {
       const bs = Math.round(funPxlVal);
@@ -2559,8 +2586,12 @@ function captureFreeze() {
   } else {
     const vw = preview.videoWidth, vh = preview.videoHeight;
     if (!vw || !vh) return;
-    const { sx, sy, sw, sh } = computeVideoCrop(vw, vh, cw, ch);
-    drawVideoRotated(freezeCtx, preview, sx, sy, sw, sh, cw, ch);
+    if (currentRatio === 'free') {
+      drawVideoContained(freezeCtx, preview, vw, vh, cw, ch);
+    } else {
+      const { sx, sy, sw, sh } = computeVideoCrop(vw, vh, cw, ch);
+      drawVideoRotated(freezeCtx, preview, sx, sy, sw, sh, cw, ch);
+    }
   }
   clearTimeout(_freezeHideTimer);
   freezeCanvas.style.opacity = '1';
