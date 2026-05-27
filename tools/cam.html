@@ -503,6 +503,39 @@ body[data-theme="light"] .tgl.on{color:#fff}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ── About overlay ── */
+.about-overlay{
+  position:fixed;inset:0;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.about-overlay.show{opacity:1;pointer-events:auto}
+.about-card{
+  display:flex;flex-direction:column;gap:14px;
+  background:rgba(1,14,26,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(0,200,232,.22);
+  padding:28px 32px;border-radius:3px;max-width:320px;width:90%;
+  clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);
+}
+.about-card h2{
+  font-family:'Silkscreen',monospace;font-size:15px;font-weight:400;letter-spacing:2px;
+  background:linear-gradient(110deg,var(--accent) 30%,var(--cx));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin:0;
+}
+.about-card p{
+  font-size:12px;line-height:1.65;color:rgba(200,230,245,.75);
+  font-family:'JetBrains Mono',monospace;margin:0;
+}
+.about-card .about-dismiss{
+  align-self:flex-end;font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:1px;text-transform:uppercase;color:rgba(0,200,232,.5);
+  background:none;border:1px solid rgba(0,200,232,.18);border-radius:2px;
+  padding:4px 10px;cursor:pointer;transition:all .15s;
+}
+.about-card .about-dismiss:hover{color:var(--cx);border-color:var(--cx)}
+
 /* ── Crop UI (free mode only) ── */
 .crop-ui{position:absolute;inset:0;z-index:4;display:none;pointer-events:none}
 .viewport[data-ratio="free"] .crop-ui{display:block}
@@ -1126,6 +1159,13 @@ body[data-theme="light"] .gallery-hdr-title{
 
 <div id="edgeFlash"></div>
 <div class="toast" id="toast"></div>
+<div class="about-overlay" id="aboutOverlay">
+  <div class="about-card">
+    <h2>CAM — luci.cat</h2>
+    <p>This software collects 0 data.<br>I do not want to know anything about you.</p>
+    <button class="about-dismiss" id="aboutDismiss">Close</button>
+  </div>
+</div>
 <canvas id="captureCanvas" style="display:none"></canvas>
 <a id="dlLink" style="display:none"></a>
 
@@ -1462,7 +1502,9 @@ const reloadCamBtn = $('reloadCamBtn');
 const fxResetBtn  = $('fxResetBtn');
 const fxCanvas    = $('fxCanvas');
 const fxCtx       = fxCanvas.getContext('2d', { willReadFrequently: true });
-const logoTitle   = document.querySelector('.header h1');
+const logoTitle    = document.querySelector('.header h1');
+const aboutOverlay = $('aboutOverlay');
+const aboutDismiss = $('aboutDismiss');
 const camSel       = $('cameraSelector');
 const zoomRow      = $('zoomRow');
 const zoomSlider   = $('zoomSlider');
@@ -3583,6 +3625,8 @@ function bindControls() {
     if (!recordBtn.classList.contains('off')) isRecording ? stopRecording() : startRecording();
   });
 
+  logoTitle.addEventListener('click',     () => aboutOverlay.classList.add('show'));
+  aboutOverlay.addEventListener('click',  (e) => { if (e.target === aboutOverlay || e.target === aboutDismiss) aboutOverlay.classList.remove('show'); });
   mirrorTgl.addEventListener('click',     () => setMirror(!isMirrored));
   rotateTgl.addEventListener('click',     () => setCamRotation((camRotation + 90) % 360));
   new ResizeObserver(entries => {
