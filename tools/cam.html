@@ -2172,11 +2172,13 @@ function applyFunFilters() {
   const needOverlay = (currentRatio === 'free' && camRotation !== 0)
     || funAbrVal > 0 || funPxlVal > 1 || (!CTX_FILTER_OK && glFx && hasColorFx);
   if (needOverlay) {
-    preview.style.filter = 'none'; // fxCanvas (z-index 2) covers preview; keep it visible for drawImage
+    preview.style.filter = 'none';
+    preview.style.visibility = 'hidden'; // canvas covers it; keep element alive for drawImage
     fxCanvas.style.display = '';
     if (!fxRafId) fxRafId = requestAnimationFrame(renderFxOverlay);
   } else {
     preview.style.filter = fxFilter();
+    preview.style.visibility = '';
     fxCanvas.style.display = 'none';
     if (fxRafId) { cancelAnimationFrame(fxRafId); fxRafId = null; }
   }
