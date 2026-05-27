@@ -2096,7 +2096,7 @@ function loadSettings() {
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
-    if (['mic','brw','off'].includes(s.recAudioSrc)) { recAudioSrc = s.recAudioSrc; }
+    // recAudioSrc is intentionally not persisted — always reset to 'mic' on load
     if (['fhd','hd','sd','custom'].includes(s.recQuality)) setQuality(s.recQuality, false, false);
     if (typeof s.recQualW === 'number') { recQualW = s.recQualW; customQualWInput.value = recQualW; }
     if (typeof s.recQualH === 'number') { recQualH = s.recQualH; customQualHInput.value = recQualH; }
@@ -2123,7 +2123,7 @@ function saveSettings() {
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
-      recFps, recAudioSrc, recQuality, recQualW, recQualH, fxInvert, fxBounce,
+      recFps, recQuality, recQualW, recQualH, fxInvert, fxBounce,
     }));
   } catch {}
 }
