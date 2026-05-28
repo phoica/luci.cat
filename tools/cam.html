@@ -1013,6 +1013,11 @@ body[data-theme="light"] .gallery-hdr-title{
         <!-- FX controls -->
         <div id="funSection" style="display:flex;flex-direction:column;gap:8px">
           <div class="sec">✦ FX<button class="fx-rst-btn" id="fxResetBtn">RESET</button></div>
+          <div class="crow ctrl-bump">
+            <span class="clbl"><i class="cdot" style="--d:#00c8e8"></i><span>Sens</span></span>
+            <input type="range" class="fun-slider" id="micSensSldr" min="1" max="100" value="50" style="background:linear-gradient(to right,#0a4a5a,#00c8e8)">
+            <span class="cval" id="micSensVal">50</span>
+          </div>
           <div class="fx-row ctrl-bump">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
@@ -1417,7 +1422,7 @@ let fxBounce  = { hue: false, sat: false, bri: false, con: false, abr: false, px
 let orientPermGranted = false, motionPermGranted = false;
 let micPermGranted = false;
 let micStream = null, micAudioCtx = null, micAnalyser = null, micBuf = null, micFreqBuf = null;
-let micRafId = null, micLevel = 0, micBg = 0;
+let micRafId = null, micLevel = 0, micBg = 0, micSens = 50;
 let leMode         = 'average';
 let leCapturing    = false;
 let leInterval     = null;
@@ -1500,6 +1505,8 @@ const funBriSldr  = $('funBriSldr');
 const funConSldr  = $('funConSldr');
 const funAbrSldr  = $('funAbrSldr');
 const funPxlSldr  = $('funPxlSldr');
+const micSensSldr = $('micSensSldr');
+const micSensVal  = $('micSensVal');
 const reloadCamBtn = $('reloadCamBtn');
 const fxResetBtn  = $('fxResetBtn');
 const fxCanvas    = $('fxCanvas');
@@ -2128,6 +2135,9 @@ function loadSettings() {
     if (typeof s.soundEnabled  === 'boolean') soundEnabled  = s.soundEnabled;
     if (typeof s.reviewModeOn  === 'boolean') reviewModeOn  = s.reviewModeOn;
     if ([24,30,60].includes(s.recFps)) { recFps = s.recFps; }
+    if (typeof s.micSens === 'number' && s.micSens >= 1 && s.micSens <= 100) {
+      micSens = s.micSens; micSensSldr.value = micSens; micSensVal.textContent = micSens;
+    }
     if (['fhd','hd','sd','custom'].includes(s.recQuality)) setQuality(s.recQuality, false, false);
     if (typeof s.recQualW === 'number') { recQualW = s.recQualW; customQualWInput.value = recQualW; }
     if (typeof s.recQualH === 'number') { recQualH = s.recQualH; customQualHInput.value = recQualH; }
@@ -2154,7 +2164,7 @@ function saveSettings() {
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
-      recFps, recQuality, recQualW, recQualH, fxInvert, fxBounce,
+      recFps, recQuality, recQualW, recQualH, micSens, fxInvert, fxBounce,
     }));
   } catch {}
 }
@@ -2520,9 +2530,12 @@ function onMicFrame() {
 
   // Spike = how much louder is THIS frame vs the settled background.
   // Only fires on sudden jumps (drum hits, transients) — sustained sound doesn't trigger.
-  const spike = Math.max(0, combinedPeak - micBg * 1.25);
+  const t = (micSens - 1) / 99;
+  const threshold = 1.6 - t * 0.7;  // 1.6 (least) → 0.9 (most sensitive)
+  const gain      = 8   + t * 40;   //   8 (least) → 48  (most sensitive)
+  const spike = Math.max(0, combinedPeak - micBg * threshold);
 
-  const raw = Math.min(1, spike * 28);
+  const raw = Math.min(1, spike * gain);
 
   // Instant attack, very fast decay → sharp punch-and-release per hit
   micLevel = Math.max(raw, micLevel * 0.45);
@@ -3711,6 +3724,7 @@ function bindControls() {
   funConSldr.addEventListener('input', () => { funConVal = +funConSldr.value; _invalidateFxFilter(); if (snsrOn.con) { snsrBaseline.con = funConVal; reZeroSensor('con'); } applyFunFilters(); _fxSliderSave(); });
   funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); _fxSliderSave(); });
   funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); _fxSliderSave(); });
+  micSensSldr.addEventListener('input', () => { micSens = +micSensSldr.value; micSensVal.textContent = micSens; saveSettings(); });
   funSection.addEventListener('click', e => {
     const fxRow = e.target.closest('.fx-row');
     const fx = fxRow?.querySelector('.snsr-row')?.dataset.fx;
