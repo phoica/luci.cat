@@ -2520,9 +2520,9 @@ function onMicFrame() {
 
   // Spike = how much louder is THIS frame vs the settled background.
   // Only fires on sudden jumps (drum hits, transients) — sustained sound doesn't trigger.
-  const spike = Math.max(0, combinedPeak - micBg * 1.6);
+  const spike = Math.max(0, combinedPeak - micBg * 1.25);
 
-  const raw = Math.min(1, spike * 18);
+  const raw = Math.min(1, spike * 28);
 
   // Instant attack, very fast decay → sharp punch-and-release per hit
   micLevel = Math.max(raw, micLevel * 0.45);
