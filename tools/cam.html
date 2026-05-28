@@ -2548,7 +2548,7 @@ function onMicFrame() {
   const raw = Math.min(1, spike * gain);
 
   // Instant attack, variable decay — Hold slider controls how long the level lingers
-  const decayMult = 0.35 + (micDecay - 1) / 99 * 0.642; // 0.35 (snappy) → 0.992 (very slow)
+  const decayMult = 0.35 + (micDecay - 1) / 99 * 0.6477; // 0.35 (snappy) → 0.9977 (~5s half-life)
   micLevel = Math.max(raw, micLevel * decayMult);
   let changed = false;
   Object.keys(snsrOn).forEach(fx => {
