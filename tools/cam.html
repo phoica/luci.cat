@@ -1416,7 +1416,7 @@ let fxInvert  = { hue: false, sat: false, bri: false, con: false, abr: false, px
 let fxBounce  = { hue: false, sat: false, bri: false, con: false, abr: false, pxl: false };
 let orientPermGranted = false, motionPermGranted = false;
 let micPermGranted = false;
-let micStream = null, micAudioCtx = null, micAnalyser = null, micBuf = null;
+let micStream = null, micAudioCtx = null, micAnalyser = null, micBuf = null, micFreqBuf = null;
 let micRafId = null, micLevel = 0;
 let leMode         = 'average';
 let leCapturing    = false;
@@ -2407,7 +2407,9 @@ async function toggleSensor(fx, sensor) {
         micAudioCtx = new AC();
         micAnalyser = micAudioCtx.createAnalyser();
         micAnalyser.fftSize = 256;
+        micAnalyser.smoothingTimeConstant = 0; // no built-in averaging — we want raw transients
         micBuf = new Uint8Array(micAnalyser.fftSize);
+        micFreqBuf = new Uint8Array(micAnalyser.frequencyBinCount);
         micAudioCtx.createMediaStreamSource(micStream).connect(micAnalyser);
         micPermGranted = true;
       } catch { showToast('Microphone unavailable'); return; }
@@ -2495,13 +2497,33 @@ function onMouseMove(e) {
 
 function onMicFrame() {
   if (!micAnalyser || !Object.values(snsrOn).some(s => s === 'mic')) { micRafId = null; micLevel = 0; return; }
+
+  // Time-domain peak (catches transients RMS would smear)
   micAnalyser.getByteTimeDomainData(micBuf);
-  // RMS of waveform → amplitude 0..1
-  let sum = 0;
-  for (let i = 0; i < micBuf.length; i++) { const v = (micBuf[i] - 128) / 128; sum += v * v; }
-  const rms = Math.sqrt(sum / micBuf.length);
-  // Fast attack, slow decay — makes effects punch on loud sounds and fade smoothly
-  micLevel = Math.max(Math.min(1, rms * 6), micLevel * 0.88);
+  let peak = 0;
+  for (let i = 0; i < micBuf.length; i++) {
+    const v = Math.abs(micBuf[i] - 128) / 128;
+    if (v > peak) peak = v;
+  }
+
+  // Sub-bass energy (60-180 Hz) — kick drum emphasis
+  micAnalyser.getByteFrequencyData(micFreqBuf);
+  const binHz = (micAudioCtx.sampleRate / 2) / micFreqBuf.length;
+  const b0 = Math.max(0, Math.floor(60  / binHz));
+  const b1 = Math.min(micFreqBuf.length - 1, Math.ceil(180 / binHz));
+  let bassMax = 0;
+  for (let i = b0; i <= b1; i++) if (micFreqBuf[i] > bassMax) bassMax = micFreqBuf[i];
+  const bass = bassMax / 255;
+
+  // Gate: silence the noise floor; boost the rest hard
+  const GATE = 0.04;
+  const raw = Math.min(1, Math.max(0,
+    (peak  > GATE ? (peak  - GATE) * 14 : 0) +
+    (bass  > GATE ? (bass  - GATE) *  6 : 0)
+  ));
+
+  // Instant attack, very fast decay → each drum hit is a sharp spike
+  micLevel = Math.max(raw, micLevel * 0.45);
   let changed = false;
   Object.keys(snsrOn).forEach(fx => {
     if (snsrOn[fx] !== 'mic') return;
