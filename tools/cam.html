@@ -1018,6 +1018,11 @@ body[data-theme="light"] .gallery-hdr-title{
             <input type="range" class="fun-slider" id="micSensSldr" min="1" max="100" value="50" style="background:linear-gradient(to right,#0a4a5a,#00c8e8)">
             <span class="cval" id="micSensVal">50</span>
           </div>
+          <div class="crow">
+            <span class="clbl"><i class="cdot" style="--d:#00c8e8"></i><span>Hold</span></span>
+            <input type="range" class="fun-slider" id="micDecaySldr" min="1" max="100" value="50" style="background:linear-gradient(to right,#0a4a5a,#00c8e8)">
+            <span class="cval" id="micDecayVal">50</span>
+          </div>
           <div class="fx-row ctrl-bump">
             <div class="crow">
               <span class="clbl"><i class="cdot" style="--d:#f060e0"></i><span>Hue</span></span>
@@ -1422,7 +1427,7 @@ let fxBounce  = { hue: false, sat: false, bri: false, con: false, abr: false, px
 let orientPermGranted = false, motionPermGranted = false;
 let micPermGranted = false;
 let micStream = null, micAudioCtx = null, micAnalyser = null, micBuf = null, micFreqBuf = null;
-let micRafId = null, micLevel = 0, micBg = 0, micSens = 50;
+let micRafId = null, micLevel = 0, micBg = 0, micSens = 50, micDecay = 50;
 let leMode         = 'average';
 let leCapturing    = false;
 let leInterval     = null;
@@ -1505,8 +1510,10 @@ const funBriSldr  = $('funBriSldr');
 const funConSldr  = $('funConSldr');
 const funAbrSldr  = $('funAbrSldr');
 const funPxlSldr  = $('funPxlSldr');
-const micSensSldr = $('micSensSldr');
-const micSensVal  = $('micSensVal');
+const micSensSldr  = $('micSensSldr');
+const micSensVal   = $('micSensVal');
+const micDecaySldr = $('micDecaySldr');
+const micDecayVal  = $('micDecayVal');
 const reloadCamBtn = $('reloadCamBtn');
 const fxResetBtn  = $('fxResetBtn');
 const fxCanvas    = $('fxCanvas');
@@ -2138,6 +2145,9 @@ function loadSettings() {
     if (typeof s.micSens === 'number' && s.micSens >= 1 && s.micSens <= 100) {
       micSens = s.micSens; micSensSldr.value = micSens; micSensVal.textContent = micSens;
     }
+    if (typeof s.micDecay === 'number' && s.micDecay >= 1 && s.micDecay <= 100) {
+      micDecay = s.micDecay; micDecaySldr.value = micDecay; micDecayVal.textContent = micDecay;
+    }
     if (['fhd','hd','sd','custom'].includes(s.recQuality)) setQuality(s.recQuality, false, false);
     if (typeof s.recQualW === 'number') { recQualW = s.recQualW; customQualWInput.value = recQualW; }
     if (typeof s.recQualH === 'number') { recQualH = s.recQualH; customQualHInput.value = recQualH; }
@@ -2164,7 +2174,7 @@ function saveSettings() {
       cf: isCF, cfColor, leMode, lang: curLang, soundEnabled, reviewModeOn,
       funHue: funHueVal, funSat: funSatVal, funBri: funBriVal, funCon: funConVal,
       funAbr: funAbrVal, funPxl: funPxlVal,
-      recFps, recQuality, recQualW, recQualH, micSens, fxInvert, fxBounce,
+      recFps, recQuality, recQualW, recQualH, micSens, micDecay, fxInvert, fxBounce,
     }));
   } catch {}
 }
@@ -2537,8 +2547,9 @@ function onMicFrame() {
 
   const raw = Math.min(1, spike * gain);
 
-  // Instant attack, very fast decay → sharp punch-and-release per hit
-  micLevel = Math.max(raw, micLevel * 0.45);
+  // Instant attack, variable decay — Hold slider controls how long the level lingers
+  const decayMult = 0.35 + (micDecay - 1) / 99 * 0.57; // 0.35 (snappy) → 0.92 (slow)
+  micLevel = Math.max(raw, micLevel * decayMult);
   let changed = false;
   Object.keys(snsrOn).forEach(fx => {
     if (snsrOn[fx] !== 'mic') return;
@@ -3725,6 +3736,7 @@ function bindControls() {
   funAbrSldr.addEventListener('input', () => { funAbrVal = +funAbrSldr.value; if (snsrOn.abr) { snsrBaseline.abr = funAbrVal; reZeroSensor('abr'); } applyFunFilters(); _fxSliderSave(); });
   funPxlSldr.addEventListener('input', () => { funPxlVal = +funPxlSldr.value; if (snsrOn.pxl) { snsrBaseline.pxl = funPxlVal; reZeroSensor('pxl'); } applyFunFilters(); _fxSliderSave(); });
   micSensSldr.addEventListener('input', () => { micSens = +micSensSldr.value; micSensVal.textContent = micSens; saveSettings(); });
+  micDecaySldr.addEventListener('input', () => { micDecay = +micDecaySldr.value; micDecayVal.textContent = micDecay; saveSettings(); });
   funSection.addEventListener('click', e => {
     const fxRow = e.target.closest('.fx-row');
     const fx = fxRow?.querySelector('.snsr-row')?.dataset.fx;
