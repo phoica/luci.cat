@@ -2220,10 +2220,9 @@ let _abrSrcBuf = null; // pre-allocated pixel buffer for chromatic aberration
 
 function applyFunFilters() {
   const hasColorFx = funHueVal !== 0 || funSatVal !== 100 || funBriVal !== 100 || funConVal !== 100;
-  // Use WebGL overlay whenever abr/pxl are active, OR when on a platform where
-  // canvas 2D filter doesn't work (iOS < 18) and there are colour FX to apply.
-  // In free mode, rotation is drawn by the canvas (CSS transform is skipped to avoid overflow).
-  const needOverlay = (currentRatio === 'free' && camRotation !== 0)
+  // Use canvas overlay for any rotation (CSS transform leaves the original feed visible
+  // as a ghost behind the rotated element), plus abr/pxl FX and iOS colour FX fallback.
+  const needOverlay = camRotation !== 0
     || funAbrVal > 0 || funPxlVal > 1 || (!CTX_FILTER_OK && glFx && hasColorFx);
   if (needOverlay) {
     preview.style.filter = 'none';
