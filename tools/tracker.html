@@ -2652,6 +2652,15 @@ function confirmAddHormone(){pickHormoneFromModal(document.getElementById('hormo
 // ═══ DYNAMIC PANELS ═══
 function renderDosePanel(){
   const c=document.getElementById('dosePanel');
+  // Capture any in-progress input values so a med-tag click (which re-renders the whole panel)
+  // doesn't wipe whatever the user has already typed.
+  const capDay=document.getElementById('doseDateSelects_day')?.value;
+  const capMonth=document.getElementById('doseDateSelects_month')?.value;
+  const capYear=document.getElementById('doseDateSelects_year')?.value;
+  const capMg=document.getElementById('doseMg')?.value;
+  const capRecurEvery=document.getElementById('recurEvery')?.value;
+  const capRecurDur=document.getElementById('recurDur')?.value;
+  const capRecurDurUnit=document.getElementById('recurDurUnit')?.value;
   if(!medications.length){c.innerHTML=`<div style="color:var(--text-dim);padding:10px 0;font-size:14px">${t('selectMedFirst')}</div>`;return;}
   const u=getMedUnit(selectedMedId)||'mg';
   // Build HTML with recurring fields always present but hidden via CSS
@@ -2676,6 +2685,14 @@ function renderDosePanel(){
     tagRow.appendChild(tag);
   }
   renderDateSelects('doseDateSelects');
+  // Restore captured in-progress values
+  if(capDay){const e=document.getElementById('doseDateSelects_day');if(e)e.value=capDay;}
+  if(capMonth){const e=document.getElementById('doseDateSelects_month');if(e)e.value=capMonth;}
+  if(capYear){const e=document.getElementById('doseDateSelects_year');if(e)e.value=capYear;}
+  if(capMg!=null&&capMg!==''){const e=document.getElementById('doseMg');if(e)e.value=capMg;}
+  if(capRecurEvery){const e=document.getElementById('recurEvery');if(e)e.value=capRecurEvery;}
+  if(capRecurDur){const e=document.getElementById('recurDur');if(e)e.value=capRecurDur;}
+  if(capRecurDurUnit){const e=document.getElementById('recurDurUnit');if(e)e.value=capRecurDurUnit;}
 }
 function renderLabPanel(){
   const c=document.getElementById('labPanel');
