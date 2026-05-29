@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='UTF-8'>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101216">
+<title>Mood Tracker</title>
+<link rel="icon" type="image/png" href="websyteicon.png">
+<link rel="apple-touch-icon" href="websyteicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&family=Metamorphous&family=Cabin+Sketch:wght@400;700&family=Silkscreen:wght@400;700&family=Fascinate&display=swap" rel="stylesheet">
+<style>
+:root,body[data-theme="dark"]{--bg:#000000;--surface:#0c0f15;--surface2:#181d27;--surface3:#2a3142;--border:#525a6c;--border-hover:#7a8294;--text:#ffffff;--text-muted:#c4ccd8;--text-dim:#8a92a0;--accent:#ffb070;--accent-dim:rgba(255,176,112,.18);--accent-glow:rgba(255,176,112,.55);--danger:#ff8a8a;--radius:12px;--radius-sm:8px;--shadow:0 4px 28px rgba(0,0,0,.85);--pos:#4ade80;--pos-dim:rgba(74,222,128,.16);--neg:#f87171;--neg-dim:rgba(248,113,113,.16)}
+body[data-theme="dim"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#e89854;--accent-dim:rgba(232,152,84,.13);--accent-glow:rgba(232,152,84,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5);--pos:#4ade80;--pos-dim:rgba(74,222,128,.13);--neg:#f87171;--neg-dim:rgba(248,113,113,.13)}
+body[data-theme="light"]{--bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08);--pos:#16a34a;--pos-dim:rgba(22,163,74,.1);--neg:#dc2626;--neg-dim:rgba(220,38,38,.1)}
+body[data-theme="cottage"]{--bg:#f3eadb;--surface:#fbf6ec;--surface2:#ebe0cd;--surface3:#dfd2bb;--border:#c9b896;--border-hover:#a89377;--text:#3d2f22;--text-muted:#7a6450;--text-dim:#a89377;--accent:#c79090;--accent-dim:rgba(199,144,144,.14);--accent-glow:rgba(199,144,144,.28);--danger:#b56b5a;--radius:16px;--radius-sm:12px;--shadow:0 4px 20px rgba(120,85,45,.1),0 1px 3px rgba(120,85,45,.06);--pos:#6b9e6b;--pos-dim:rgba(107,158,107,.14);--neg:#c47070;--neg-dim:rgba(196,112,112,.14)}
+body[data-theme="evil"]{--bg:#08040a;--surface:#0e060c;--surface2:#180a14;--surface3:#22101c;--border:#3c1428;--border-hover:#5c1e3a;--text:#e8c0cc;--text-muted:#a87088;--text-dim:#6c3850;--accent:#dc2040;--accent-dim:rgba(220,32,64,.15);--accent-glow:rgba(220,32,64,.35);--danger:#ff2848;--radius:10px;--radius-sm:7px;--shadow:0 4px 30px rgba(220,0,40,.2);--pos:#a040c0;--pos-dim:rgba(160,64,192,.15);--neg:#dc2040;--neg-dim:rgba(220,32,64,.15)}
+body[data-theme="nonchalant"]{--bg:#1e2420;--surface:#262d28;--surface2:#2e3630;--surface3:#3a4238;--border:#3d4a3e;--border-hover:#556253;--text:#d4d9ce;--text-muted:#9aa696;--text-dim:#6b7668;--accent:#8fb380;--accent-dim:rgba(143,179,128,.14);--accent-glow:rgba(143,179,128,.25);--danger:#c78a6b;--radius:12px;--radius-sm:9px;--shadow:0 4px 20px rgba(20,30,20,.3);--pos:#8fb380;--pos-dim:rgba(143,179,128,.15);--neg:#c78a6b;--neg-dim:rgba(199,138,107,.15)}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:28px;line-height:1.6;font-size:17px;overflow-x:hidden}
+
+.header{display:flex;align-items:baseline;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.header h1{font-size:42px;font-weight:600;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),#a8c4e8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;line-height:1}
+body[data-theme="light"] .header h1{background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+body[data-theme="cottage"] .header h1{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:46px;background:linear-gradient(135deg,#c79090,#9caf88,#d4a574);-webkit-background-clip:text}
+body[data-theme="evil"] .header h1{font-family:'Metamorphous',serif;font-weight:400;letter-spacing:1px;font-size:42px;background:linear-gradient(135deg,#dc2040,#880020);-webkit-background-clip:text}
+body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-weight:400;font-size:42px;background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text}
+body[data-theme="dark"] .header h1,:root .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#ffb070,#ffd29c);-webkit-background-clip:text}
+body[data-theme="dim"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+
+.header .by{font-size:16px;color:var(--text-dim);white-space:nowrap;align-self:baseline}
+.header-spacer{flex:1}
+
+.profile-bar{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:22px;flex-wrap:wrap}
+.profile-bar-label{font-size:clamp(11px,1.2vw,14px);text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);font-weight:500;white-space:nowrap}
+.profile-tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.profile-tab{display:flex;align-items:center;gap:8px;padding:6px 14px;border-radius:32px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:15px;cursor:pointer;transition:all .2s;white-space:nowrap;position:relative}
+.profile-tab:hover{background:var(--surface3);color:var(--text);border-color:var(--border-hover)}
+.profile-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--text);font-weight:500}
+.tab-dot{width:10px;height:10px;border-radius:50%;background:var(--text-dim);flex-shrink:0}
+.profile-tab.active .tab-dot{background:var(--accent);box-shadow:0 0 6px var(--accent-glow)}
+.tab-menu-btn{width:22px;height:22px;border-radius:50%;border:none;background:var(--surface3);color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:all .15s;flex-shrink:0}
+.tab-menu-btn svg{width:12px;height:12px}
+.tab-menu-btn:hover{background:var(--accent);color:#fff}
+.ctx-menu{position:absolute;top:calc(100% + 4px);left:0;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:4px 0;min-width:150px;display:none}
+.ctx-menu.open{display:block}
+.ctx-menu-item{display:block;width:100%;padding:9px 18px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:15px;text-align:left;cursor:pointer}
+.ctx-menu-item:hover{background:var(--surface2);color:var(--text)}
+.ctx-menu-item.danger:hover{color:var(--danger)}
+.profile-actions{display:flex;gap:8px;align-items:center}
+
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn:hover{border-color:var(--border-hover);color:var(--text);background:var(--surface3)}
+.btn-accent{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.btn-accent:hover{background:var(--accent);color:#fff}
+.btn-sm{padding:5px 12px;font-size:13px}
+.btn svg{width:16px;height:16px}
+
+.panels-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:0}
+@media(max-width:900px){.panels-grid{grid-template-columns:1fr}}
+.panel{padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.panel-title{font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:8px}
+.panel-title::before{content:'';width:3px;height:15px;border-radius:2px;background:var(--accent);flex-shrink:0}
+
+/* Emoji picker */
+.emoji-picker-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px 8px;margin-bottom:10px}
+.emoji-row{display:flex;align-items:flex-end;justify-content:center;gap:1px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:14px}
+.emoji-btn{font-size:20px;line-height:1;cursor:pointer;border:2px solid transparent;border-radius:50%;padding:4px;background:transparent;transition:transform .15s cubic-bezier(.34,1.56,.64,1),background .12s,border-color .12s,box-shadow .12s;user-select:none;-webkit-user-select:none;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:38px;height:38px;position:relative}
+.emoji-btn:hover{transform:scale(1.55) translateY(-7px);z-index:2}
+.emoji-btn.selected{transform:scale(1.6) translateY(-9px);border-color:var(--accent);box-shadow:0 0 14px var(--accent-glow);z-index:3}
+.emoji-btn.neg:hover{background:var(--neg-dim);border-color:var(--neg)}
+.emoji-btn.neg.selected{background:var(--neg-dim);border-color:var(--neg);box-shadow:0 0 14px rgba(248,113,113,.4)}
+.emoji-btn.pos:hover{background:var(--pos-dim);border-color:var(--pos)}
+.emoji-btn.pos.selected{background:var(--pos-dim);border-color:var(--pos);box-shadow:0 0 14px rgba(74,222,128,.35)}
+.emoji-btn.neutral:hover,.emoji-btn.neutral.selected{background:var(--accent-dim)}
+.emoji-axis{display:flex;justify-content:space-between;padding:0 4px;font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-top:-10px}
+.mood-readout{text-align:center;margin:10px 0 0;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.mood-value{font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;transition:color .15s;color:var(--text-dim)}
+.mood-label{font-size:14px;color:var(--text-muted);min-height:20px}
+
+/* Legend */
+.mood-legend{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--border);margin:12px 0 0}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text-muted)}
+
+/* Date */
+.field-label{font-size:12px;color:var(--text-dim);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.date-selects{display:flex;gap:4px}
+.date-selects select{padding:9px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer}
+.date-selects select:focus{border-color:var(--accent)}
+.ds-day{width:56px}
+.ds-month{width:110px}
+.ds-year{width:80px}
+
+/* Tags */
+.tag-area{margin-top:14px}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;min-height:32px}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:16px;font-size:13px;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all .15s;user-select:none}
+.tag:hover{background:var(--surface3);border-color:var(--border-hover);color:var(--text)}
+.tag.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
+.tag-x{width:15px;height:15px;border-radius:50%;border:none;background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0}
+.tag-x:hover{background:var(--danger);color:#fff}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px}
+.stat-card .s-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);font-weight:600;margin-bottom:4px}
+.stat-card .s-val{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text)}
+.stat-card .s-sub{font-size:12px;color:var(--text-muted);margin-top:2px}
+
+/* Chart */
+.chart-section{margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.chart-section canvas{width:100%;display:block;border-radius:var(--radius-sm)}
+
+/* History */
+.history-section{margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.history-table{width:100%;border-collapse:collapse;font-size:14px}
+.history-table th{padding:8px 10px;text-align:left;color:var(--text-dim);font-weight:500;text-transform:uppercase;font-size:11px;letter-spacing:.6px;border-bottom:1px solid var(--border)}
+.history-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);vertical-align:middle}
+.history-table tr:last-child td{border-bottom:none}
+.history-table tr:hover td{color:var(--text);background:var(--surface2)}
+.hist-btn{padding:4px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;transition:all .15s}
+.hist-btn:hover{color:var(--danger);border-color:var(--danger)}
+.hist-btn svg{width:13px;height:13px}
+.mood-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:12px;font-weight:600;font-family:'JetBrains Mono',monospace;font-size:13px}
+.mood-badge.pos{background:var(--pos-dim);color:var(--pos)}
+.mood-badge.neg{background:var(--neg-dim);color:var(--neg)}
+.mood-badge.neutral{background:var(--accent-dim);color:var(--accent)}
+.entry-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.entry-tag{font-size:11px;padding:2px 7px;border-radius:8px;border:1px solid var(--border);color:var(--text-dim)}
+.history-empty{color:var(--text-dim);font-size:15px;padding:12px 0}
+
+/* No profile */
+.no-profile{text-align:center;padding:60px 20px;color:var(--text-dim)}
+.no-profile .big{font-size:52px;margin-bottom:14px}
+.no-profile p{font-size:16px;margin-bottom:20px}
+
+/* Toast */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:22px;font-size:16px;box-shadow:var(--shadow);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:200;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+html:has(.modal-overlay.open),body.modal-open{overflow:hidden!important}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:400px;max-width:92vw;box-shadow:var(--shadow);display:flex;flex-direction:column}
+.modal h3{font-size:19px;font-weight:600;margin-bottom:18px}
+.modal input[type="text"]{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;outline:none}
+.modal input[type="text"]:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
+.modal-buttons{display:flex;gap:12px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* Theme select */
+.theme-select{padding:7px 11px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;outline:none}
+.theme-select:hover{border-color:var(--accent);color:var(--accent)}
+.theme-select option{background:var(--surface2);color:var(--text)}
+
+body[data-theme="cottage"] .panel,body[data-theme="cottage"] .chart-section,body[data-theme="cottage"] .history-section{background:linear-gradient(180deg,#fdf9f0 0%,var(--surface) 6%,var(--surface) 94%,#f4ead8 100%);box-shadow:0 4px 16px rgba(120,85,45,.08),inset 0 1px 0 rgba(255,255,255,.6)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>mood</h1>
+  <span class="by">tracker</span>
+  <div class="header-spacer"></div>
+  <select class="theme-select" id="themeSelect">
+    <option value="">dark</option>
+    <option value="dim">dim</option>
+    <option value="light">light</option>
+    <option value="cottage">cottage</option>
+    <option value="evil">evil</option>
+    <option value="nonchalant">nonchalant</option>
+  </select>
+  <button class="btn btn-sm" id="exportBtn">export</button>
+  <button class="btn btn-sm" id="importTrigger">import</button>
+  <input type="file" id="importInput" accept=".json" style="display:none">
+</div>
+
+<div class="profile-bar">
+  <span class="profile-bar-label">who</span>
+  <div class="profile-tabs" id="profileTabs"></div>
+  <div class="profile-actions">
+    <button class="btn btn-sm btn-accent" id="addProfileBtn">+ add</button>
+  </div>
+</div>
+
+<div id="mainContent"></div>
+
+<!-- Add profile modal -->
+<div class="modal-overlay" id="addProfileModal">
+  <div class="modal">
+    <h3>new profile</h3>
+    <input type="text" id="profileNameInput" placeholder="name..." maxlength="30">
+    <div class="modal-buttons">
+      <button class="btn" id="cancelProfileBtn">cancel</button>
+      <button class="btn btn-accent" id="saveProfileBtn">create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename modal -->
+<div class="modal-overlay" id="renameModal">
+  <div class="modal">
+    <h3>rename profile</h3>
+    <input type="text" id="renameInput" placeholder="new name..." maxlength="30">
+    <div class="modal-buttons">
+      <button class="btn" id="cancelRenameBtn">cancel</button>
+      <button class="btn btn-accent" id="saveRenameBtn">save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add tag modal -->
+<div class="modal-overlay" id="addTagModal">
+  <div class="modal">
+    <h3>add tag</h3>
+    <input type="text" id="tagInput" placeholder="e.g. cramps, brain fog..." maxlength="30">
+    <div class="modal-buttons">
+      <button class="btn" id="cancelTagBtn">cancel</button>
+      <button class="btn btn-accent" id="saveTagBtn">add</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MOODS = [
+  {v:-10,e:'😭',label:'Awful',      c:'neg'},
+  {v:-9, e:'😢',label:'Miserable',  c:'neg'},
+  {v:-8, e:'😰',label:'Scared',     c:'neg'},
+  {v:-7, e:'😞',label:'Down',       c:'neg'},
+  {v:-6, e:'😣',label:'Struggling', c:'neg'},
+  {v:-5, e:'😟',label:'Worried',    c:'neg'},
+  {v:-4, e:'😕',label:'Uneasy',     c:'neg'},
+  {v:-3, e:'😔',label:'Low',        c:'neg'},
+  {v:-2, e:'😑',label:'Flat',       c:'neg'},
+  {v:-1, e:'😶',label:'Muted',      c:'neg'},
+  {v: 0, e:'😐',label:'Neutral',    c:'neutral'},
+  {v: 1, e:'🙂',label:'Okay',       c:'pos'},
+  {v: 2, e:'😊',label:'Good',       c:'pos'},
+  {v: 3, e:'😌',label:'Calm',       c:'pos'},
+  {v: 4, e:'😀',label:'Happy',      c:'pos'},
+  {v: 5, e:'😄',label:'Great',      c:'pos'},
+  {v: 6, e:'😃',label:'Joyful',     c:'pos'},
+  {v: 7, e:'😁',label:'Excited',    c:'pos'},
+  {v: 8, e:'🤗',label:'Warm',       c:'pos'},
+  {v: 9, e:'😍',label:'Wonderful',  c:'pos'},
+  {v:10, e:'🤩',label:'Amazing',    c:'pos'},
+];
+const LEGEND = [{v:-10},{v:-5},{v:0},{v:5},{v:10}];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let S = {profiles:[], currentId:null};
+let pendingMood = null;
+let pendingTags = new Set();
+let renamingId = null;
+
+function curP() { return S.profiles.find(p=>p.id===S.currentId)||null; }
+
+// ── Storage ────────────────────────────────────────────────────────────────
+const KEY = 'mood-tracker-v1';
+function save() { try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){} }
+function load() {
+  try{const r=localStorage.getItem(KEY);if(r)S=JSON.parse(r)}catch(e){}
+  if(!Array.isArray(S.profiles)) S.profiles=[];
+}
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+function applyTheme(t) {
+  document.body.setAttribute('data-theme',t||'');
+  document.getElementById('themeSelect').value=t||'';
+  try{localStorage.setItem('mood-theme',t||'')}catch(e){}
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+let _tt;
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function parseD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function fmtD(s){const d=parseD(s);return `${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
+function fmtDs(s){const d=parseD(s);return `${MONTHS[d.getMonth()]} ${d.getDate()}`}
+function moodOf(v){return MOODS.find(m=>m.v===v)||MOODS[10]}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
+
+// ── Profile ops ────────────────────────────────────────────────────────────
+function addProfile(name){
+  const id=uid();
+  S.profiles.push({id,name,entries:[],tags:[]});
+  S.currentId=id; save(); render();
+}
+function deleteProfile(id){
+  S.profiles=S.profiles.filter(p=>p.id!==id);
+  if(S.currentId===id) S.currentId=S.profiles[0]?.id||null;
+  save(); render();
+}
+function renameProfile(id,name){
+  const p=S.profiles.find(p=>p.id===id);
+  if(p){p.name=name;save();render();}
+}
+
+// ── Entry ops ──────────────────────────────────────────────────────────────
+function addEntry(date,mood,tags){
+  const p=curP(); if(!p) return;
+  p.entries.push({id:uid(),date,mood,tags:[...tags]});
+  p.entries.sort((a,b)=>a.date.localeCompare(b.date));
+  save();
+}
+function delEntry(eid){
+  const p=curP(); if(!p) return;
+  p.entries=p.entries.filter(e=>e.id!==eid);
+  save(); render();
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render(){ renderProfiles(); renderMain(); }
+
+function renderProfiles(){
+  const tabs=document.getElementById('profileTabs');
+  tabs.innerHTML='';
+  for(const p of S.profiles){
+    const tab=document.createElement('button');
+    tab.className='profile-tab'+(p.id===S.currentId?' active':'');
+
+    const menu=document.createElement('div');
+    menu.className='ctx-menu';
+    menu.innerHTML=`
+      <button class="ctx-menu-item" data-a="rename">rename</button>
+      <button class="ctx-menu-item danger" data-a="delete">delete</button>`;
+
+    tab.innerHTML=`<span class="tab-dot"></span><span>${esc(p.name)}</span>`;
+    const menuBtn=document.createElement('button');
+    menuBtn.className='tab-menu-btn';
+    menuBtn.innerHTML=`<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>`;
+    tab.appendChild(menuBtn);
+    tab.appendChild(menu);
+
+    menuBtn.addEventListener('click',e=>{
+      e.stopPropagation();
+      document.querySelectorAll('.ctx-menu.open').forEach(m=>{if(m!==menu)m.classList.remove('open')});
+      menu.classList.toggle('open');
+    });
+    menu.addEventListener('click',e=>{
+      const btn=e.target.closest('[data-a]'); if(!btn) return;
+      e.stopPropagation(); menu.classList.remove('open');
+      if(btn.dataset.a==='delete'){
+        if(confirm(`Delete "${p.name}"? All mood data will be lost.`)) deleteProfile(p.id);
+      } else {
+        renamingId=p.id;
+        document.getElementById('renameInput').value=p.name;
+        openModal('renameModal');
+        setTimeout(()=>document.getElementById('renameInput').focus(),50);
+      }
+    });
+    tab.addEventListener('click',e=>{
+      if(e.target.closest('.tab-menu-btn')||e.target.closest('.ctx-menu')) return;
+      S.currentId=p.id; pendingMood=null; pendingTags=new Set(); render();
+    });
+    tabs.appendChild(tab);
+  }
+}
+
+function renderMain(){
+  const el=document.getElementById('mainContent');
+  const p=curP();
+  if(!p){
+    el.innerHTML=`<div class="no-profile"><div class="big">🌙</div><p>no profiles yet</p><button class="btn btn-accent" onclick="document.getElementById('addProfileBtn').click()">+ add profile</button></div>`;
+    return;
+  }
+
+  const today=new Date();
+  const ty=today.getFullYear(), tm=today.getMonth(), td=today.getDate();
+
+  // Build month opts
+  const mOpts=MONTHS.map((m,i)=>`<option value="${i}"${i===tm?' selected':''}>${m}</option>`).join('');
+  let dOpts='',yOpts='';
+  for(let i=1;i<=31;i++) dOpts+=`<option value="${i}"${i===td?' selected':''}>${i}</option>`;
+  for(let y=ty;y>=ty-5;y--) yOpts+=`<option value="${y}"${y===ty?' selected':''}>${y}</option>`;
+
+  el.innerHTML=`
+  <div class="panels-grid">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">log mood</span></div>
+      <div class="emoji-picker-wrap">
+        <div class="emoji-row" id="emojiRow">
+          ${MOODS.map(m=>`<button class="emoji-btn ${m.c}${pendingMood===m.v?' selected':''}" data-v="${m.v}">${m.e}</button>`).join('')}
+        </div>
+        <div class="emoji-axis"><span>−10</span><span>0</span><span>+10</span></div>
+        <div class="mood-readout">
+          <div class="mood-value" id="moodVal" style="color:${pendingMood===null?'var(--text-dim)':pendingMood>0?'var(--pos)':pendingMood<0?'var(--neg)':'var(--accent)'}">${pendingMood===null?'—':pendingMood>0?`+${pendingMood}`:pendingMood}</div>
+          <div class="mood-label" id="moodLbl">${pendingMood!==null?moodOf(pendingMood).label:''}</div>
+        </div>
+      </div>
+      <div class="mood-legend">
+        ${LEGEND.map(({v})=>{const m=moodOf(v);return `<div class="legend-item">${m.e} <span>${m.label}</span></div>`}).join('')}
+      </div>
+      <div style="margin-top:14px">
+        <div class="field-label">date</div>
+        <div class="date-selects"><select class="ds-month">${mOpts}</select><select class="ds-day">${dOpts}</select><select class="ds-year">${yOpts}</select></div>
+      </div>
+      <div class="tag-area">
+        <div class="field-label">tags</div>
+        <div class="tag-row" id="tagRow">${renderTags()}</div>
+        <button class="btn btn-sm" id="addTagBtn">+ tag</button>
+      </div>
+      <button class="btn btn-accent" id="logBtn" style="margin-top:16px;width:100%;justify-content:center;font-size:16px">log mood</button>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">stats</span></div>
+      ${renderStats(p)}
+    </div>
+  </div>
+  <div class="chart-section">
+    <div class="panel-header"><span class="panel-title">mood over time</span></div>
+    <canvas id="moodChart"></canvas>
+  </div>
+  <div class="history-section">
+    <div class="panel-header">
+      <span class="panel-title">history</span>
+      <span style="font-size:13px;color:var(--text-dim)">${p.entries.length} entr${p.entries.length===1?'y':'ies'}</span>
+    </div>
+    ${renderHistory(p)}
+  </div>`;
+
+  // Emoji events
+  document.querySelectorAll('.emoji-btn').forEach(btn=>{
+    const v=parseInt(btn.dataset.v);
+    btn.addEventListener('click',()=>selectMood(v));
+    btn.addEventListener('mouseenter',()=>{
+      const lbl=document.getElementById('moodLbl');
+      if(lbl) lbl.textContent=moodOf(v).label;
+    });
+    btn.addEventListener('mouseleave',()=>{
+      const lbl=document.getElementById('moodLbl');
+      if(lbl) lbl.textContent=pendingMood!==null?moodOf(pendingMood).label:'';
+    });
+  });
+
+  // Tag events
+  bindTagEvents();
+  document.getElementById('addTagBtn').addEventListener('click',()=>{
+    document.getElementById('tagInput').value='';
+    openModal('addTagModal');
+    setTimeout(()=>document.getElementById('tagInput').focus(),50);
+  });
+
+  document.getElementById('logBtn').addEventListener('click',handleLog);
+
+  // History delete buttons
+  document.querySelectorAll('.hist-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(confirm('delete this entry?')) delEntry(btn.dataset.eid);
+    });
+  });
+
+  // Draw chart
+  requestAnimationFrame(()=>drawChart(p));
+}
+
+function renderTags(){
+  const p=curP(); if(!p) return '';
+  return p.tags.map(t=>`<span class="tag${pendingTags.has(t)?' selected':''}" data-tag="${esc(t)}">${esc(t)}<button class="tag-x" title="remove">×</button></span>`).join('');
+}
+
+function bindTagEvents(){
+  document.querySelectorAll('#tagRow .tag').forEach(tag=>{
+    tag.addEventListener('click',e=>{
+      if(e.target.closest('.tag-x')){
+        const name=tag.dataset.tag;
+        const p=curP(); if(!p) return;
+        p.tags=p.tags.filter(t=>t!==name);
+        pendingTags.delete(name);
+        save(); refreshTags();
+        return;
+      }
+      const name=tag.dataset.tag;
+      pendingTags.has(name)?pendingTags.delete(name):pendingTags.add(name);
+      refreshTags();
+    });
+  });
+}
+
+function refreshTags(){
+  const row=document.getElementById('tagRow'); if(!row) return;
+  row.innerHTML=renderTags();
+  bindTagEvents();
+}
+
+function selectMood(v){
+  pendingMood=v;
+  document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.v)===v));
+  const val=document.getElementById('moodVal');
+  const lbl=document.getElementById('moodLbl');
+  if(val){val.textContent=v>0?`+${v}`:String(v);val.style.color=v>0?'var(--pos)':v<0?'var(--neg)':'var(--accent)'}
+  if(lbl) lbl.textContent=moodOf(v).label;
+}
+
+function getDate(){
+  const m=document.querySelector('.ds-month')?.value;
+  const d=document.querySelector('.ds-day')?.value;
+  const y=document.querySelector('.ds-year')?.value;
+  if(m==null||!d||!y) return todayStr();
+  return `${y}-${String(Number(m)+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+}
+
+function handleLog(){
+  if(pendingMood===null){toast('pick a mood first 👆');return;}
+  addEntry(getDate(),pendingMood,pendingTags);
+  pendingMood=null; pendingTags=new Set();
+  render(); toast('mood logged ✓');
+}
+
+function renderStats(p){
+  if(!p.entries.length) return `<div class="history-empty" style="padding:20px 0">no entries yet</div>`;
+  const moods=p.entries.map(e=>e.mood);
+  const avg=moods.reduce((a,b)=>a+b,0)/moods.length;
+  const best=Math.max(...moods), worst=Math.min(...moods);
+  const bE=p.entries.find(e=>e.mood===best), wE=p.entries.find(e=>e.mood===worst);
+
+  const dates=new Set(p.entries.map(e=>e.date));
+  let streak=0; const d=new Date();
+  while(true){
+    const s=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(!dates.has(s)) break; streak++; d.setDate(d.getDate()-1);
+  }
+
+  const avgM=MOODS.reduce((p,c)=>Math.abs(c.v-avg)<Math.abs(p.v-avg)?c:p);
+  const avgSign=avg>0?'+':'';
+
+  return `<div class="stats-grid">
+    <div class="stat-card"><div class="s-label">avg mood</div><div class="s-val">${avgM.e} ${avgSign}${avg.toFixed(1)}</div></div>
+    <div class="stat-card"><div class="s-label">streak</div><div class="s-val">${streak}d</div><div class="s-sub">consecutive days</div></div>
+    <div class="stat-card"><div class="s-label">best day</div><div class="s-val" style="color:var(--pos)">${best>0?'+':''}${best}</div><div class="s-sub">${fmtDs(bE.date)}</div></div>
+    <div class="stat-card"><div class="s-label">worst day</div><div class="s-val" style="color:var(--neg)">${worst}</div><div class="s-sub">${fmtDs(wE.date)}</div></div>
+    <div class="stat-card" style="grid-column:1/-1"><div class="s-label">total entries</div><div class="s-val">${p.entries.length}</div></div>
+  </div>`;
+}
+
+function renderHistory(p){
+  if(!p.entries.length) return `<div class="history-empty">no entries yet</div>`;
+  return `<table class="history-table"><thead><tr><th>date</th><th>mood</th><th></th></tr></thead><tbody>
+    ${[...p.entries].reverse().map(e=>{
+      const m=moodOf(e.mood);
+      const cls=e.mood>0?'pos':e.mood<0?'neg':'neutral';
+      const tags=e.tags?.length?`<div class="entry-tags">${e.tags.map(t=>`<span class="entry-tag">${esc(t)}</span>`).join('')}</div>`:'';
+      return `<tr>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:13px;white-space:nowrap">${fmtD(e.date)}</td>
+        <td><span class="mood-badge ${cls}">${m.e} ${e.mood>0?'+':''}${e.mood}</span>${tags}</td>
+        <td style="text-align:right"><button class="hist-btn" data-eid="${e.id}" title="delete"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M5.5 5.5A.5.5 0 016 6v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5 0a.5.5 0 01.5.5v6a.5.5 0 01-1 0V6a.5.5 0 01.5-.5zm2.5.5a.5.5 0 00-1 0v6a.5.5 0 001 0V6z"/><path fill-rule="evenodd" d="M14.5 3a1 1 0 01-1 1H13v9a2 2 0 01-2 2H5a2 2 0 01-2-2V4h-.5a1 1 0 01-1-1V2a1 1 0 011-1H6a1 1 0 011-1h2a1 1 0 011 1h3.5a1 1 0 011 1v1zM4.118 4L4 4.059V13a1 1 0 001 1h6a1 1 0 001-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/></svg></button></td>
+      </tr>`;
+    }).join('')}
+  </tbody></table>`;
+}
+
+// ── Chart ──────────────────────────────────────────────────────────────────
+function drawChart(p){
+  const canvas=document.getElementById('moodChart'); if(!canvas) return;
+  const cw=canvas.parentElement.clientWidth-2;
+  canvas.width=Math.max(300,cw); canvas.height=240;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width, H=canvas.height;
+  const PAD={t:20,r:20,b:36,l:44};
+  const cW=W-PAD.l-PAD.r, cH=H-PAD.t-PAD.b;
+  const cs=getComputedStyle(document.body);
+  const get=v=>cs.getPropertyValue(v).trim();
+  const colBg=get('--surface2')||'#181d27';
+  const colBorder=get('--border')||'#525a6c';
+  const colDim=get('--text-dim')||'#8a92a0';
+  const colAccent=get('--accent')||'#ffb070';
+  const colPos=get('--pos')||'#4ade80';
+  const colNeg=get('--neg')||'#f87171';
+  const colSurf=get('--bg')||'#000';
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=colBg;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(0,0,W,H,8);
+  else ctx.rect(0,0,W,H);
+  ctx.fill();
+
+  const entries=[...p.entries].sort((a,b)=>a.date.localeCompare(b.date));
+
+  if(!entries.length){
+    ctx.fillStyle=colDim; ctx.font='14px DM Sans,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('no entries yet',W/2,H/2); return;
+  }
+
+  const yOf=v=>PAD.t+cH*(1-(v+10)/20);
+  const xOf=i=>entries.length===1?PAD.l+cW/2:PAD.l+(i/(entries.length-1))*cW;
+  const zeroY=yOf(0);
+
+  // Grid lines
+  for(const v of [-10,-5,0,5,10]){
+    const y=yOf(v);
+    ctx.beginPath(); ctx.moveTo(PAD.l,y); ctx.lineTo(PAD.l+cW,y);
+    if(v===0){ctx.strokeStyle=colAccent;ctx.lineWidth=1.5;ctx.setLineDash([6,4])}
+    else{ctx.strokeStyle=colBorder;ctx.lineWidth=1;ctx.setLineDash([3,4])}
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle=colDim; ctx.font='11px JetBrains Mono,monospace'; ctx.textAlign='right';
+    ctx.fillText(v>0?`+${v}`:String(v),PAD.l-6,y+4);
+  }
+
+  if(entries.length>=2){
+    // Positive area
+    ctx.beginPath();
+    ctx.moveTo(xOf(0),Math.min(yOf(entries[0].mood),zeroY));
+    entries.forEach((_,i)=>ctx.lineTo(xOf(i),Math.min(yOf(entries[i].mood),zeroY)));
+    ctx.lineTo(xOf(entries.length-1),zeroY); ctx.lineTo(xOf(0),zeroY); ctx.closePath();
+    const gp=ctx.createLinearGradient(0,PAD.t,0,zeroY);
+    gp.addColorStop(0,colPos+'55'); gp.addColorStop(1,colPos+'0a');
+    ctx.fillStyle=gp; ctx.fill();
+
+    // Negative area
+    ctx.beginPath();
+    ctx.moveTo(xOf(0),Math.max(yOf(entries[0].mood),zeroY));
+    entries.forEach((_,i)=>ctx.lineTo(xOf(i),Math.max(yOf(entries[i].mood),zeroY)));
+    ctx.lineTo(xOf(entries.length-1),zeroY); ctx.lineTo(xOf(0),zeroY); ctx.closePath();
+    const gn=ctx.createLinearGradient(0,zeroY,0,PAD.t+cH);
+    gn.addColorStop(0,colNeg+'0a'); gn.addColorStop(1,colNeg+'55');
+    ctx.fillStyle=gn; ctx.fill();
+  }
+
+  // Line
+  ctx.beginPath(); ctx.strokeStyle=colAccent; ctx.lineWidth=2; ctx.lineJoin='round';
+  entries.forEach((e,i)=>{const x=xOf(i),y=yOf(e.mood);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.stroke();
+
+  // Dots
+  entries.forEach((e,i)=>{
+    const x=xOf(i),y=yOf(e.mood);
+    const col=e.mood>0?colPos:e.mood<0?colNeg:colAccent;
+    ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill();
+    ctx.strokeStyle=colSurf; ctx.lineWidth=2; ctx.stroke();
+  });
+
+  // X labels
+  ctx.fillStyle=colDim; ctx.font='11px DM Sans,sans-serif'; ctx.textAlign='center';
+  const maxL=Math.max(2,Math.floor(cW/70));
+  const step=Math.max(1,Math.floor(entries.length/maxL));
+  const shown=new Set();
+  for(let i=0;i<entries.length;i+=step){
+    ctx.fillText(fmtDs(entries[i].date),xOf(i),H-PAD.b+16);
+    shown.add(i);
+  }
+  const last=entries.length-1;
+  if(!shown.has(last)) ctx.fillText(fmtDs(entries[last].date),xOf(last),H-PAD.b+16);
+}
+
+// ── Modals ─────────────────────────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+// Add profile
+document.getElementById('addProfileBtn').addEventListener('click',()=>{
+  document.getElementById('profileNameInput').value='';
+  openModal('addProfileModal');
+  setTimeout(()=>document.getElementById('profileNameInput').focus(),50);
+});
+document.getElementById('cancelProfileBtn').addEventListener('click',()=>closeModal('addProfileModal'));
+document.getElementById('addProfileModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('addProfileModal')});
+document.getElementById('saveProfileBtn').addEventListener('click',()=>{
+  const n=document.getElementById('profileNameInput').value.trim(); if(!n) return;
+  closeModal('addProfileModal'); addProfile(n);
+});
+document.getElementById('profileNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveProfileBtn').click()});
+
+// Rename
+document.getElementById('cancelRenameBtn').addEventListener('click',()=>closeModal('renameModal'));
+document.getElementById('renameModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('renameModal')});
+document.getElementById('saveRenameBtn').addEventListener('click',()=>{
+  const n=document.getElementById('renameInput').value.trim(); if(!n||!renamingId) return;
+  closeModal('renameModal'); renameProfile(renamingId,n); renamingId=null;
+});
+document.getElementById('renameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveRenameBtn').click()});
+
+// Add tag
+document.getElementById('cancelTagBtn').addEventListener('click',()=>closeModal('addTagModal'));
+document.getElementById('addTagModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('addTagModal')});
+document.getElementById('saveTagBtn').addEventListener('click',()=>{
+  const n=document.getElementById('tagInput').value.trim(); if(!n) return;
+  const p=curP(); if(!p) return;
+  if(!p.tags.includes(n)) p.tags.push(n);
+  save(); closeModal('addTagModal'); refreshTags();
+});
+document.getElementById('tagInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveTagBtn').click()});
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+document.getElementById('themeSelect').addEventListener('change',e=>{
+  applyTheme(e.target.value);
+  const p=curP(); if(p) requestAnimationFrame(()=>drawChart(p));
+});
+
+// Close menus on outside click
+document.addEventListener('click',()=>{
+  document.querySelectorAll('.ctx-menu.open').forEach(m=>m.classList.remove('open'));
+});
+
+// ── Export / Import ────────────────────────────────────────────────────────
+document.getElementById('exportBtn').addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.href='data:application/json,'+encodeURIComponent(JSON.stringify(S,null,2));
+  a.download='mood-export.json'; a.click();
+});
+document.getElementById('importTrigger').addEventListener('click',()=>document.getElementById('importInput').click());
+document.getElementById('importInput').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const imp=JSON.parse(ev.target.result);
+      if(!Array.isArray(imp.profiles)) throw 0;
+      S=imp; if(!S.currentId&&S.profiles.length) S.currentId=S.profiles[0].id;
+      save(); render(); toast('imported!');
+    }catch{toast('invalid file')}
+  };
+  r.readAsText(f); e.target.value='';
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────
+load();
+try{applyTheme(localStorage.getItem('mood-theme')||'')}catch(e){applyTheme('')}
+render();
+window.addEventListener('resize',()=>{const p=curP();if(p)requestAnimationFrame(()=>drawChart(p))});
+</script>
+</body>
+</html>
