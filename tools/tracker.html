@@ -18,6 +18,10 @@ body[data-theme="cottage"]{--bg:#f3eadb;--surface:#fbf6ec;--surface2:#ebe0cd;--s
 body[data-theme="evil"]{--bg:#08040a;--surface:#0e060c;--surface2:#180a14;--surface3:#22101c;--border:#3c1428;--border-hover:#5c1e3a;--text:#e8c0cc;--text-muted:#a87088;--text-dim:#6c3850;--accent:#dc2040;--accent-dim:rgba(220,32,64,.15);--accent-glow:rgba(220,32,64,.35);--danger:#ff2848;--radius:10px;--radius-sm:7px;--shadow:0 4px 30px rgba(220,0,40,.2);--chart-bg:#0e060c}
 body[data-theme="nonchalant"]{--bg:#1e2420;--surface:#262d28;--surface2:#2e3630;--surface3:#3a4238;--border:#3d4a3e;--border-hover:#556253;--text:#d4d9ce;--text-muted:#9aa696;--text-dim:#6b7668;--accent:#8fb380;--accent-dim:rgba(143,179,128,.14);--accent-glow:rgba(143,179,128,.25);--danger:#c78a6b;--radius:12px;--radius-sm:9px;--shadow:0 4px 20px rgba(20,30,20,.3);--chart-bg:#262d28}
 *{box-sizing:border-box;margin:0;padding:0}
+/* Global: square corners everywhere. Overrides every border-radius (CSS vars, inline styles,
+   per-component rules) so nothing is rounded. Since radius is always 0, no corner-rounding can
+   animate either; other transitions are untouched. */
+*,*::before,*::after{border-radius:0!important}
 html{overflow-x:hidden}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:28px;line-height:1.6;font-size:17px;overflow-x:hidden}
 .header{display:flex;align-items:baseline;gap:8px;margin-bottom:24px;flex-wrap:wrap}
@@ -26,7 +30,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sa
 .header .undo-redo-pair,.header .header-btn,.header .lang-select,.header .feedback-btn,.header .header-spacer,.header select{align-self:center}
 /* Header controls (desktop: just a transparent flex container; mobile: a dropdown menu) */
 .header-controls{display:inline-flex;align-items:center;gap:8px}
-.header-menu-toggle{display:none;width:36px;height:36px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text-muted);cursor:pointer;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;flex-shrink:0}
+.header-menu-toggle{display:none;width:34px;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text-muted);cursor:pointer;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;flex-shrink:0}
 .header-menu-toggle svg{width:18px;height:18px}
 .header-menu-toggle:hover,.header-menu-toggle.open{background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
 .header h1{font-size:42px;font-weight:600;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),#7eaad4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;line-height:1;margin:0;padding:0}
@@ -41,10 +45,10 @@ body[data-theme="cottage"] .header h1{font-family:'Cabin Sketch',cursive;font-we
 body[data-theme="evil"] .header h1{font-family:'Metamorphous',serif;font-weight:400;letter-spacing:1px;font-size:42px}
 .header-btn{font-size:13px;padding:6px 12px;color:var(--text-muted)}
 .header-spacer{flex:1}
-.lang-select{padding:7px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;outline:none}
+.lang-select{height:34px;padding:0 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;outline:none}
 /* Undo/Redo: tiny paired icon buttons next to the logo */
-.undo-redo-pair{display:inline-flex;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;align-self:center;background:var(--surface2);flex-shrink:0}
-.undo-redo-btn{width:30px;height:30px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s}
+.undo-redo-pair{display:inline-flex;gap:0;height:34px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;align-self:center;background:var(--surface2);flex-shrink:0}
+.undo-redo-btn{width:34px;height:100%;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s}
 .undo-redo-btn svg{width:15px;height:15px}
 .undo-redo-btn:not(:disabled):hover{background:var(--accent-dim);color:var(--accent)}
 .undo-redo-btn:not(:disabled):active{background:var(--accent);color:#fff}
@@ -476,8 +480,8 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   body[data-theme="evil"] .header h1,body[data-theme="nonchalant"] .header h1{font-size:30px}
   .header .by{display:none}
   .header-spacer{display:none}
-  .header .undo-redo-pair{position:static;margin:0;flex-shrink:0;margin-left:auto}
-  .undo-redo-btn{width:28px;height:28px}
+  .header .undo-redo-pair{position:static;margin:0;flex-shrink:0;margin-left:auto;height:34px}
+  .undo-redo-btn{width:30px;height:100%}
   .undo-redo-btn svg{width:13px;height:13px}
   .header-menu-toggle{width:34px;height:34px;flex-shrink:0}
   .header-menu-toggle svg{width:16px;height:16px}
@@ -718,7 +722,7 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
 @media(max-width:380px){
   body{padding:8px}
   /* Logo sizes already vw-clamped, no need to override */
-  .undo-redo-btn{width:26px;height:26px}
+  .undo-redo-btn{width:28px;height:100%}
   .undo-redo-btn svg{width:12px;height:12px}
   .header-menu-toggle{width:30px;height:30px}
   .header-menu-toggle svg{width:14px;height:14px}
@@ -761,13 +765,12 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
       <option value="pt">Português (BR)</option>
       <option value="ca">Català</option>
     </select>
-    <a href="mailto:bugport.helpline266@passmail.net?subject=HRT%20Tracker%20Feedback" class="btn btn-sm header-btn feedback-btn" style="text-decoration:none;line-height:1.2;padding:6px 14px;text-align:center;display:inline-flex;flex-direction:column;align-items:center;gap:0;white-space:nowrap">Report Bug<span style="font-size:10px;opacity:.75;margin-top:1px">Give Feedback</span></a>
   </div>
   <div class="undo-redo-pair">
     <button class="undo-redo-btn" id="undoBtn" onclick="undo()" title="Undo" aria-label="Undo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-4"/></svg></button>
     <button class="undo-redo-btn" id="redoBtn" onclick="redo()" title="Redo" aria-label="Redo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0-5 5v0a5 5 0 0 0 5 5h4"/></svg></button>
   </div>
-  <button class="btn btn-sm btn-accent header-btn header-info-btn" onclick="openInfoModal()" title="About / License / Disclaimer" style="font-weight:700;width:32px;height:32px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;line-height:1;font-size:15px;flex-shrink:0">?</button>
+  <button class="btn btn-sm btn-accent header-btn header-info-btn" onclick="openInfoModal()" title="About / License / Disclaimer" style="font-weight:700;width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;line-height:1;font-size:15px;flex-shrink:0">?</button>
   <button class="header-menu-toggle" id="headerMenuToggle" onclick="toggleHeaderMenu()" aria-label="Settings menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </div>
 
