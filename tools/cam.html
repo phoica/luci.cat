@@ -428,9 +428,11 @@ body[data-theme="light"] .tgl.on{color:#fff}
 .capture-bar{
   flex-shrink:0;
   padding:0 16px;
-  padding-bottom:env(safe-area-inset-bottom);
   background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   border-top:1px solid var(--border);position:relative;
+}
+@media (display-mode:standalone){
+  .capture-bar{padding-bottom:env(safe-area-inset-bottom)}
 }
 .capture-bar::before{
   content:'';position:absolute;top:0;left:10%;right:10%;height:1px;
