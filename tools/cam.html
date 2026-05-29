@@ -492,9 +492,9 @@ body[data-theme="light"] .tgl.on{color:#fff}
 .record-btn.off{opacity:.3;cursor:not-allowed}
 .record-btn svg{width:20px;height:20px;color:var(--danger);display:block}
 
-.rec-timer-row{display:flex;justify-content:center;height:14px;margin-top:3px}
-.rec-timer{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--danger);display:none}
-.rec-timer.visible{display:block}
+.rec-timer-row{display:none;justify-content:center;height:14px;margin-top:3px}
+.rec-timer-row.visible{display:flex}
+.rec-timer{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--danger)}
 
 /* ── Toast ── */
 .toast{
@@ -1144,7 +1144,7 @@ body[data-theme="light"] .gallery-hdr-title{
         </button>
       </div>
     </div>
-    <div class="rec-timer-row">
+    <div class="rec-timer-row" id="recTimerRow">
       <span class="rec-timer" id="recTimer">0:00</span>
     </div>
   </div>
@@ -1558,6 +1558,7 @@ const freezeCanvas = $('freezeCanvas');
 const freezeCtx    = freezeCanvas.getContext('2d');
 const recBadge     = $('recBadge');
 const recTimer     = $('recTimer');
+const recTimerRow  = $('recTimerRow');
 const capCanvas    = $('captureCanvas');
 const dlLink       = $('dlLink');
 const toastEl      = $('toast');
@@ -3574,7 +3575,7 @@ async function startRecording() {
   mediaRecorder.onstop = saveVideo;
   mediaRecorder.start(250);
   isRecording = true; recSecs = 0;
-  recTimer.classList.add('visible'); recBadge.classList.add('visible');
+  recTimerRow.classList.add('visible'); recBadge.classList.add('visible');
   updateRecTimer();
   recInterval = setInterval(() => { recSecs++; updateRecTimer(); }, 1000);
   recordBtn.classList.add('recording');
@@ -3589,7 +3590,7 @@ function stopRecording() {
   clearInterval(recInterval);
   audioStream?.getTracks().forEach(t => t.stop());
   audioStream = null;
-  recTimer.classList.remove('visible'); recBadge.classList.remove('visible');
+  recTimerRow.classList.remove('visible'); recBadge.classList.remove('visible');
   recordBtn.classList.remove('recording');
   recordIcon.innerHTML = '<circle cx="12" cy="12" r="7"/>';
   shutterBtn.classList.remove('off');
