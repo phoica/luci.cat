@@ -4,265 +4,769 @@
 <meta charset='UTF-8'>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#101216">
-<title>Mood Tracker</title>
+<title>mood tracker</title>
 <link rel="icon" type="image/png" href="websyteicon.png">
 <link rel="apple-touch-icon" href="websyteicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;500&family=Metamorphous&family=Cabin+Sketch:wght@400;700&family=Silkscreen:wght@400;700&family=Fascinate&display=swap" rel="stylesheet">
 <style>
-:root,body[data-theme="dark"]{--bg:#000;--surface:#0c0f15;--surface2:#181d27;--surface3:#2a3142;--border:#525a6c;--border-hover:#7a8294;--text:#fff;--text-muted:#c4ccd8;--text-dim:#8a92a0;--accent:#ffb070;--accent-dim:rgba(255,176,112,.18);--accent-glow:rgba(255,176,112,.55);--danger:#ff8a8a;--radius:12px;--radius-sm:8px;--shadow:0 4px 28px rgba(0,0,0,.85);--pos:#4ade80;--pos-dim:rgba(74,222,128,.16);--neg:#f87171;--neg-dim:rgba(248,113,113,.16)}
-body[data-theme="dim"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#e89854;--accent-dim:rgba(232,152,84,.13);--accent-glow:rgba(232,152,84,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5);--pos:#4ade80;--pos-dim:rgba(74,222,128,.13);--neg:#f87171;--neg-dim:rgba(248,113,113,.13)}
-body[data-theme="light"]{--bg:#f4f2ef;--surface:#fff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08);--pos:#16a34a;--pos-dim:rgba(22,163,74,.1);--neg:#dc2626;--neg-dim:rgba(220,38,38,.1)}
-body[data-theme="cottage"]{--bg:#f3eadb;--surface:#fbf6ec;--surface2:#ebe0cd;--surface3:#dfd2bb;--border:#c9b896;--border-hover:#a89377;--text:#3d2f22;--text-muted:#7a6450;--text-dim:#a89377;--accent:#c79090;--accent-dim:rgba(199,144,144,.14);--accent-glow:rgba(199,144,144,.28);--danger:#b56b5a;--radius:16px;--radius-sm:12px;--shadow:0 4px 20px rgba(120,85,45,.1),0 1px 3px rgba(120,85,45,.06);--pos:#6b9e6b;--pos-dim:rgba(107,158,107,.14);--neg:#c47070;--neg-dim:rgba(196,112,112,.14)}
-body[data-theme="evil"]{--bg:#08040a;--surface:#0e060c;--surface2:#180a14;--surface3:#22101c;--border:#3c1428;--border-hover:#5c1e3a;--text:#e8c0cc;--text-muted:#a87088;--text-dim:#6c3850;--accent:#dc2040;--accent-dim:rgba(220,32,64,.15);--accent-glow:rgba(220,32,64,.35);--danger:#ff2848;--radius:10px;--radius-sm:7px;--shadow:0 4px 30px rgba(220,0,40,.2);--pos:#a040c0;--pos-dim:rgba(160,64,192,.15);--neg:#dc2040;--neg-dim:rgba(220,32,64,.15)}
-body[data-theme="nonchalant"]{--bg:#1e2420;--surface:#262d28;--surface2:#2e3630;--surface3:#3a4238;--border:#3d4a3e;--border-hover:#556253;--text:#d4d9ce;--text-muted:#9aa696;--text-dim:#6b7668;--accent:#8fb380;--accent-dim:rgba(143,179,128,.14);--accent-glow:rgba(143,179,128,.25);--danger:#c78a6b;--radius:12px;--radius-sm:9px;--shadow:0 4px 20px rgba(20,30,20,.3);--pos:#8fb380;--pos-dim:rgba(143,179,128,.15);--neg:#c78a6b;--neg-dim:rgba(199,138,107,.15)}
-
+:root,body[data-theme="dark"]{--bg:#000000;--surface:#0c0f15;--surface2:#181d27;--surface3:#2a3142;--border:#525a6c;--border-hover:#7a8294;--text:#ffffff;--text-muted:#c4ccd8;--text-dim:#8a92a0;--accent:#ffb070;--accent-dim:rgba(255,176,112,.18);--accent-glow:rgba(255,176,112,.55);--danger:#ff8a8a;--radius:12px;--radius-sm:8px;--shadow:0 4px 28px rgba(0,0,0,.85);--chart-bg:#0c0f15}
+body[data-theme="dim"]{--bg:#101216;--surface:#181b20;--surface2:#1f2228;--surface3:#272a31;--border:#2e3239;--border-hover:#3e434b;--text:#d8dae0;--text-muted:#8a8e9a;--text-dim:#5c606c;--accent:#e89854;--accent-dim:rgba(232,152,84,.13);--accent-glow:rgba(232,152,84,.28);--danger:#cf6b6b;--radius:12px;--radius-sm:8px;--shadow:0 4px 24px rgba(0,0,0,.5);--chart-bg:#181b20}
+body[data-theme="light"]{--bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;--border:#d4d0c8;--border-hover:#b8b4ac;--text:#2c2a26;--text-muted:#6b6860;--text-dim:#9c9890;--accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.2);--danger:#c45050;--radius:12px;--radius-sm:8px;--shadow:0 4px 20px rgba(0,0,0,.08);--chart-bg:#ffffff}
+body[data-theme="cottage"]{--bg:#f3eadb;--surface:#fbf6ec;--surface2:#ebe0cd;--surface3:#dfd2bb;--border:#c9b896;--border-hover:#a89377;--text:#3d2f22;--text-muted:#7a6450;--text-dim:#a89377;--accent:#c79090;--accent-dim:rgba(199,144,144,.14);--accent-glow:rgba(199,144,144,.28);--accent2:#9caf88;--danger:#b56b5a;--radius:16px;--radius-sm:12px;--shadow:0 4px 20px rgba(120,85,45,.1),0 1px 3px rgba(120,85,45,.06);--chart-bg:#fbf6ec}
+body[data-theme="evil"]{--bg:#08040a;--surface:#0e060c;--surface2:#180a14;--surface3:#22101c;--border:#3c1428;--border-hover:#5c1e3a;--text:#e8c0cc;--text-muted:#a87088;--text-dim:#6c3850;--accent:#dc2040;--accent-dim:rgba(220,32,64,.15);--accent-glow:rgba(220,32,64,.35);--danger:#ff2848;--radius:10px;--radius-sm:7px;--shadow:0 4px 30px rgba(220,0,40,.2);--chart-bg:#0e060c}
+body[data-theme="nonchalant"]{--bg:#1e2420;--surface:#262d28;--surface2:#2e3630;--surface3:#3a4238;--border:#3d4a3e;--border-hover:#556253;--text:#d4d9ce;--text-muted:#9aa696;--text-dim:#6b7668;--accent:#8fb380;--accent-dim:rgba(143,179,128,.14);--accent-glow:rgba(143,179,128,.25);--danger:#c78a6b;--radius:12px;--radius-sm:9px;--shadow:0 4px 20px rgba(20,30,20,.3);--chart-bg:#262d28}
 *{box-sizing:border-box;margin:0;padding:0}
 html{overflow-x:hidden}
 body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:28px;line-height:1.6;font-size:17px;overflow-x:hidden}
-
-/* ── Header ── */
-.header{display:flex;align-items:center;gap:8px;margin-bottom:24px;flex-wrap:nowrap}
-.header h1{font-size:42px;font-weight:600;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),#a8c4e8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;line-height:1;flex-shrink:0}
-body[data-theme="light"] .header h1{background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
-body[data-theme="cottage"] .header h1{font-family:'Cabin Sketch',cursive;font-weight:700;font-size:46px;background:linear-gradient(135deg,#c79090,#9caf88,#d4a574);-webkit-background-clip:text}
-body[data-theme="evil"] .header h1{font-family:'Metamorphous',serif;font-weight:400;letter-spacing:1px;font-size:42px;background:linear-gradient(135deg,#dc2040,#880020);-webkit-background-clip:text}
-body[data-theme="nonchalant"] .header h1{font-family:'Fascinate',cursive;font-weight:400;font-size:42px;background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text}
-body[data-theme="dark"] .header h1,:root .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#ffb070,#ffd29c);-webkit-background-clip:text}
-body[data-theme="dim"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
-.header .by{font-size:15px;color:var(--text-dim);flex-shrink:0}
-.header-spacer{flex:1;min-width:0}
-.header-controls{display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
-.header-menu-toggle{display:none;width:36px;height:36px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text-muted);cursor:pointer;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.header{display:flex;align-items:baseline;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.header h1{align-self:baseline}
+.header .by{font-size:16px;color:var(--text-dim);white-space:nowrap;align-self:baseline;margin-left:-2px}
+.header .undo-redo-pair,.header .header-btn,.header .lang-select,.header .feedback-btn,.header .header-spacer,.header select{align-self:center}
+/* Header controls (desktop: just a transparent flex container; mobile: a dropdown menu) */
+.header-controls{display:inline-flex;align-items:center;gap:8px}
+.header-menu-toggle{display:none;width:36px;height:36px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text-muted);cursor:pointer;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s,border-color .15s;flex-shrink:0}
 .header-menu-toggle svg{width:18px;height:18px}
 .header-menu-toggle:hover,.header-menu-toggle.open{background:var(--accent-dim);color:var(--accent);border-color:var(--accent)}
+.header h1{font-size:42px;font-weight:600;letter-spacing:-.5px;background:linear-gradient(135deg,var(--accent),#7eaad4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;line-height:1;margin:0;padding:0}
+body[data-theme="light"] .header h1{background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+body[data-theme="cottage"] .header h1{background:linear-gradient(135deg,#c79090 0%,#b87290 35%,#9caf88 70%,#d4a574 100%);-webkit-background-clip:text}
+body[data-theme="evil"] .header h1{background:linear-gradient(135deg,#dc2040,#880020);-webkit-background-clip:text}
+body[data-theme="nonchalant"] .header h1{background:linear-gradient(135deg,#8fb380,#a8a070);-webkit-background-clip:text;font-family:'Fascinate',cursive;letter-spacing:0;font-weight:400;font-size:42px}
+body[data-theme="dark"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#ffb070,#ffd29c);-webkit-background-clip:text}
+body[data-theme="dim"] .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+:root .header h1{font-family:'Silkscreen',monospace;font-size:36px;letter-spacing:1px;font-weight:400;background:linear-gradient(135deg,#e89854,#f0c474);-webkit-background-clip:text}
+body[data-theme="cottage"] .header h1{font-family:'Cabin Sketch',cursive;font-weight:700;letter-spacing:0;font-size:46px}
+body[data-theme="evil"] .header h1{font-family:'Metamorphous',serif;font-weight:400;letter-spacing:1px;font-size:42px}
+.header-btn{font-size:13px;padding:6px 12px;color:var(--text-muted)}
+.header-spacer{flex:1}
+.lang-select{padding:7px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;outline:none}
+/* Undo/Redo: tiny paired icon buttons next to the logo */
+.undo-redo-pair{display:inline-flex;gap:0;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;align-self:center;background:var(--surface2);flex-shrink:0}
+.undo-redo-btn{width:30px;height:30px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:background .15s,color .15s}
+.undo-redo-btn svg{width:15px;height:15px}
+.undo-redo-btn:not(:disabled):hover{background:var(--accent-dim);color:var(--accent)}
+.undo-redo-btn:not(:disabled):active{background:var(--accent);color:#fff}
+.undo-redo-btn:disabled{opacity:.3;cursor:not-allowed}
+.undo-redo-btn:first-child{border-right:1px solid var(--border)}
+.lang-select:hover{border-color:var(--accent);color:var(--accent)}
+.lang-select option{background:var(--surface2);color:var(--text)}
 
-/* ── Profile bar ── */
+/* Profile bar */
 .profile-bar{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:22px;flex-wrap:wrap}
-.profile-bar-label{font-size:12px;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);font-weight:600;white-space:nowrap;flex-shrink:0}
-.profile-tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
-.profile-tab{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:32px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s;white-space:nowrap;position:relative;flex-shrink:0}
+.profile-bar-label{font-size:clamp(11px,1.2vw,14px);text-transform:uppercase;letter-spacing:1.2px;color:var(--text-dim);font-weight:500}
+.profile-tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.profile-tab{display:flex;align-items:center;gap:12px;padding:5px 10px 5px 5px;border-radius:32px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:15px;cursor:pointer;transition:all .2s;white-space:nowrap;position:relative}
 .profile-tab:hover{background:var(--surface3);color:var(--text);border-color:var(--border-hover)}
 .profile-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--text);font-weight:500}
-.tab-dot{width:9px;height:9px;border-radius:50%;background:var(--text-dim);flex-shrink:0}
+.profile-tab .tab-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border);flex-shrink:0}
+.profile-tab.active .tab-pic{border-color:var(--accent)}
+.profile-tab .tab-dot{width:10px;height:10px;border-radius:50%;background:var(--text-dim);margin-left:4px}
 .profile-tab.active .tab-dot{background:var(--accent);box-shadow:0 0 6px var(--accent-glow)}
-.tab-menu-btn{width:21px;height:21px;border-radius:50%;border:none;background:var(--surface3);color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:all .15s;flex-shrink:0}
-.tab-menu-btn svg{width:11px;height:11px}
-.tab-menu-btn:hover{background:var(--accent);color:#fff}
-.ctx-menu{position:absolute;top:calc(100% + 4px);left:0;z-index:60;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:4px 0;min-width:150px;display:none}
+.profile-tab > span:not(.tab-dot){padding:0 2px 0 0}
+.profile-tab .tab-menu-btn{width:26px;height:26px;border-radius:50%;border:1px solid transparent;background:var(--surface3);color:var(--text-muted);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;margin-left:2px;transition:all .15s;padding:0;flex-shrink:0}
+.profile-tab .tab-menu-btn svg{width:14px;height:14px;display:block}
+.profile-tab .tab-menu-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.08)}
+.profile-tab.active .tab-menu-btn{background:rgba(255,255,255,.08);color:var(--text)}
+.ctx-menu{position:absolute;top:100%;left:0;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:4px 0;min-width:160px;display:none}
 .ctx-menu.open{display:block}
-.ctx-menu-item{display:block;width:100%;padding:9px 16px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:14px;text-align:left;cursor:pointer}
+.ctx-menu-item{display:block;width:100%;padding:9px 18px;background:none;border:none;color:var(--text-muted);font-family:inherit;font-size:15px;text-align:left;cursor:pointer}
 .ctx-menu-item:hover{background:var(--surface2);color:var(--text)}
-.ctx-menu-item.danger:hover{color:var(--danger)}
-.profile-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.profile-actions{display:flex;gap:8px;align-items:center}
 
-/* ── Buttons ── */
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
 .btn:hover{border-color:var(--border-hover);color:var(--text);background:var(--surface3)}
-.btn-accent{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
-.btn-accent:hover{background:var(--accent);color:#fff}
+.btn-accent{background:var(--accent-dim);border-color:rgba(164,139,207,.3);color:var(--accent)}
+.btn-accent:hover{background:rgba(164,139,207,.22);border-color:var(--accent)}
 .btn-sm{padding:5px 12px;font-size:13px}
-.btn svg{width:15px;height:15px;flex-shrink:0}
-body[data-theme="cottage"] .btn-accent{background:linear-gradient(135deg,#d4a4a4,#c79090,#b87a8a);border-color:rgba(150,90,90,.3);color:#fdf9f0;font-weight:600;box-shadow:0 2px 8px rgba(199,144,144,.3),inset 0 1px 0 rgba(255,255,255,.4)}
-body[data-theme="evil"] .btn-accent{background:linear-gradient(180deg,#e83858,#a00020);color:#fff!important;border-color:#5a0018;box-shadow:0 0 12px rgba(220,32,64,.4);font-weight:600}
-body[data-theme="nonchalant"] .btn-accent{background:linear-gradient(180deg,#9cbf8c,#7a9e6e);color:#1e2420!important;border-color:#6a8a60;font-weight:500}
+.btn svg{width:16px;height:16px}
 
-/* ── Layout ── */
-.panels-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+/* Chart tabs */
+.chart-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.chart-tab{padding:7px 18px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s}
+.chart-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.chart-tab:hover{background:var(--surface2);color:var(--text)}
+
+/* Chart */
+.chart-container canvas{width:100%;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);display:block;margin-bottom:8px}
+
+/* Stats */
+.stats-bar{display:flex;gap:20px;padding:12px 18px;margin-top:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;font-size:15px;color:var(--text-muted)}
+.stat-item{display:inline-flex;align-items:center;gap:10px;line-height:1.4}
+.stat-item strong{color:var(--text);font-weight:600}
+.stat-label{color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.6px;font-size:.85em}
+/* Both .stat-icon and .stat-dot are exactly 18×18 outer boxes so the text column lines up across all stat items */
+.stat-icon{flex-shrink:0;width:18px;height:18px;color:var(--text-muted);opacity:.85;display:inline-block}
+.stat-icon svg{width:100%;height:100%;display:block}
+/* The dot's visible color comes from inline style="background:#color".
+   We use box-shadow inset of the same surface color to mask the outer ring,
+   creating the visual effect of an 8×8 dot inside an 18×18 footprint. */
+.stat-dot{flex-shrink:0;width:18px;height:18px;border-radius:50%;box-sizing:border-box;border:5px solid var(--surface);background-clip:padding-box}
+
+/* Panels */
+.panels-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}
 @media(max-width:900px){.panels-grid{grid-template-columns:1fr}}
 .panel{padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
-.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px}
-.panel-title{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:8px;flex-shrink:0}
-.panel-title::before{content:'';width:3px;height:14px;border-radius:2px;background:var(--accent);flex-shrink:0}
-body[data-theme="cottage"] .panel{background:linear-gradient(180deg,#fdf9f0 0%,var(--surface) 6%,var(--surface) 94%,#f4ead8 100%);box-shadow:0 4px 16px rgba(120,85,45,.08),inset 0 1px 0 rgba(255,255,255,.6)}
-body[data-theme="cottage"] .panel-title::after{content:" ❀";color:var(--accent);font-size:.85em;opacity:.7}
+.panel-watermarked{overflow:hidden;isolation:isolate}
+.panel-watermark{position:absolute;right:-40px;bottom:-50px;width:300px;height:300px;color:var(--text);opacity:.025;transform:rotate(-42deg);transform-origin:center;pointer-events:none;z-index:0}
+.panel-watermark.flip-h{width:243px;height:243px;right:-20px;bottom:0;transform:rotate(-170deg) scaleX(-1)}
+body[data-theme="light"] .panel-watermark{opacity:.04}
+body[data-theme="cottage"] .panel-watermark{opacity:.05}
+body[data-theme="evil"] .panel-watermark{opacity:.035;color:var(--accent)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-title{font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);display:flex;align-items:center;gap:8px}
+.panel-title::before{content:'';width:3px;height:16px;border-radius:2px;background:var(--accent)}
+.field-row{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:13px;color:var(--text-dim);font-weight:500;letter-spacing:.4px;text-transform:uppercase}
+.field input,.field select{padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:15px;outline:none;transition:border-color .2s;width:160px}
+.field select{font-family:'DM Sans',sans-serif;cursor:pointer}
+.field select option{background:var(--surface2);color:var(--text)}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
+.field input[type="color"]{width:42px;height:38px;padding:2px;cursor:pointer}
 
-/* ── Emoji picker ── */
-.emoji-wrap{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 8px 8px;margin-bottom:10px}
-.emoji-row{display:flex;align-items:flex-end;justify-content:center;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:16px;scrollbar-width:none}
-.emoji-row::-webkit-scrollbar{display:none}
-.emoji-btn{font-size:20px;line-height:1;cursor:pointer;border:2px solid transparent;border-radius:50%;padding:4px;background:transparent;transition:transform .15s cubic-bezier(.34,1.56,.64,1),background .1s,border-color .1s,box-shadow .1s;user-select:none;-webkit-user-select:none;flex-shrink:0;display:flex;align-items:center;justify-content:center;width:36px;height:36px}
-.emoji-btn:hover{transform:scale(1.55) translateY(-7px);z-index:2}
-.emoji-btn.selected{transform:scale(1.6) translateY(-9px);border-color:var(--accent);box-shadow:0 0 14px var(--accent-glow);z-index:3}
-.emoji-btn.neg:hover{background:var(--neg-dim);border-color:var(--neg)}
-.emoji-btn.neg.selected{background:var(--neg-dim);border-color:var(--neg);box-shadow:0 0 12px rgba(248,113,113,.4)}
-.emoji-btn.pos:hover{background:var(--pos-dim);border-color:var(--pos)}
-.emoji-btn.pos.selected{background:var(--pos-dim);border-color:var(--pos);box-shadow:0 0 12px rgba(74,222,128,.35)}
-.emoji-btn.neutral:hover,.emoji-btn.neutral.selected{background:var(--accent-dim)}
-.emoji-axis{display:flex;justify-content:space-between;padding:0 2px;font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-top:-12px}
-.mood-readout{text-align:center;margin:10px 0 0;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
-.mood-value{font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;transition:color .15s;color:var(--text-dim)}
-.mood-label{font-size:13px;color:var(--text-muted);min-height:18px}
-.mood-legend{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--border);margin:12px 0 0;font-size:12px;color:var(--text-muted)}
-.legend-item{display:flex;align-items:center;gap:4px}
+/* Tags */
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tag{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:16px;font-size:14px;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:default;transition:all .15s}
+.tag .tag-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.tag .tag-x{width:18px;height:18px;border-radius:50%;border:none;background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.tag .tag-x:hover{background:var(--danger);color:#fff}
+.med-pill{cursor:pointer;user-select:none}
+.med-pill.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
+.axis-toggle{cursor:pointer;user-select:none}
+.axis-toggle.show-axis{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
 
-/* ── Field ── */
-.field-label{font-size:11px;color:var(--text-dim);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+/* Med/hormone settings */
+.item-settings{margin-top:10px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2)}
+.item-settings-title{font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;font-weight:500}
+
+/* Recurring */
+.recur-section{margin-top:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);overflow:hidden}
+.recur-header{padding:10px 14px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.5px;user-select:none}
+.recur-header:hover{color:var(--text)}
+.recur-header .arrow{font-size:11px;transition:transform .2s}
+.recur-header .arrow.open{transform:rotate(180deg)}
+.recur-body{padding:0 14px 14px;display:none}
+.recur-body.open{display:block}
+
+/* Date selects */
 .date-selects{display:flex;gap:4px}
-.date-selects select,.ds-day,.ds-month,.ds-year{padding:9px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer}
+.date-selects select{padding:10px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;cursor:pointer}
 .date-selects select:focus{border-color:var(--accent)}
-.ds-day{width:54px}
-.ds-month{width:110px}
-.ds-year{width:78px}
+.date-selects .ds-day{width:60px}
+.date-selects .ds-month{width:130px}
+.date-selects .ds-year{width:85px}
 
-/* ── Tags ── */
-.tag-row{display:flex;gap:5px;flex-wrap:wrap;min-height:28px;margin-bottom:8px}
-.tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:14px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);cursor:pointer;transition:all .15s;user-select:none;flex-shrink:0}
-.tag:hover{background:var(--surface3);border-color:var(--border-hover);color:var(--text)}
-.tag.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
-.tag-x{width:14px;height:14px;border-radius:50%;border:none;background:transparent;color:var(--text-dim);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0}
-.tag-x:hover{background:var(--danger);color:#fff}
+/* Range bar */
+.range-bar{display:flex;align-items:center;gap:12px;margin-top:16px;padding:10px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap}
+.toggle-bar{display:flex;align-items:center;justify-content:center;gap:14px;padding:8px 18px;background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);flex-wrap:wrap;margin-top:-1px}
+.toggle-pair{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+.range-input-pair{display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
+.recur-group{display:inline-flex;align-items:center;gap:6px;flex-shrink:0}
+.range-bar+.toggle-bar{border-top:1px dashed var(--border)}
+.range-bar-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.range-bar:has(+.toggle-bar){border-radius:var(--radius) var(--radius) 0 0}
+.toggle-bar-title{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-right:4px}
+.range-bar label{font-size:15px;color:var(--text-dim);font-weight:500}
+.range-bar input[type="number"]{padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:15px;width:80px;outline:none}
+.toggle-switch{position:relative;width:40px;height:22px;cursor:pointer;display:inline-block;vertical-align:middle;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--surface3);border-radius:11px;transition:background .2s,border-color .2s;border:1px solid var(--border)}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:var(--text-muted);border-radius:50%;transition:transform .2s ease,background .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.toggle-switch:hover .toggle-slider{border-color:var(--border-hover)}
+.toggle-switch input:checked+.toggle-slider{background:var(--accent-dim);border-color:var(--accent)}
+.toggle-switch input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle-label{font-size:14px;color:var(--text-muted)}
 
-/* ── Med pills in log panel ── */
-.med-log-row{display:flex;gap:5px;flex-wrap:wrap;min-height:24px;margin-bottom:8px}
-.med-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:14px;font-size:12px;font-weight:500;border:1.5px solid transparent;cursor:pointer;transition:all .15s;user-select:none;flex-shrink:0}
-.med-pill:hover{filter:brightness(1.1)}
-.med-pill.checked{box-shadow:0 0 0 2px var(--text);opacity:1}
-.med-pill:not(.checked){opacity:.5}
+/* Custom add modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex;overscroll-behavior:contain}
+/* Lock background scroll when any modal is open (modern :has() + JS fallback class) */
+html:has(.modal-overlay.open),body:has(.modal-overlay.open),body.modal-open,html.modal-open{overflow:hidden!important}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;width:480px;max-width:92vw;max-height:90vh;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
+.modal h3{font-size:20px;font-weight:600;margin-bottom:18px;flex-shrink:0}
+/* The named content divs become scrollable; rest of modal is fixed-flex */
+.modal #wizardContent,.modal #catalogList,.modal #addMedBody,.modal #addHormoneBody,.modal #infoBody,.modal #emojiPickerBody,.modal #cropperBody,.modal #baselineEditBody,.modal #dataMgmtBody{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;flex:1;min-height:0;padding-right:6px;margin-right:-6px}
+.modal input[type="text"],.modal input[type="number"]{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;outline:none;margin-bottom:14px}
+.modal input:focus{border-color:var(--accent)}
+.modal-buttons{display:flex;gap:12px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);flex-shrink:0}
+.modal-label{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;font-weight:500}
+.baseline-options{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.baseline-options.vertical{flex-direction:column}
+.baseline-opt{flex:1;min-width:120px;padding:14px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:14px;text-align:center;cursor:pointer;transition:all .2s;line-height:1.5}
+.baseline-opt:hover{border-color:var(--border-hover);color:var(--text)}
+.baseline-opt.selected{border-color:var(--accent);background:var(--accent-dim);color:var(--accent);font-weight:500}
+.baseline-opt .opt-title{font-weight:600;font-size:15px;margin-bottom:4px}
+.baseline-opt .opt-desc{font-size:12px;color:var(--text-dim);font-weight:400}
 
-/* ── Tracked meds list ── */
-.med-list{display:flex;flex-direction:column;gap:8px}
-.med-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);font-size:14px}
-.med-color-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
-.med-info{flex:1;min-width:0}
-.med-name-text{font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.med-sub{font-size:12px;color:var(--text-dim)}
-.med-actions{display:flex;gap:4px;flex-shrink:0}
-.med-action-btn{width:26px;height:26px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;transition:all .15s}
-.med-action-btn svg{width:13px;height:13px}
-.med-action-btn:hover{color:var(--text);border-color:var(--border-hover)}
-.med-action-btn.del:hover{color:var(--danger);border-color:var(--danger)}
-
-/* ── Stats ── */
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px}
-.stat-card .s-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);font-weight:600;margin-bottom:3px}
-.stat-card .s-val{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--text);line-height:1.2}
-.stat-card .s-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
-
-/* ── Chart ── */
-.chart-section{margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
-.chart-section canvas{width:100%;display:block;border-radius:var(--radius-sm)}
-body[data-theme="cottage"] .chart-section{background:linear-gradient(180deg,#fdf9f0 0%,var(--surface) 4%);box-shadow:0 4px 16px rgba(120,85,45,.06)}
-
-/* ── History ── */
-.history-section{margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
-.history-table{width:100%;border-collapse:collapse;font-size:14px}
-.history-table th{padding:8px 10px;text-align:left;color:var(--text-dim);font-weight:500;text-transform:uppercase;font-size:10px;letter-spacing:.6px;border-bottom:1px solid var(--border)}
-.history-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);vertical-align:middle}
-.history-table tr:last-child td{border-bottom:none}
+/* History */
+.history-panel{margin-top:22px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+.history-tabs{display:flex;gap:6px;margin-bottom:14px}
+.history-tab{padding:7px 20px;border-radius:16px;border:1px solid var(--border);background:transparent;color:var(--text-muted);font-family:inherit;font-size:15px;cursor:pointer;transition:all .2s}
+.history-tab.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
+.history-table{width:100%;border-collapse:collapse;font-size:15px;table-layout:auto}
+.history-table th{padding:9px 10px;text-align:left;color:var(--text-dim);font-weight:500;text-transform:uppercase;font-size:11px;letter-spacing:.6px;border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.history-table th:hover{color:var(--text)}
+.history-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:14px;vertical-align:middle}
+/* Day column compact */
+.history-table th:nth-child(2),.history-table td:nth-child(2){width:50px}
+/* Action column hugs the right */
+.history-table th:last-child,.history-table td:last-child{width:1%;white-space:nowrap;text-align:right}
 .history-table tr:hover td{color:var(--text);background:var(--surface2)}
-.hist-btn{padding:4px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;transition:all .15s;flex-shrink:0}
-.hist-btn:hover{color:var(--danger);border-color:var(--danger)}
-.hist-btn svg{width:12px;height:12px}
-.mood-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-weight:600;font-family:'JetBrains Mono',monospace;font-size:12px}
-.mood-badge.pos{background:var(--pos-dim);color:var(--pos)}
-.mood-badge.neg{background:var(--neg-dim);color:var(--neg)}
-.mood-badge.neutral{background:var(--accent-dim);color:var(--accent)}
-.hist-pills{display:flex;gap:3px;flex-wrap:wrap;margin-top:4px}
-.hist-med-pill{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;opacity:.85}
-.hist-tag{font-size:10px;padding:2px 7px;border-radius:8px;border:1px solid var(--border);color:var(--text-dim)}
-.history-empty{color:var(--text-dim);font-size:14px;padding:12px 0}
+.hist-actions{text-align:right;white-space:nowrap;vertical-align:middle}
+.hist-actions > *{vertical-align:middle}
+.hist-actions > *+*{margin-left:5px}
+.hist-btn{padding:5px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text-dim);font-size:13px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;box-sizing:border-box}
+.hist-btn svg{width:14px;height:14px;display:block}
+.hist-btn:hover{color:var(--text);border-color:var(--border-hover)}
+.hist-btn.hist-del:hover{color:var(--danger);border-color:var(--danger)}
+/* Toggle inside history row: matches button height for flush alignment */
+.hist-toggle{margin:0 4px;align-self:center;flex-shrink:0}
+/* Med-name in history: truncate long names, expand on tap/hover */
+.med-name{display:inline-block;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;cursor:pointer;transition:max-width .25s ease}
+.med-name:hover,.med-name.expanded{max-width:300px}
+.history-empty{color:var(--text-dim);font-size:15px;padding:14px 0}
 
-/* ── Catalog modal ── */
-.cat-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
-.cat-tab{padding:5px 12px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
-.cat-tab.active{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
-.cat-tab:hover:not(.active){background:var(--surface3);color:var(--text)}
-.catalog-grid{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow-y:auto;padding-right:4px}
-.catalog-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);cursor:pointer;transition:all .15s}
-.catalog-item:hover{background:var(--surface3);border-color:var(--border-hover)}
-.catalog-item.selected{border-color:var(--accent);background:var(--accent-dim)}
-.cat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.cat-item-main{flex:1;min-width:0}
-.cat-item-name{font-size:14px;font-weight:500;color:var(--text)}
-.cat-item-sub{font-size:11px;color:var(--text-dim);margin-top:1px}
-.cat-item-badge{font-size:10px;padding:2px 7px;border-radius:8px;border:1px solid var(--border);color:var(--text-dim);flex-shrink:0;white-space:nowrap}
-
-/* ── Med add/edit form ── */
-.med-form{display:flex;flex-direction:column;gap:12px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
-.med-form .field-label{margin-bottom:4px}
-.med-form input[type="text"],.med-form input[type="number"],.med-form select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none}
-.med-form input:focus,.med-form select:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
-.med-form .row{display:flex;gap:8px}
-.med-form .row>*{flex:1;min-width:0}
-.color-swatches{display:flex;gap:6px;flex-wrap:wrap}
-.color-swatch{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:all .15s;flex-shrink:0}
-.color-swatch:hover{transform:scale(1.15)}
-.color-swatch.selected{border-color:var(--text);transform:scale(1.15)}
-
-/* ── No profile ── */
-.no-profile{text-align:center;padding:60px 20px;color:var(--text-dim)}
-.no-profile .big{font-size:50px;margin-bottom:12px}
-.no-profile p{font-size:16px;margin-bottom:20px}
-
-/* ── Toast ── */
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:11px 22px;border-radius:22px;font-size:15px;box-shadow:var(--shadow);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:200;pointer-events:none;white-space:nowrap}
+.dow-tag{font-family:'JetBrains Mono',monospace;font-size:.78em;color:var(--text-dim);font-weight:400;letter-spacing:-.3px}
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:12px 24px;border-radius:22px;font-size:16px;box-shadow:var(--shadow);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);z-index:200;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#importInput,#pfpInput{display:none}
+/* Chart resizer - 4-way pull tabs */
+.chart-wrapper{display:grid;grid-template-columns:auto 1fr auto;grid-template-rows:auto 1fr auto;gap:0;margin-bottom:8px;position:relative}
+.chart-wrapper .chart-container{grid-column:2;grid-row:2;min-width:200px;min-height:200px;overflow:hidden}
+.chart-wrapper .grip-corner{width:10px;height:10px;background:transparent}
+.chart-grip{display:flex;align-items:center;justify-content:center;cursor:col-resize;user-select:none;position:relative;opacity:.4;transition:all .25s;color:var(--text-dim);font-size:11px;font-weight:700;flex-shrink:0}
+.chart-grip.grip-h{width:14px;grid-row:2}
+.chart-grip.grip-v{height:14px;grid-column:2;cursor:row-resize}
+.chart-grip-l{grid-column:1}
+.chart-grip-r{grid-column:3}
+.chart-grip-t{grid-row:1}
+.chart-grip-b{grid-row:3}
+.chart-grip::before{content:'';position:absolute;border-radius:2px;background:var(--text-dim);transition:all .25s}
+.chart-grip.grip-h::before{top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:40px}
+.chart-grip.grip-v::before{top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:2px}
+.chart-grip::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;background:var(--text-dim);border-radius:3px;transition:all .25s;z-index:2;box-shadow:inset 0 0 0 2px var(--bg)}
+.chart-grip:hover,.chart-grip.active{opacity:1}
+.chart-grip:hover::before,.chart-grip.active::before{background:var(--accent);box-shadow:0 0 8px var(--accent-glow)}
+.chart-grip:hover::after,.chart-grip.active::after{background:var(--accent);box-shadow:inset 0 0 0 2px var(--bg),0 0 6px var(--accent-glow)}
+#gripL::before,#gripR::before{height:70%}
+#gripT::before,#gripB::before{width:70%}
+#gripL:hover::before,#gripR:hover::before,#gripL.active::before,#gripR.active::before{height:75%}
+#gripT:hover::before,#gripB:hover::before,#gripT.active::before,#gripB.active::before{width:75%}
+#gripL::before,#gripR::before{height:70%}
+#gripL:hover::before,#gripR:hover::before,#gripL.active::before,#gripR.active::before{height:75%}
 
-/* ── Modals ── */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center;padding:16px}
-.modal-overlay.open{display:flex}
-html:has(.modal-overlay.open){overflow:hidden!important}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:0;width:460px;max-width:100%;max-height:90vh;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden}
-.modal-head{padding:22px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
-.modal-head h3{font-size:18px;font-weight:600}
-.modal-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 24px}
-.modal-foot{padding:14px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0}
-.modal input[type="text"]{width:100%;padding:10px 13px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:15px;outline:none;margin-bottom:0}
-.modal input[type="text"]:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-dim)}
-.modal-body .field-label{display:block;margin-bottom:6px}
-body[data-theme="cottage"] .modal{background:linear-gradient(180deg,#fdf9f0,var(--surface));box-shadow:0 12px 40px rgba(80,55,35,.25),inset 0 1px 0 rgba(255,255,255,.6)}
+@keyframes sparkle{0%,100%{box-shadow:0 0 4px var(--accent-glow)}50%{box-shadow:0 0 16px var(--accent),0 0 30px var(--accent-glow)}}
+.add-profile-btn.sparkle{animation:sparkle 1.5s ease-in-out infinite}
+.catalog-gear{position:absolute;bottom:10px;right:10px;width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .2s}
+.catalog-gear:hover{color:var(--accent);border-color:var(--accent);transform:rotate(30deg)}
+/* Inline variant: lives next to the panel-header's primary action button instead of overlapping content */
+.catalog-gear-inline{position:static;width:30px;height:30px;flex-shrink:0}
+.catalog-list{max-height:60vh;overflow-y:auto;margin:-8px -4px 12px -4px;padding:4px}
+.catalog-row{display:grid;grid-template-columns:22px minmax(120px,1.4fr) 58px 78px 18px 70px 14px 70px 18px 56px;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-sm);font-size:14px;border:1px solid transparent;border-bottom:1px solid var(--border)}
+.catalog-row.med-row{grid-template-columns:22px 1fr 58px 78px}
+.catalog-row.tracked{background:var(--accent-dim)}
+.catalog-swatch{width:22px;height:22px;border-radius:4px;flex-shrink:0;cursor:pointer;padding:0;border:1px solid var(--border)}
+.catalog-name{color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.catalog-tag{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;text-align:center;padding:0;background:none;border:none}
+.cat-prehrt-btn{flex-shrink:0;width:28px;height:18px;padding:0;margin-right:4px;display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-dim);cursor:pointer;transition:all .15s}
+.cat-prehrt-btn:hover{border-color:var(--accent);color:var(--text)}
+.cat-prehrt-btn.on{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+.cat-prehrt-btn svg{display:block}
+.catalog-unit-select{padding:4px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;width:100%}
+.catalog-range-input{padding:4px 5px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:11px;font-family:'JetBrains Mono',monospace;width:100%;box-sizing:border-box;min-width:0;-moz-appearance:textfield}
+.catalog-range-input::-webkit-outer-spin-button,.catalog-range-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+/* Hide native number spinners on inputs inside steppers (they're replaced by buttons) */
+.stepper input[type="number"]::-webkit-outer-spin-button,
+.stepper input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.stepper input[type="number"]{-moz-appearance:textfield;appearance:textfield}
+/* Stepper widget: −  [input]  + */
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);overflow:hidden;height:36px;flex-shrink:0}
+.stepper input{
+  border:none!important;
+  background:transparent!important;
+  width:60px;
+  text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:14px;
+  color:var(--text);
+  padding:0 4px;
+  margin:0;
+  outline:none;
+  height:100%;
+  min-width:0;
+}
+.stepper input:focus{background:var(--surface)!important}
+.stepper-btn{
+  width:36px;
+  height:100%;
+  border:none;
+  background:var(--surface3);
+  color:var(--text-muted);
+  font-size:18px;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:manipulation;
+  transition:background .12s,color .12s;
+  font-family:inherit;
+  line-height:1;
+  padding:0;
+  flex-shrink:0;
+}
+.stepper-btn:hover{background:var(--accent-dim);color:var(--accent)}
+.stepper-btn:active{background:var(--accent);color:#fff}
+.stepper-btn:first-child{border-right:1px solid var(--border)}
+.stepper-btn:last-child{border-left:1px solid var(--border)}
+.stepper.stepper-sm{height:32px}
+.stepper.stepper-sm input{width:48px;font-size:13px}
+.stepper.stepper-sm .stepper-btn{width:30px;font-size:16px}
+.catalog-del-btn{background:none;border:none;cursor:pointer;padding:3px 4px;margin-left:6px;color:var(--text-dim);display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;border-radius:4px;transition:color .15s,background .15s}
+.catalog-del-btn:hover{color:var(--danger);background:rgba(207,107,107,.12)}
+.catalog-range-dash{color:var(--text-dim);font-size:11px;text-align:center}
+/* ═══ Cottage theme — pressed flowers, aged paper, walnut warmth ═══ */
+body[data-theme="cottage"]{
+  background-image:
+    radial-gradient(ellipse at top left,rgba(199,144,144,.05) 0%,transparent 50%),
+    radial-gradient(ellipse at bottom right,rgba(156,175,136,.05) 0%,transparent 50%),
+    repeating-linear-gradient(98deg,rgba(168,147,119,.018) 0px,rgba(168,147,119,.018) 1px,transparent 1px,transparent 4px);
+  background-attachment:fixed;
+}
+/* Panels: aged-paper feel with warm sepia shadow + soft top-edge highlight */
+body[data-theme="cottage"] .panel,
+body[data-theme="cottage"] .history-panel{
+  border:1px solid var(--border);
+  background:linear-gradient(180deg,#fdf9f0 0%,var(--surface) 6%,var(--surface) 94%,#f4ead8 100%);
+  box-shadow:0 4px 16px rgba(120,85,45,.08),0 1px 3px rgba(120,85,45,.06),inset 0 1px 0 rgba(255,255,255,.6);
+}
+/* Buttons: pill-y with rose-gold gradient on accent */
+body[data-theme="cottage"] .btn{border-radius:14px;background:linear-gradient(180deg,var(--surface),var(--surface2));border-color:var(--border)}
+body[data-theme="cottage"] .btn:hover{background:linear-gradient(180deg,var(--surface2),var(--surface3));border-color:var(--border-hover)}
+body[data-theme="cottage"] .btn-accent{
+  background:linear-gradient(135deg,#d4a4a4 0%,#c79090 50%,#b87a8a 100%);
+  border:1px solid rgba(150,90,90,.3);
+  color:#fdf9f0;
+  text-shadow:0 1px 1px rgba(120,60,70,.3);
+  box-shadow:0 2px 8px rgba(199,144,144,.3),inset 0 1px 0 rgba(255,255,255,.4);
+  font-weight:600;
+}
+body[data-theme="cottage"] .btn-accent:hover{
+  background:linear-gradient(135deg,#dcafaf,#cf9c9c,#c08591);
+  box-shadow:0 3px 12px rgba(199,144,144,.45),inset 0 1px 0 rgba(255,255,255,.5);
+}
+/* Profile tabs: soft pillows */
+body[data-theme="cottage"] .profile-tab{border-radius:18px;background:linear-gradient(180deg,var(--surface),var(--surface2))}
+body[data-theme="cottage"] .profile-tab.active{
+  background:linear-gradient(135deg,rgba(199,144,144,.18),rgba(156,175,136,.14));
+  border-color:var(--accent);
+  box-shadow:0 2px 8px rgba(199,144,144,.18),inset 0 1px 0 rgba(255,255,255,.5);
+}
+/* Tags with sage-tinted hover */
+body[data-theme="cottage"] .tag{border-radius:14px;background:linear-gradient(180deg,var(--surface),var(--surface2))}
+body[data-theme="cottage"] .tag.selected{
+  background:linear-gradient(135deg,rgba(199,144,144,.16),rgba(156,175,136,.12));
+}
+/* Chart tabs: stitched feel */
+body[data-theme="cottage"] .chart-tab{background:linear-gradient(180deg,var(--surface),var(--surface2));border-color:var(--border)}
+body[data-theme="cottage"] .chart-tab.active{
+  background:linear-gradient(135deg,rgba(199,144,144,.2),rgba(156,175,136,.16));
+  border-color:var(--accent);
+  color:var(--text);
+}
+/* Section titles get a tiny floral flourish */
+body[data-theme="cottage"] .panel-title::after{
+  content:"  ❀";
+  color:var(--accent);
+  font-size:.85em;
+  opacity:.7;
+}
+body[data-theme="cottage"] .header h1::after{content:" 🌸";font-size:24px;-webkit-text-fill-color:initial}
+/* Inputs: warmer cream */
+body[data-theme="cottage"] input[type="text"],
+body[data-theme="cottage"] input[type="number"],
+body[data-theme="cottage"] input[type="date"],
+body[data-theme="cottage"] select,
+body[data-theme="cottage"] textarea{
+  background:#fdf9f0;
+  border-color:var(--border);
+}
+body[data-theme="cottage"] input:focus,
+body[data-theme="cottage"] select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px var(--accent-dim);
+}
+/* Toggle slider: rose-on-cream */
+body[data-theme="cottage"] .toggle-slider{background:#dcc9aa}
+body[data-theme="cottage"] .toggle-switch input:checked+.toggle-slider{
+  background:linear-gradient(135deg,#c79090,#b88298);
+}
+/* Range bar/toggle bar: paper-card feel */
+body[data-theme="cottage"] .range-bar,
+body[data-theme="cottage"] .toggle-bar{
+  background:linear-gradient(180deg,#fdf9f0,var(--surface));
+  box-shadow:0 2px 10px rgba(120,85,45,.06),inset 0 1px 0 rgba(255,255,255,.5);
+}
+/* Stats bar: muted cream card */
+body[data-theme="cottage"] .stats-bar{
+  background:linear-gradient(180deg,var(--surface2),var(--surface3));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+/* Modals get a warm overlay tint and paper interior */
+body[data-theme="cottage"] .modal-overlay{background:rgba(80,55,35,.45)}
+body[data-theme="cottage"] .modal{
+  background:linear-gradient(180deg,#fdf9f0,var(--surface));
+  box-shadow:0 12px 40px rgba(80,55,35,.25),inset 0 1px 0 rgba(255,255,255,.6);
+}
+/* Watermark feels more like a faded illustration */
+body[data-theme="cottage"] .panel-watermark{color:var(--accent);opacity:.06}
+/* Catalog-gear gets a soft rose tint on hover */
+body[data-theme="cottage"] .catalog-gear:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-dim)}
+/* Evil theme — sharp, menacing */
+body[data-theme="evil"] .panel,body[data-theme="evil"] .history-panel{border:1px solid var(--border);box-shadow:0 2px 20px rgba(220,32,64,.08),inset 0 0 40px rgba(220,32,64,.03)}
+body[data-theme="evil"] .btn-accent{background:linear-gradient(180deg,#e83858,#a00020);color:#fff!important;border:1px solid #5a0018;box-shadow:0 0 12px rgba(220,32,64,.4),inset 0 1px 0 rgba(255,255,255,.1);text-shadow:0 1px 2px rgba(0,0,0,.6);font-weight:600}
+body[data-theme="evil"] .btn-accent:hover{background:linear-gradient(180deg,#ff486a,#c00028);box-shadow:0 0 20px rgba(220,32,64,.6),inset 0 1px 0 rgba(255,255,255,.15)}
+body[data-theme="evil"] .header h1{text-shadow:0 0 20px rgba(220,32,64,.4);filter:drop-shadow(0 0 6px rgba(220,32,64,.3))}
+body[data-theme="evil"] .profile-tab.active{box-shadow:0 0 10px rgba(220,32,64,.4)}
+/* Nonchalant theme — laid-back natural greens */
+body[data-theme="nonchalant"] .panel,body[data-theme="nonchalant"] .history-panel{border:1px solid var(--border);box-shadow:0 2px 14px rgba(30,40,30,.18)}
+body[data-theme="nonchalant"] .btn-accent{background:linear-gradient(180deg,#9cbf8c,#7a9e6e);color:#1e2420!important;border:1px solid #6a8a60;font-weight:500}
+body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180deg,#abd099,#87a87a)}
+/* ════════ Responsive design ════════
+   Philosophy: keep desktop as-is. Tablet gets light shrinking. Mobile gets a
+   deliberate vertical layout with explicit sizes (not vw-based, which behaves
+   unpredictably on real phones) and proper touch-friendly controls. */
 
-/* ── Theme select ── */
-.theme-select{padding:7px 10px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-family:inherit;font-size:13px;cursor:pointer;outline:none}
-.theme-select:hover{border-color:var(--accent);color:var(--accent)}
-.theme-select option{background:var(--surface2);color:var(--text)}
+/* Tablet: panels still side-by-side but sizes shrink slightly */
+@media(max-width:1024px){
+  body{padding:20px}
+  .header h1{font-size:36px}
+  body[data-theme="dark"] .header h1{font-size:30px}
+  body[data-theme="cottage"] .header h1{font-size:38px}
+}
 
-/* ── Responsive ── */
-@media(max-width:1024px){body{padding:20px}.header h1{font-size:36px}body[data-theme="dark"] .header h1{font-size:30px}body[data-theme="cottage"] .header h1{font-size:38px}}
-@media(max-width:900px){body{padding:16px}.panels-grid{grid-template-columns:1fr;gap:14px}.header h1{font-size:32px}body[data-theme="dark"] .header h1{font-size:26px}body[data-theme="cottage"] .header h1{font-size:34px}}
+/* Tablet narrow: panels stack, but layout still holds desktop-ish proportions */
+@media(max-width:900px){
+  body{padding:16px}
+  .panels-grid{grid-template-columns:1fr;gap:14px}
+  .header-spacer{flex-basis:100%;width:0;height:0;margin:0}
+  .header h1{font-size:32px}
+  body[data-theme="dark"] .header h1{font-size:26px}
+  body[data-theme="cottage"] .header h1{font-size:34px}
+  .header .by{font-size:14px}
+}
+
+/* Mobile: deliberate vertical layout — explicit pixel sizes, NOT vw */
 @media(max-width:640px){
-  body{padding:10px 8px;font-size:15px}
-  .header{margin-bottom:14px;gap:6px}
-  .header h1{font-size:28px}
-  body[data-theme="dark"] .header h1,:root .header h1{font-size:22px;letter-spacing:.5px}
-  body[data-theme="dim"] .header h1{font-size:22px}
-  body[data-theme="cottage"] .header h1{font-size:30px}
-  body[data-theme="evil"] .header h1,body[data-theme="nonchalant"] .header h1{font-size:26px}
+  body{padding:8px 6px;font-size:14px}
+
+  /* ── Header: logo first, buttons fit around it ── */
+  .header{gap:8px;margin-bottom:14px;align-items:center;position:relative;flex-wrap:nowrap;min-height:38px}
+  /* Logo gets a generous starting size; JS shrinks it to fit if needed via inline style */
+  .header h1{font-size:32px;line-height:1;flex-shrink:0;white-space:nowrap;min-width:0}
+  body[data-theme="dark"] .header h1{font-size:24px;letter-spacing:.5px}
+  body[data-theme="cottage"] .header h1{font-size:34px}
+  body[data-theme="evil"] .header h1,body[data-theme="nonchalant"] .header h1{font-size:30px}
   .header .by{display:none}
   .header-spacer{display:none}
-  .header-controls{position:absolute;top:56px;right:8px;z-index:50;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow);padding:10px;flex-direction:column;align-items:stretch;gap:8px;min-width:180px;display:none}
+  .header .undo-redo-pair{position:static;margin:0;flex-shrink:0;margin-left:auto}
+  .undo-redo-btn{width:28px;height:28px}
+  .undo-redo-btn svg{width:13px;height:13px}
+  .header-menu-toggle{width:34px;height:34px;flex-shrink:0}
+  .header-menu-toggle svg{width:16px;height:16px}
+  .header-controls{
+    position:absolute;
+    top:calc(100% + 6px);
+    right:0;
+    z-index:50;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    box-shadow:var(--shadow);
+    padding:10px;
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+    min-width:200px;
+    display:none;
+  }
   .header-controls.open{display:flex}
-  .header-controls .theme-select,.header-controls .btn{width:100%;justify-content:center}
+  .header-controls .lang-select,
+  .header-controls .feedback-btn{
+    width:100%;
+    justify-content:center;
+    text-align:center;
+    flex-direction:row!important;
+    padding:8px 12px;
+    font-size:13px;
+    min-height:38px;
+    box-sizing:border-box;
+  }
+  .header-controls .feedback-btn{
+    font-size:13px!important;
+    padding:8px 12px!important;
+    width:100%!important;
+    height:auto!important;
+    border-radius:var(--radius-sm)!important;
+    line-height:1.3;
+  }
+  .header-controls .feedback-btn span{display:inline;font-size:11px;margin:0 0 0 6px;opacity:.7}
+  .header-controls .feedback-btn br{display:none}
+  /* Standalone ? button stays visible on mobile, sized to match the gear */
+  .header-info-btn{width:30px!important;height:30px!important;font-size:14px!important}
   .header-menu-toggle{display:inline-flex}
-  .header{position:relative;flex-wrap:nowrap}
-  .profile-bar{padding:8px 12px;gap:8px}
-  .profile-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:2px;mask-image:linear-gradient(to right,#000 calc(100% - 16px),transparent);-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 16px),transparent)}
-  .profile-actions{flex-basis:100%;gap:6px}
-  .profile-actions .btn{flex:1;justify-content:center;font-size:12px;padding:7px 8px}
-  .panel{padding:14px}
-  .date-selects select{flex:1;min-width:0;padding:9px 4px;font-size:13px}
-  .emoji-btn{width:30px;height:30px;font-size:17px}
-  .stats-grid{gap:8px}
-  .stat-card .s-val{font-size:18px}
-  .chart-section,.history-section{padding:14px}
-  .modal-overlay{padding:0;align-items:flex-end}
-  .modal{max-width:100vw!important;width:100vw;max-height:88vh;border-radius:16px 16px 0 0}
-  .modal::before{content:"";display:block;width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
-  .modal-head{padding:10px 18px 14px}
-  .modal-body{padding:0 18px 8px}
-  .modal-foot{padding:12px 18px;flex-wrap:wrap}
-  .modal-foot .btn{flex:1;min-width:0;justify-content:center;min-height:42px}
-  .cat-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;mask-image:linear-gradient(to right,#000 calc(100% - 16px),transparent);-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 16px),transparent)}
-  .cat-tab{flex-shrink:0}
-  .history-table th,.history-table td{padding:7px 6px;font-size:12px}
-  .toast{left:10px;right:10px;max-width:none;text-align:center}
+
+  /* ── Profile bar: tabs scroll, buttons wrap to next row ── */
+  .profile-bar{padding:10px 12px;gap:8px;row-gap:8px;flex-wrap:wrap}
+  .profile-bar-label{font-size:11px;flex-shrink:0}
+  #profileTabs,.profile-tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;flex:1;min-width:0;scrollbar-width:thin;gap:6px;flex-wrap:nowrap!important;mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent)}
+  #profileTabs::-webkit-scrollbar,.profile-tabs::-webkit-scrollbar{height:3px}
+  #profileTabs::-webkit-scrollbar-thumb,.profile-tabs::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+  .profile-tab{flex-shrink:0;font-size:13px;padding:3px 6px 3px 3px;border-radius:24px}
+  .profile-tab .tab-pic{width:30px;height:30px}
+  .profile-tab .tab-menu-btn{width:24px;height:24px;font-size:14px}
+  /* Profile actions wrap to a new row, even split */
+  .profile-actions{display:flex;flex-basis:100%;width:100%;gap:6px;flex-wrap:wrap}
+  .profile-actions .btn{flex:1;min-width:0;justify-content:center;font-size:12px;padding:7px 8px;min-height:34px}
+  .profile-actions .btn[title*="Data"]{flex:0 0 auto;min-width:38px;width:38px;padding:7px}
+
+  /* ── Chart tabs: scroll horizontally, taller for taps, with fade affordance on right ── */
+  .chart-tabs-wrap{position:relative}
+  .chart-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:thin;gap:6px;mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent)}
+  .chart-tabs::-webkit-scrollbar{height:3px}
+  .chart-tab{flex-shrink:0;padding:7px 14px;font-size:12px;min-height:34px;border-radius:18px}
+
+  /* ── Range bar: From/To side-by-side, action buttons in row below ── */
+  .range-bar{padding:10px 12px;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+  .range-input-pair{gap:6px;justify-content:center;flex-shrink:1}
+  .range-input-pair label{font-size:12px;color:var(--text-muted);flex-shrink:0}
+  /* Action buttons (Start Date / Export PNG / Print) — give them enough flex-basis that the
+     text+icon never clip; the row wraps to a second line on narrow iPhones rather than truncating. */
+  .range-bar > .btn{padding:7px 10px;font-size:11px;min-height:34px;justify-content:center;gap:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .range-bar-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+  .range-bar-actions .btn{padding:8px 8px;font-size:12px;min-height:38px;display:flex;align-items:center;justify-content:center;gap:5px;width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .range-bar-actions .btn:last-child{grid-column:1 / -1}
+  .range-bar-actions .btn svg{width:14px;height:14px;flex-shrink:0}
+  .range-bar-actions .btn span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .range-bar > div[style*="flex:1"]{flex-basis:100%;width:0;height:0;margin:0;display:block!important}
+  /* Steppers smaller & more compact for the day pickers */
+  .range-bar .stepper{height:32px}
+  .range-bar .stepper input{width:46px;font-size:13px;padding:0 2px}
+  .range-bar .stepper-btn{width:28px;font-size:15px}
+
+  /* ── Toggle bar: pairs wrap as units ── */
+  .toggle-bar{padding:12px;gap:10px 16px;flex-wrap:wrap;justify-content:center}
+  .toggle-pair{gap:7px}
+  .toggle-bar .toggle-label{font-size:12px}
+
+  /* ── Panels ── */
+  .panel{padding:14px;padding-bottom:48px}
+  .panel-title{font-size:13px;letter-spacing:.8px}
+  .panel-header{margin-bottom:10px}
+  .panel-header .btn{font-size:12px;padding:7px 11px;min-height:34px}
+  .catalog-gear{bottom:8px;right:8px;width:32px;height:32px}
+
+  /* ── Charts: collapse the resize-grid on mobile so the chart spans full width ── */
+  .chart-resizer{max-width:100%!important;margin:0!important}
+  .chart-wrapper{margin-bottom:6px;display:block;grid-template-columns:none!important}
+  .chart-wrapper .grip-corner,
+  .chart-wrapper .chart-grip.grip-h{display:none}
+  .chart-wrapper .chart-container{grid-column:auto;grid-row:auto;width:100%;min-width:0}
+  .chart-grip.grip-v{display:flex;opacity:.55;height:30px;cursor:row-resize;touch-action:none;width:100%;grid-column:auto}
+  .chart-grip.grip-v::before{width:50px;height:3px}
+
+  /* ── History panel ── */
+  .history-panel{padding:12px;overflow:hidden}
+  /* The table itself scrolls horizontally inside the panel if needed */
+  .history-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -12px;padding:0 12px}
+  .history-tabs{flex-wrap:wrap;gap:4px}
+  .history-tab{font-size:12px;padding:6px 14px;min-height:34px}
+  .history-table{font-size:12px;width:100%;table-layout:auto}
+  .history-table th,.history-table td{padding:7px 6px;white-space:nowrap;vertical-align:middle}
+  .history-table th:nth-child(2),.history-table td:nth-child(2){width:auto;min-width:30px;padding-left:0;padding-right:0}
+  .history-table th:last-child,.history-table td:last-child{width:auto;text-align:right;padding-left:6px;padding-right:0}
+  .med-name{max-width:80px}
+  .med-name.expanded{max-width:200px}
+  .history-table .hist-actions{display:inline-flex;flex-direction:row;gap:4px;justify-content:flex-end;flex-wrap:nowrap;align-items:center}
+  /* Tighter buttons on mobile */
+  .hist-btn{width:28px;height:28px;padding:4px}
+  .hist-btn svg{width:13px;height:13px}
+  /* Compact action buttons: icon-only edit/delete, hide text label */
+  .hist-btn{padding:4px 7px;font-size:11px;min-height:30px;min-width:30px;display:inline-flex;align-items:center;justify-content:center}
+  .hist-btn svg{width:13px;height:13px}
+
+  /* ── Modals: bottom-sheet style ── */
+  .modal-overlay{padding:0;align-items:flex-end;overflow:hidden}
+  .modal{
+    max-width:100vw!important;
+    width:100vw;
+    max-height:88vh;
+    border-radius:18px 18px 0 0;
+    padding:0;
+    margin:0;
+    box-shadow:0 -8px 30px rgba(0,0,0,.4);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;/* contains the scroll body */
+  }
+  /* Sheet drag handle */
+  .modal::before{
+    content:"";
+    display:block;
+    width:40px;height:4px;
+    background:var(--border);
+    border-radius:2px;
+    margin:10px auto 6px;
+    flex-shrink:0;
+  }
+  /* Title fixed at top */
+  .modal h3{
+    font-size:17px;
+    margin:0;
+    padding:8px 18px 12px;
+    flex-shrink:0;
+    border-bottom:1px solid var(--border);
+  }
+  .modal h4{font-size:14px;margin:14px 0 6px}
+  /* Scrollable middle area = everything between h3 and modal-buttons */
+  .modal > h3 ~ *:not(.modal-buttons){
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:0 18px;
+  }
+  /* The LAST scrollable element gets bottom padding for breathing room above sticky footer */
+  .modal > h3 ~ *:not(.modal-buttons):last-of-type{padding-bottom:16px}
+  /* ALL content between h3 and modal-buttons should share scroll container behavior.
+     But we want one unified scrollable area. Use a flex:1 wrapper trick: */
+  .modal > h3 ~ *:not(.modal-buttons){flex:0 0 auto}
+  /* Make ONE scroll wrapper around ALL non-fixed content via wrap */
+  .modal > h3 ~ *:not(.modal-buttons){min-height:0}
+  /* Better: target the predictable id-named content divs as scroll containers */
+  .modal #wizardContent,
+  .modal #catalogList,
+  .modal #addMedBody,
+  .modal #addHormoneBody,
+  .modal #infoBody,
+  .modal #emojiPickerBody,
+  .modal #cropperBody,
+  .modal #baselineEditBody,
+  .modal #dataMgmtBody{
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    flex:1;
+    min-height:0;
+    padding:14px 18px;
+  }
+  /* Fixed footer */
+  .modal-buttons{
+    background:var(--surface);
+    padding:12px 18px;
+    margin:0;
+    border-top:1px solid var(--border);
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    flex-shrink:0;
+  }
+  .modal-buttons .btn{flex:1;min-width:120px;justify-content:center;min-height:42px;font-size:14px}
+
+  /* ── Catalog: simplified rows ── */
+  .catalog-row{grid-template-columns:22px 1fr 50px 60px!important;gap:6px;padding:8px;font-size:12px}
+  .catalog-row .catalog-range-input,.catalog-row .catalog-range-dash{display:none}
+  .catalog-row > span:nth-child(5),
+  .catalog-row > span:nth-child(8){display:none}
+
+  /* ── Stats bar wraps ── */
+  /* ── Stats bar: label on its own row, items below ── */
+  .stats-bar{flex-wrap:wrap;gap:6px 12px;padding:10px;font-size:11px}
+  .stats-bar .stat-item{font-size:11px}
+  .stats-bar > .stat-item:first-child{flex-basis:100%;width:100%;margin-bottom:2px}
+
+  /* ── Form inputs full width ── */
+  .field input,.field select,.field textarea{width:100%;font-size:14px;padding:10px 12px;min-height:42px}
+  .field-row{flex-direction:column;gap:10px}
+  .field-row .field{width:100%}
+  .date-selects{display:flex;gap:6px}
+  .date-selects select{padding:9px 6px;font-size:13px;flex:1;min-width:0}
+
+  /* ── Wizard steps: vertical chips ── */
+  .baseline-options{flex-direction:column;gap:10px}
+  .baseline-opt{width:100%;padding:14px}
+  .opt-title{font-size:14px}
+  .opt-desc{font-size:12px}
+  /* Wizard chips bigger for taps */
+  .wizard-content .tag{font-size:13px;padding:7px 12px;min-height:34px}
+
+  /* ── Toast bottom sheet style ── */
+  #toast{bottom:14px;left:14px;right:14px;max-width:none;text-align:center;font-size:13px;padding:12px 16px}
+
+  /* ── Profile context menu wider for fingers ── */
+  .ctx-menu{min-width:200px}
   .ctx-menu-item{padding:12px 16px;font-size:14px}
 }
-@media(max-width:380px){body{padding:8px 6px}.header h1{font-size:24px}body[data-theme="dark"] .header h1,:root .header h1{font-size:20px}}
-@media(hover:none){button:not(.tab-menu-btn):not(.tag-x):not(.med-action-btn):not(.hist-btn),.profile-tab,.cat-tab{min-height:36px}}
+
+/* Tiny phones (under 380px) — extra tight */
+@media(max-width:380px){
+  body{padding:8px}
+  /* Logo sizes already vw-clamped, no need to override */
+  .undo-redo-btn{width:26px;height:26px}
+  .undo-redo-btn svg{width:12px;height:12px}
+  .header-menu-toggle{width:30px;height:30px}
+  .header-menu-toggle svg{width:14px;height:14px}
+  .profile-bar{padding:8px 10px;gap:6px}
+  .profile-tab{font-size:12px}
+  .profile-tab .tab-pic{width:28px;height:28px}
+  .panel{padding:12px;padding-bottom:46px}
+}
+
+/* Touch device tap targets — applies regardless of width */
+@media(hover:none){
+  /* Touch devices — bigger tap targets, but NOT for toggle sliders (those have their own size) */
+  button:not(.toggle-switch):not(.tab-menu-btn):not(.stepper-btn),
+  select,
+  .profile-tab,.chart-tab,.history-tab{min-height:34px}
+  .toggle-switch,.toggle-switch input,.toggle-slider{min-height:0}
+  .chart-grip{opacity:.65}
+}
+
+@media print{body{background:#fff!important;color:#333!important;padding:10mm}canvas{page-break-inside:avoid}.header,.profile-bar,.range-bar,.toggle-bar,.panels-grid,.history-panel,.chart-tabs,.stats-bar,.toast,.modal-overlay{display:none!important}.chart-container canvas{border:1px solid #ccc}}
+</style>
+<style>
+/* ── Mood-specific components ── */
+.emoji-scale{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-bottom:14px;padding:6px 2px}
+.emoji-opt{width:34px;height:34px;font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;border:none;background:transparent;cursor:pointer;border-radius:50%;transition:transform .18s cubic-bezier(.34,1.56,.64,1),filter .18s;filter:grayscale(.55) opacity(.7);padding:0}
+.emoji-opt:hover{transform:scale(1.55) translateY(-4px);filter:grayscale(0) opacity(1)}
+.emoji-opt.sel{filter:grayscale(0) opacity(1);background:var(--accent-dim);box-shadow:0 0 0 2px var(--accent)}
+.mood-display{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:14px}
+.mood-display .big-emoji{font-size:60px;line-height:1;filter:drop-shadow(0 0 14px var(--accent-glow))}
+.mood-display .mood-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--accent)}
+.mood-display .mood-lbl{font-size:14px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
+.mood-legend{display:flex;justify-content:space-between;gap:6px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)}
+.mood-legend .ml-item{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;color:var(--text-dim)}
+.mood-legend .ml-item .ml-emoji{font-size:20px}
+.tag-pill{cursor:pointer;user-select:none}
+.tag-pill.sel{border-color:var(--accent);background:var(--accent-dim);color:var(--text)}
+.notes-input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none;resize:vertical;min-height:42px}
+.notes-input:focus{border-color:var(--accent)}
+.emoji-picker-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.emoji-picker-grid button{font-size:24px;background:transparent;border:1px solid transparent;border-radius:8px;cursor:pointer;aspect-ratio:1;display:flex;align-items:center;justify-content:center}
+.emoji-picker-grid button:hover{background:var(--surface2);border-color:var(--accent)}
+.epick-cat{font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin:12px 0 6px;font-weight:600}
+.crop-stage{position:relative;width:260px;height:260px;margin:0 auto 14px;border-radius:50%;overflow:hidden;background:#000;cursor:grab;touch-action:none}
+.crop-stage canvas{display:block}
+.wizard-step{margin-bottom:8px}
+.med-name-cell{display:flex;align-items:center;gap:8px}
+.tag-cell{display:flex;flex-wrap:wrap;gap:3px}
+.tag-mini{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--surface3);color:var(--text-muted)}
 </style>
 </head>
 <body>
@@ -272,844 +776,831 @@ body[data-theme="cottage"] .modal{background:linear-gradient(180deg,#fdf9f0,var(
   <span class="by">tracker</span>
   <div class="header-spacer"></div>
   <div class="header-controls" id="headerControls">
-    <select class="theme-select" id="themeSelect">
-      <option value="">dark</option>
-      <option value="dim">dim</option>
-      <option value="light">light</option>
-      <option value="cottage">cottage</option>
-      <option value="evil">evil</option>
-      <option value="nonchalant">nonchalant</option>
+    <select id="themeSelect" class="lang-select" onchange="setTheme(this.value)">
+      <option value="dark">Dark</option>
+      <option value="dim">Dim</option>
+      <option value="light">Light</option>
+      <option value="cottage">Cottage</option>
+      <option value="nonchalant">Nonchalant</option>
+      <option value="evil">Evil</option>
     </select>
-    <button class="btn btn-sm" id="exportBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>export
-    </button>
-    <button class="btn btn-sm" id="importTrigger">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>import
-    </button>
+    <button class="btn" onclick="exportProfiles()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
+    <button class="btn" onclick="document.getElementById('importInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Import</button>
   </div>
-  <button class="header-menu-toggle" id="headerMenuToggle" aria-label="Menu">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
-  <input type="file" id="importInput" accept=".json" style="display:none">
+  <div class="undo-redo-pair">
+    <button class="undo-redo-btn" id="undoBtn" onclick="undo()" title="Undo" aria-label="Undo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-4"/></svg></button>
+    <button class="undo-redo-btn" id="redoBtn" onclick="redo()" title="Redo" aria-label="Redo" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 0 0-5 5v0a5 5 0 0 0 5 5h4"/></svg></button>
+  </div>
+  <button class="btn btn-sm btn-accent header-btn header-info-btn" onclick="openInfoModal()" title="About" style="font-weight:700;width:32px;height:32px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;line-height:1;font-size:15px;flex-shrink:0">?</button>
+  <button class="header-menu-toggle" id="headerMenuToggle" onclick="toggleHeaderMenu()" aria-label="Settings menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </div>
 
 <div class="profile-bar">
   <span class="profile-bar-label">who</span>
   <div class="profile-tabs" id="profileTabs"></div>
   <div class="profile-actions">
-    <button class="btn btn-sm btn-accent" id="addProfileBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>profile
-    </button>
+    <button class="btn add-profile-btn" onclick="openNewProfileModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Add Profile</span></button>
+    <button class="btn" onclick="exportProfiles()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span>Export</span></button>
+    <button class="btn" onclick="document.getElementById('importInput').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><span>Import</span></button>
+    <button class="btn" onclick="openDataSettings()" title="Data Settings" style="padding:6px 9px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:18px;height:18px"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <input type="file" id="importInput" accept=".json" onchange="importProfiles(event)">
+    <input type="file" id="pfpInput" accept="image/*" onchange="onPfpFile(event)">
   </div>
 </div>
 
-<div id="mainContent"></div>
+<div class="chart-tabs" id="chartTabs"></div>
 
-<!-- Add profile modal -->
-<div class="modal-overlay" id="addProfileModal">
-  <div class="modal">
-    <div class="modal-head"><h3>new profile</h3></div>
-    <div class="modal-body" style="padding-top:20px">
-      <input type="text" id="profileNameInput" placeholder="name..." maxlength="30">
-    </div>
-    <div class="modal-foot">
-      <button class="btn" id="cancelProfileBtn">cancel</button>
-      <button class="btn btn-accent" id="saveProfileBtn">create</button>
-    </div>
-  </div>
+<div class="chart-wrapper" id="chartResizer">
+  <div class="grip-corner"></div><div class="grip-corner"></div>
+  <div class="chart-grip grip-h chart-grip-l" id="gripL"></div>
+  <div class="chart-container" id="chartContainer"><canvas id="chart"></canvas></div>
+  <div class="chart-grip grip-h chart-grip-r" id="gripR"></div>
+  <div class="grip-corner"></div>
+  <div class="chart-grip grip-v chart-grip-b" id="gripB"></div>
+  <div class="grip-corner"></div>
 </div>
 
-<!-- Rename modal -->
-<div class="modal-overlay" id="renameModal">
-  <div class="modal">
-    <div class="modal-head"><h3>rename profile</h3></div>
-    <div class="modal-body" style="padding-top:20px">
-      <input type="text" id="renameInput" placeholder="new name..." maxlength="30">
-    </div>
-    <div class="modal-foot">
-      <button class="btn" id="cancelRenameBtn">cancel</button>
-      <button class="btn btn-accent" id="saveRenameBtn">save</button>
+<div id="statsBar" class="stats-bar"></div>
+
+<div class="range-bar">
+  <div class="range-input-pair">
+    <label>From day:</label>
+    <div class="stepper">
+      <button class="stepper-btn" type="button" onclick="stepInput('xMinInput',-10)">−</button>
+      <input id="xMinInput" type="number" inputmode="numeric" value="-20" onchange="updateRange()">
+      <button class="stepper-btn" type="button" onclick="stepInput('xMinInput',10)">+</button>
     </div>
   </div>
-</div>
-
-<!-- Add tag modal -->
-<div class="modal-overlay" id="addTagModal">
-  <div class="modal">
-    <div class="modal-head"><h3>add tag</h3></div>
-    <div class="modal-body" style="padding-top:20px">
-      <input type="text" id="tagInput" placeholder="e.g. cramps, brain fog, dysphoria..." maxlength="30">
-    </div>
-    <div class="modal-foot">
-      <button class="btn" id="cancelTagBtn">cancel</button>
-      <button class="btn btn-accent" id="saveTagBtn">add</button>
+  <div class="range-input-pair">
+    <label>to day:</label>
+    <div class="stepper">
+      <button class="stepper-btn" type="button" onclick="stepInput('xMaxInput',-10)">−</button>
+      <input id="xMaxInput" type="number" inputmode="numeric" value="200" onchange="updateRange()">
+      <button class="stepper-btn" type="button" onclick="stepInput('xMaxInput',10)">+</button>
     </div>
   </div>
+  <div style="flex:1"></div>
+  <div class="range-bar-actions">
+    <button class="btn" onclick="openStartDateModal()" style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> <span>Set Start Date</span></button>
+    <button class="btn" onclick='exportPNG()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg> <span>Export PNG</span></button>
+    <button class="btn" onclick='printChart()' style="padding:8px 14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Print</button>
+  </div>
+</div>
+<div class="toggle-bar">
+  <span class="toggle-bar-title">View</span>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgGrid" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Grid</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgLegend" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Legend</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgLabels" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Labels</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgValues" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Values</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgGuides" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Guides</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgDoseChanges" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Dose changes</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgLines" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Lines</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="tgCurves" checked onchange="render()"><span class="toggle-slider"></span></label><span class="toggle-label">Curves</span></div>
 </div>
 
-<!-- Add medication modal (catalog + form) -->
-<div class="modal-overlay" id="addMedModal">
-  <div class="modal" style="width:520px">
-    <div class="modal-head"><h3 id="addMedTitle">add medication</h3></div>
-    <div class="modal-body">
-      <div id="catalogView">
-        <div class="cat-tabs" id="catTabs"></div>
-        <div class="catalog-grid" id="catalogGrid"></div>
-      </div>
-      <div id="medFormView" style="display:none">
-        <div id="selectedCatItem" style="margin-bottom:14px"></div>
-        <div class="med-form">
-          <div>
-            <div class="field-label">dose</div>
-            <div style="display:flex;gap:8px">
-              <input type="number" id="medDoseInput" placeholder="e.g. 50" min="0" step="any" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none">
-              <select id="medUnitInput" style="width:100px;padding:9px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none;cursor:pointer">
-                <option>mg</option><option>mcg</option><option>ml</option><option>mg/ml</option><option>patch</option><option>IU</option><option>session</option><option>—</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <div class="field-label">start date</div>
-            <div class="date-selects" id="medStartSelects"></div>
-          </div>
-          <div>
-            <div class="field-label">color</div>
-            <div class="color-swatches" id="colorSwatches"></div>
-          </div>
-          <div>
-            <div class="field-label">notes (optional)</div>
-            <input type="text" id="medNotesInput" placeholder="e.g. 2x daily, with food..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none">
-          </div>
+<div class="panels-grid">
+  <!-- LEFT: Log Mood -->
+  <div class="panel panel-watermarked" style="position:relative">
+    <div class="panel-header"><div class="panel-title">Log Mood</div></div>
+    <div class="emoji-scale" id="emojiScale"></div>
+    <div class="mood-display">
+      <div class="big-emoji" id="moodBigEmoji">😐</div>
+      <div class="mood-val" id="moodValDisp">0</div>
+      <div class="mood-lbl" id="moodLblDisp">Neutral</div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Date</label>
+        <div class="date-selects">
+          <select class="ds-day" id="moodDay"></select>
+          <select class="ds-month" id="moodMonth"></select>
+          <select class="ds-year" id="moodYear"></select>
         </div>
       </div>
     </div>
-    <div class="modal-foot">
-      <button class="btn" id="addMedBack" style="display:none">← back</button>
-      <button class="btn" id="cancelMedBtn">cancel</button>
-      <button class="btn btn-accent" id="saveMedBtn" style="display:none">add</button>
+    <div style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin:8px 0 6px;font-weight:500">Tags</div>
+    <div class="tag-row" id="moodTagRow"></div>
+    <div class="field" style="margin-bottom:10px;width:100%">
+      <label>Notes</label>
+      <textarea class="notes-input" id="moodNotes" placeholder="Optional notes…"></textarea>
     </div>
+    <button class="btn btn-accent" style="width:100%;justify-content:center" onclick="logMood()">Log Mood</button>
+    <div class="mood-legend" id="moodLegend"></div>
   </div>
-</div>
 
-<!-- Edit med modal -->
-<div class="modal-overlay" id="editMedModal">
-  <div class="modal">
-    <div class="modal-head"><h3 id="editMedTitle">edit medication</h3></div>
-    <div class="modal-body">
-      <div class="med-form" style="border-top:none;margin-top:0;padding-top:0">
-        <div>
-          <div class="field-label">dose</div>
-          <div style="display:flex;gap:8px">
-            <input type="number" id="editDoseInput" min="0" step="any" style="flex:1;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none">
-            <select id="editUnitInput" style="width:100px;padding:9px 8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none;cursor:pointer">
-              <option>mg</option><option>mcg</option><option>ml</option><option>mg/ml</option><option>patch</option><option>IU</option><option>session</option><option>—</option>
-            </select>
-          </div>
+  <!-- RIGHT: Add Dosage -->
+  <div class="panel panel-watermarked" style="position:relative">
+    <div class="panel-header"><div class="panel-title">Add Dosage</div>
+      <button class="btn btn-sm catalog-gear-inline catalog-gear" style="position:static" onclick="openCatalog()" title="Manage medications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+    </div>
+    <div style="font-size:13px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;font-weight:500">Medication</div>
+    <div class="tag-row" id="doseMedPills"></div>
+    <div class="field-row">
+      <div class="field"><label>Date</label>
+        <div class="date-selects">
+          <select class="ds-day" id="doseDay"></select>
+          <select class="ds-month" id="doseMonth"></select>
+          <select class="ds-year" id="doseYear"></select>
         </div>
-        <div>
-          <div class="field-label">end date (leave blank if still active)</div>
-          <div class="date-selects" id="medEndSelects"></div>
-          <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
-            <input type="checkbox" id="medEndCheck" style="width:16px;height:16px;cursor:pointer">
-            <label for="medEndCheck" style="font-size:13px;color:var(--text-muted);cursor:pointer">set end date</label>
-          </div>
-        </div>
-        <div>
-          <div class="field-label">notes</div>
-          <input type="text" id="editNotesInput" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none">
+      </div>
+      <div class="field"><label>Amount</label>
+        <input id="doseAmount" type="number" step="any" value="" placeholder="e.g. 4" style="width:120px">
+      </div>
+    </div>
+    <div class="recur-section">
+      <div class="recur-header" onclick="toggleRecur(this)"><span>Recurring</span><span class="arrow">▾</span></div>
+      <div class="recur-body">
+        <div class="field-row">
+          <div class="field"><label>Every</label><input id="recurEvery" type="number" value="7" style="width:80px"></div>
+          <div class="field"><label>Unit</label><select id="recurUnit" style="width:110px"><option value="1">days</option><option value="7">weeks</option></select></div>
+          <div class="field"><label>Repeats</label><input id="recurCount" type="number" value="4" style="width:80px"></div>
         </div>
       </div>
     </div>
-    <div class="modal-foot">
-      <button class="btn" id="cancelEditMedBtn">cancel</button>
-      <button class="btn btn-accent" id="saveEditMedBtn">save</button>
-    </div>
+    <button class="btn btn-accent" style="width:100%;justify-content:center;margin-top:12px" onclick="addDose()">Add Dose</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="history-panel">
+  <div class="history-tabs">
+    <button class="history-tab active" id="htMood" onclick="setHistTab('mood')">Mood</button>
+    <button class="history-tab" id="htDoses" onclick="setHistTab('doses')">Doses</button>
+  </div>
+  <div class="history-table-wrap" id="historyArea"></div>
+</div>
 
+<div id="toast" class="toast"></div>
+<!-- ════ MODALS ════ -->
+<div class="modal-overlay" id="wizardModal"><div class="modal"><h3 id="wizardTitle">New Profile</h3><div id="wizardContent"></div><div class="modal-buttons"><button class="btn" id="wizardBack" onclick="wizardBack()">Back</button><button class="btn btn-accent" id="wizardNext" onclick="wizardNext()">Next</button></div></div></div>
+
+<div class="modal-overlay" id="catalogModal"><div class="modal"><h3>Medications</h3><div id="catalogList" class="catalog-list"></div><div class="modal-buttons"><button class="btn" onclick="addCustomMedRow()">+ Custom</button><button class="btn btn-accent" onclick="closeModal('catalogModal')">Done</button></div></div></div>
+
+<div class="modal-overlay" id="dataMgmtModal"><div class="modal"><h3>Data Settings</h3><div id="dataMgmtBody"></div><div class="modal-buttons"><button class="btn btn-accent" onclick="closeModal('dataMgmtModal')">Close</button></div></div></div>
+
+<div class="modal-overlay" id="startDateModal"><div class="modal"><h3>Tracking Start Date</h3><div id="startDateBody"><div class="date-selects" style="justify-content:center;margin:10px 0 4px"><select class="ds-day" id="sdDay"></select><select class="ds-month" id="sdMonth"></select><select class="ds-year" id="sdYear"></select></div><p style="color:var(--text-dim);font-size:13px;text-align:center">Day 0 of your chart.</p></div><div class="modal-buttons"><button class="btn" onclick="closeModal('startDateModal')">Cancel</button><button class="btn btn-accent" onclick="saveStartDate()">Save</button></div></div></div>
+
+<div class="modal-overlay" id="infoModal"><div class="modal"><h3>About mood tracker</h3><div id="infoBody"></div><div class="modal-buttons"><button class="btn btn-accent" onclick="closeModal('infoModal')">Close</button></div></div></div>
+
+<div class="modal-overlay" id="cropModal"><div class="modal" style="width:340px"><h3>Adjust Photo</h3><div id="cropperBody"><div class="crop-stage" id="cropStage"><canvas id="cropCanvas" width="260" height="260"></canvas></div><label style="font-size:12px;color:var(--text-dim)">Zoom</label><input type="range" id="cropZoom" min="1" max="4" step="0.01" value="1" style="width:100%" oninput="drawCrop()"></div><div class="modal-buttons"><button class="btn" onclick="closeModal('cropModal')">Cancel</button><button class="btn btn-accent" onclick="saveCrop()">Save</button></div></div></div>
+
+<div class="modal-overlay" id="emojiModal"><div class="modal"><h3>Pick an Emoji</h3><div id="emojiPickerBody"></div><div class="modal-buttons"><button class="btn btn-accent" onclick="closeModal('emojiModal')">Cancel</button></div></div></div>
+
+<div class="modal-overlay" id="renameModal"><div class="modal" style="width:360px"><h3>Rename Profile</h3><input type="text" id="renameInput"><div class="modal-buttons"><button class="btn" onclick="closeModal('renameModal')">Cancel</button><button class="btn btn-accent" onclick="confirmRename()">Save</button></div></div></div>
+
+<div class="modal-overlay" id="tagAddModal"><div class="modal" style="width:360px"><h3>Add Tag</h3><input type="text" id="tagAddInput" placeholder="e.g. sleep"><div class="modal-buttons"><button class="btn" onclick="closeModal('tagAddModal')">Cancel</button><button class="btn btn-accent" onclick="confirmAddTag()">Add</button></div></div></div>
 <script>
-// ── Catalog data ────────────────────────────────────────────────────────────
-const CAT_COLORS=['#f472b6','#60a5fa','#34d399','#a78bfa','#fbbf24','#fb923c','#86efac','#94a3b8','#c084fc','#f87171','#38bdf8','#4ade80'];
-const CATALOG=[
-  // HRT
-  {cat:'HRT',color:'#f472b6',name:'Estradiol',sub:'E2 · oral/sublingual',units:'mg',defaultDose:2},
-  {cat:'HRT',color:'#f472b6',name:'Estradiol Valerate',sub:'E2V · injectable',units:'mg/ml',defaultDose:4},
-  {cat:'HRT',color:'#f472b6',name:'Estradiol Cypionate',sub:'EEn · injectable',units:'mg/ml',defaultDose:5},
-  {cat:'HRT',color:'#f472b6',name:'Estradiol Patch',sub:'transdermal',units:'mcg',defaultDose:100},
-  {cat:'HRT',color:'#f472b6',name:'Estradiol Gel',sub:'topical',units:'mg',defaultDose:1.5},
-  {cat:'HRT',color:'#a78bfa',name:'Progesterone',sub:'P4 · oral/vaginal',units:'mg',defaultDose:100},
-  {cat:'HRT',color:'#4ade80',name:'Testosterone',sub:'T · injectable',units:'mg/ml',defaultDose:100},
-  {cat:'HRT',color:'#4ade80',name:'Testosterone Gel',sub:'topical',units:'mg',defaultDose:50},
-  {cat:'HRT',color:'#38bdf8',name:'Spironolactone',sub:'antiandrogen',units:'mg',defaultDose:100},
-  {cat:'HRT',color:'#38bdf8',name:'Bicalutamide',sub:'antiandrogen',units:'mg',defaultDose:25},
-  {cat:'HRT',color:'#38bdf8',name:'Finasteride',sub:'5-α reductase inhibitor',units:'mg',defaultDose:1},
-  {cat:'HRT',color:'#38bdf8',name:'Cyproterone Acetate',sub:'antiandrogen/progestogen',units:'mg',defaultDose:10},
-  // SSRIs
-  {cat:'SSRI',color:'#60a5fa',name:'Sertraline',sub:'Zoloft',units:'mg',defaultDose:50},
-  {cat:'SSRI',color:'#60a5fa',name:'Fluoxetine',sub:'Prozac',units:'mg',defaultDose:20},
-  {cat:'SSRI',color:'#60a5fa',name:'Escitalopram',sub:'Lexapro',units:'mg',defaultDose:10},
-  {cat:'SSRI',color:'#60a5fa',name:'Citalopram',sub:'Celexa',units:'mg',defaultDose:20},
-  {cat:'SSRI',color:'#60a5fa',name:'Paroxetine',sub:'Paxil',units:'mg',defaultDose:20},
-  {cat:'SSRI',color:'#60a5fa',name:'Fluvoxamine',sub:'Luvox',units:'mg',defaultDose:100},
-  // SNRIs
-  {cat:'SNRI',color:'#34d399',name:'Venlafaxine',sub:'Effexor',units:'mg',defaultDose:75},
-  {cat:'SNRI',color:'#34d399',name:'Duloxetine',sub:'Cymbalta',units:'mg',defaultDose:60},
-  {cat:'SNRI',color:'#34d399',name:'Desvenlafaxine',sub:'Pristiq',units:'mg',defaultDose:50},
-  {cat:'SNRI',color:'#34d399',name:'Levomilnacipran',sub:'Fetzima',units:'mg',defaultDose:40},
-  // Antipsychotics
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Quetiapine',sub:'Seroquel',units:'mg',defaultDose:100},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Aripiprazole',sub:'Abilify',units:'mg',defaultDose:10},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Olanzapine',sub:'Zyprexa',units:'mg',defaultDose:5},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Risperidone',sub:'Risperdal',units:'mg',defaultDose:2},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Lurasidone',sub:'Latuda',units:'mg',defaultDose:40},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Ziprasidone',sub:'Geodon',units:'mg',defaultDose:80},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Amisulpride',sub:'Solian',units:'mg',defaultDose:200},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Clozapine',sub:'Clozaril',units:'mg',defaultDose:100},
-  {cat:'Antipsychotic',color:'#a78bfa',name:'Haloperidol',sub:'Haldol',units:'mg',defaultDose:2},
-  // Mood Stabilizers
-  {cat:'Mood Stabilizer',color:'#fbbf24',name:'Lithium',sub:'Eskalith / Lithobid',units:'mg',defaultDose:300},
-  {cat:'Mood Stabilizer',color:'#fbbf24',name:'Valproate',sub:'Depakote',units:'mg',defaultDose:500},
-  {cat:'Mood Stabilizer',color:'#fbbf24',name:'Lamotrigine',sub:'Lamictal',units:'mg',defaultDose:100},
-  {cat:'Mood Stabilizer',color:'#fbbf24',name:'Carbamazepine',sub:'Tegretol',units:'mg',defaultDose:200},
-  {cat:'Mood Stabilizer',color:'#fbbf24',name:'Oxcarbazepine',sub:'Trileptal',units:'mg',defaultDose:300},
-  // Anxiolytics
-  {cat:'Anxiety',color:'#fb923c',name:'Alprazolam',sub:'Xanax',units:'mg',defaultDose:0.5},
-  {cat:'Anxiety',color:'#fb923c',name:'Clonazepam',sub:'Klonopin',units:'mg',defaultDose:0.5},
-  {cat:'Anxiety',color:'#fb923c',name:'Lorazepam',sub:'Ativan',units:'mg',defaultDose:1},
-  {cat:'Anxiety',color:'#fb923c',name:'Diazepam',sub:'Valium',units:'mg',defaultDose:5},
-  {cat:'Anxiety',color:'#fb923c',name:'Buspirone',sub:'Buspar',units:'mg',defaultDose:10},
-  {cat:'Anxiety',color:'#fb923c',name:'Hydroxyzine',sub:'Vistaril',units:'mg',defaultDose:25},
-  // Stimulants / ADHD
-  {cat:'Stimulant',color:'#86efac',name:'Methylphenidate',sub:'Ritalin / Concerta',units:'mg',defaultDose:20},
-  {cat:'Stimulant',color:'#86efac',name:'Amphetamine',sub:'Adderall',units:'mg',defaultDose:10},
-  {cat:'Stimulant',color:'#86efac',name:'Lisdexamfetamine',sub:'Vyvanse',units:'mg',defaultDose:30},
-  {cat:'Stimulant',color:'#86efac',name:'Atomoxetine',sub:'Strattera',units:'mg',defaultDose:40},
-  {cat:'Stimulant',color:'#86efac',name:'Modafinil',sub:'Provigil',units:'mg',defaultDose:200},
-  {cat:'Stimulant',color:'#86efac',name:'Guanfacine',sub:'Intuniv',units:'mg',defaultDose:1},
-  {cat:'Stimulant',color:'#86efac',name:'Clonidine',sub:'Kapvay',units:'mg',defaultDose:0.1},
-  // Other
-  {cat:'Other',color:'#94a3b8',name:'Bupropion',sub:'Wellbutrin',units:'mg',defaultDose:150},
-  {cat:'Other',color:'#94a3b8',name:'Mirtazapine',sub:'Remeron',units:'mg',defaultDose:15},
-  {cat:'Other',color:'#94a3b8',name:'Trazodone',sub:'Desyrel',units:'mg',defaultDose:50},
-  {cat:'Other',color:'#94a3b8',name:'Vortioxetine',sub:'Trintellix',units:'mg',defaultDose:10},
-  {cat:'Other',color:'#94a3b8',name:'Nortriptyline',sub:'Pamelor',units:'mg',defaultDose:25},
-  {cat:'Other',color:'#94a3b8',name:'Amitriptyline',sub:'Elavil',units:'mg',defaultDose:25},
-  {cat:'Other',color:'#94a3b8',name:'Gabapentin',sub:'Neurontin',units:'mg',defaultDose:300},
-  {cat:'Other',color:'#94a3b8',name:'Pregabalin',sub:'Lyrica',units:'mg',defaultDose:75},
-  {cat:'Other',color:'#94a3b8',name:'Naltrexone',sub:'Vivitrol',units:'mg',defaultDose:50},
-  {cat:'Other',color:'#94a3b8',name:'Melatonin',sub:'sleep',units:'mg',defaultDose:1},
-  // Therapy
-  {cat:'Therapy',color:'#c084fc',name:'CBT',sub:'Cognitive Behavioural',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'DBT',sub:'Dialectical Behaviour',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'ACT',sub:'Acceptance & Commitment',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'EMDR',sub:'Eye Movement Desensitisation',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'Somatic',sub:'Somatic / body-based',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'Psychodynamic',sub:'insight-oriented',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'CFT',sub:'Compassion-Focused',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'Schema Therapy',sub:'schema/modes',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'Person-Centred',sub:'Rogerian / humanistic',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'Group Therapy',sub:'group support',units:'session',defaultDose:null},
-  {cat:'Therapy',color:'#c084fc',name:'Peer Support',sub:'lived experience support',units:'session',defaultDose:null},
+/* ════════════ Medication catalog ════════════ */
+const CAT_COLORS={HRT:'#e070ba',SSRI:'#5ea3e0',SNRI:'#5ec5d0',Antipsychotic:'#b58fe0',MoodStabilizer:'#7ec78a',Anxiety:'#e0c45e',Stimulant:'#e08a5e',Other:'#9aa6b0',Therapy:'#9caf88'};
+function mk(id,name,group,unit){return {id,name,group,unit,color:CAT_COLORS[group.replace(/[^A-Za-z]/g,'')]||'#888'};}
+const MED_CATALOG=[
+ mk('estradiol','Estradiol (oral/SL)','HRT','mg'),mk('estradiol_val','Estradiol Valerate','HRT','mg'),
+ mk('estradiol_cyp','Estradiol Cypionate','HRT','mg'),mk('estradiol_patch','Estradiol Patch','HRT','mcg/day'),
+ mk('estradiol_gel','Estradiol Gel','HRT','mg'),mk('progesterone','Progesterone','HRT','mg'),
+ mk('testosterone','Testosterone','HRT','mg'),mk('testosterone_gel','Testosterone Gel','HRT','mg'),
+ mk('spironolactone','Spironolactone','HRT','mg'),mk('bicalutamide','Bicalutamide','HRT','mg'),
+ mk('finasteride','Finasteride','HRT','mg'),mk('cyproterone','Cyproterone Acetate','HRT','mg'),
+ mk('sertraline','Sertraline','SSRI','mg'),mk('fluoxetine','Fluoxetine','SSRI','mg'),
+ mk('escitalopram','Escitalopram','SSRI','mg'),mk('citalopram','Citalopram','SSRI','mg'),
+ mk('paroxetine','Paroxetine','SSRI','mg'),mk('fluvoxamine','Fluvoxamine','SSRI','mg'),
+ mk('venlafaxine','Venlafaxine','SNRI','mg'),mk('duloxetine','Duloxetine','SNRI','mg'),
+ mk('desvenlafaxine','Desvenlafaxine','SNRI','mg'),mk('levomilnacipran','Levomilnacipran','SNRI','mg'),
+ mk('quetiapine','Quetiapine','Antipsychotic','mg'),mk('aripiprazole','Aripiprazole','Antipsychotic','mg'),
+ mk('olanzapine','Olanzapine','Antipsychotic','mg'),mk('risperidone','Risperidone','Antipsychotic','mg'),
+ mk('lurasidone','Lurasidone','Antipsychotic','mg'),mk('ziprasidone','Ziprasidone','Antipsychotic','mg'),
+ mk('clozapine','Clozapine','Antipsychotic','mg'),
+ mk('lithium','Lithium','Mood Stabilizer','mg'),mk('valproate','Valproate','Mood Stabilizer','mg'),
+ mk('lamotrigine','Lamotrigine','Mood Stabilizer','mg'),mk('carbamazepine','Carbamazepine','Mood Stabilizer','mg'),
+ mk('oxcarbazepine','Oxcarbazepine','Mood Stabilizer','mg'),
+ mk('alprazolam','Alprazolam','Anxiety','mg'),mk('clonazepam','Clonazepam','Anxiety','mg'),
+ mk('lorazepam','Lorazepam','Anxiety','mg'),mk('diazepam','Diazepam','Anxiety','mg'),
+ mk('buspirone','Buspirone','Anxiety','mg'),mk('hydroxyzine','Hydroxyzine','Anxiety','mg'),
+ mk('methylphenidate','Methylphenidate','Stimulant','mg'),mk('amphetamine','Amphetamine','Stimulant','mg'),
+ mk('lisdexamfetamine','Lisdexamfetamine','Stimulant','mg'),mk('atomoxetine','Atomoxetine','Stimulant','mg'),
+ mk('modafinil','Modafinil','Stimulant','mg'),mk('guanfacine','Guanfacine','Stimulant','mg'),
+ mk('clonidine','Clonidine','Stimulant','mg'),
+ mk('bupropion','Bupropion','Other','mg'),mk('mirtazapine','Mirtazapine','Other','mg'),
+ mk('trazodone','Trazodone','Other','mg'),mk('vortioxetine','Vortioxetine','Other','mg'),
+ mk('nortriptyline','Nortriptyline','Other','mg'),mk('amitriptyline','Amitriptyline','Other','mg'),
+ mk('gabapentin','Gabapentin','Other','mg'),mk('pregabalin','Pregabalin','Other','mg'),
+ mk('naltrexone','Naltrexone','Other','mg'),mk('melatonin','Melatonin','Other','mg'),
+ mk('cbt','CBT','Therapy','session'),mk('dbt','DBT','Therapy','session'),
+ mk('act','ACT','Therapy','session'),mk('emdr','EMDR','Therapy','session'),
+ mk('somatic','Somatic','Therapy','session'),mk('psychodynamic','Psychodynamic','Therapy','session'),
+ mk('cft','CFT','Therapy','session'),mk('schema','Schema Therapy','Therapy','session'),
+ mk('person_centred','Person-Centred','Therapy','session'),mk('group','Group Therapy','Therapy','session'),
 ];
-const CAT_NAMES=['All','HRT','SSRI','SNRI','Antipsychotic','Mood Stabilizer','Anxiety','Stimulant','Other','Therapy'];
+const CATALOG_BY_ID={};MED_CATALOG.forEach(m=>CATALOG_BY_ID[m.id]=m);
+const GROUP_ORDER=['HRT','SSRI','SNRI','Antipsychotic','Mood Stabilizer','Anxiety','Stimulant','Other','Therapy'];
 
-// ── Mood data ───────────────────────────────────────────────────────────────
-const MOODS=[
-  {v:-10,e:'😭',label:'Awful',c:'neg'},{v:-9,e:'😢',label:'Miserable',c:'neg'},
-  {v:-8,e:'😰',label:'Scared',c:'neg'},{v:-7,e:'😞',label:'Down',c:'neg'},
-  {v:-6,e:'😣',label:'Struggling',c:'neg'},{v:-5,e:'😟',label:'Worried',c:'neg'},
-  {v:-4,e:'😕',label:'Uneasy',c:'neg'},{v:-3,e:'😔',label:'Low',c:'neg'},
-  {v:-2,e:'😑',label:'Flat',c:'neg'},{v:-1,e:'😶',label:'Muted',c:'neg'},
-  {v:0,e:'😐',label:'Neutral',c:'neutral'},
-  {v:1,e:'🙂',label:'Okay',c:'pos'},{v:2,e:'😊',label:'Good',c:'pos'},
-  {v:3,e:'😌',label:'Calm',c:'pos'},{v:4,e:'😀',label:'Happy',c:'pos'},
-  {v:5,e:'😄',label:'Great',c:'pos'},{v:6,e:'😃',label:'Joyful',c:'pos'},
-  {v:7,e:'😁',label:'Excited',c:'pos'},{v:8,e:'🤗',label:'Warm',c:'pos'},
-  {v:9,e:'😍',label:'Wonderful',c:'pos'},{v:10,e:'🤩',label:'Amazing',c:'pos'},
-];
-const LEGEND_PTS=[-10,-5,0,5,10];
+/* mood emoji scale -10..+10 (21 steps) */
+const MOOD_EMOJI=['😭','😢','😖','😞','😔','😟','🙁','😕','🫤','😶','😐','🙂','🙂','😊','😀','😃','😄','😁','🤗','🤩','🥰'];
+function moodEmoji(v){const i=Math.max(-10,Math.min(10,Math.round(v)))+10;return MOOD_EMOJI[i];}
+function moodLabel(v){if(v<=-9)return 'Awful';if(v<=-6)return 'Very Low';if(v<=-3)return 'Low';if(v<0)return 'Down';if(v===0)return 'Neutral';if(v<=2)return 'Okay';if(v<=4)return 'Good';if(v<=6)return 'Great';if(v<=8)return 'Excellent';return 'Amazing';}
+const MOOD_LEGEND=[[-10,'😭','Awful'],[-5,'😟','Low'],[0,'😐','Neutral'],[5,'😀','Great'],[10,'🥰','Amazing']];
+const TAG_PRESETS=['anxiety','depression','energy','sleep','dysphoria','mood swings','irritability','brain fog','pain','appetite','libido','social','work','exercise'];
+
+/* ════════════ State ════════════ */
+const LS_KEY='mood_tracker_v1', THEME_KEY='mood_theme';
+let profiles={}, activeProfileName=null;
+let undoStack=[], redoStack=[];
+let selectedMood=0, histTab='mood', selectedDoseMed=null, chartView='multi';
+let editingMoodId=null;
+
+function blankProfile(){const d=new Date();return {startDate:isoDate(d),profilePic:'',medications:[],customMeds:[],medCustom:{},doses:{},moods:[],tags:TAG_PRESETS.slice(0,6),tMin:-20,xMax:200,_migrated:true};}
+function P(){return profiles[activeProfileName];}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseISO(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d);}
+function dayOffset(iso){const a=parseISO(P().startDate),b=parseISO(iso);return Math.round((b-a)/86400000);}
+function offsetToDate(off){const a=parseISO(P().startDate);return new Date(a.getTime()+off*86400000);}
+
+function allMedDefs(){const out=[];P().medications.forEach(id=>{const c=CATALOG_BY_ID[id];if(c)out.push(c);});(P().customMeds||[]).forEach(c=>out.push(c));return out;}
+function medDef(id){return CATALOG_BY_ID[id]||(P().customMeds||[]).find(c=>c.id===id);}
+function medColor(id){const cu=(P().medCustom||{})[id];if(cu&&cu.color)return cu.color;const d=medDef(id);return d?d.color:'#888';}
+function medUnit(id){const cu=(P().medCustom||{})[id];if(cu&&cu.unit)return cu.unit;const d=medDef(id);return d?d.unit:'mg';}
+
+/* ════════════ Persistence + undo ════════════ */
+function save(){localStorage.setItem(LS_KEY,JSON.stringify({profiles,active:activeProfileName}));}
+function snapshotState(){return JSON.stringify({profiles,active:activeProfileName});}
+function pushUndo(){undoStack.push(snapshotState());if(undoStack.length>50)undoStack.shift();redoStack.length=0;updateUndoRedoButtons();}
+function restoreState(s){const o=JSON.parse(s);profiles=o.profiles;activeProfileName=o.active;}
+function undo(){if(!undoStack.length)return;redoStack.push(snapshotState());restoreState(undoStack.pop());save();renderAll();updateUndoRedoButtons();}
+function redo(){if(!redoStack.length)return;undoStack.push(snapshotState());restoreState(redoStack.pop());save();renderAll();updateUndoRedoButtons();}
+function updateUndoRedoButtons(){document.getElementById('undoBtn').disabled=!undoStack.length;document.getElementById('redoBtn').disabled=!redoStack.length;}
+
+/* ════════════ Toast ════════════ */
+let toastT;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ════════════ Theme ════════════ */
+function setTheme(t){document.body.dataset.theme=t;localStorage.setItem(THEME_KEY,t);document.getElementById('themeSelect').value=t;render();}
+function toggleHeaderMenu(){document.getElementById('headerControls').classList.toggle('open');document.getElementById('headerMenuToggle').classList.toggle('open');}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.classList.remove('modal-open');}
+function openModal(id){document.getElementById(id).classList.add('open');document.body.classList.add('modal-open');}
+function stepInput(id,d){const el=document.getElementById(id);el.value=(parseFloat(el.value)||0)+d;updateRange();}
+function toggleRecur(h){h.parentElement.querySelector('.recur-body').classList.toggle('open');h.querySelector('.arrow').classList.toggle('open');}
+
+/* ════════════ Date selects ════════════ */
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fillDateSelects(dEl,mEl,yEl,date){
+  dEl.innerHTML='';for(let i=1;i<=31;i++)dEl.add(new Option(i,i));
+  mEl.innerHTML='';MONTHS.forEach((m,i)=>mEl.add(new Option(m,i+1)));
+  yEl.innerHTML='';const ny=new Date().getFullYear();for(let y=ny+1;y>=ny-15;y--)yEl.add(new Option(y,y));
+  dEl.value=date.getDate();mEl.value=date.getMonth()+1;yEl.value=date.getFullYear();
+}
+function readDateSelects(dEl,mEl,yEl){return new Date(+yEl.value,+mEl.value-1,+dEl.value);}
 
-// ── State ───────────────────────────────────────────────────────────────────
-let S={profiles:[],currentId:null};
-let pendingMood=null, pendingTags=new Set(), pendingMedIds=new Set();
-let renamingId=null, editingMedId=null;
-let activeCatFilter='All', selectedCatalogItem=null, chosenColor=CAT_COLORS[0];
+/* ════════════ Profile tabs ════════════ */
+function renderProfileTabs(){
+  const box=document.getElementById('profileTabs');box.innerHTML='';
+  Object.keys(profiles).forEach(name=>{
+    const t=document.createElement('div');t.className='profile-tab'+(name===activeProfileName?' active':'');
+    const p=profiles[name];
+    const pic=p.profilePic?`<img class="tab-pic" src="${p.profilePic}">`:`<span class="tab-dot"></span>`;
+    t.innerHTML=pic+`<span>${esc(name)}</span><button class="tab-menu-btn" title="Options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>`;
+    t.querySelector('span:not(.tab-dot)')?.addEventListener('click',()=>{if(name!==activeProfileName){activeProfileName=name;save();renderAll();}});
+    if(p.profilePic)t.querySelector('.tab-pic').addEventListener('click',()=>{activeProfileName=name;save();renderAll();});
+    if(t.querySelector('.tab-dot'))t.querySelector('.tab-dot').addEventListener('click',()=>{activeProfileName=name;save();renderAll();});
+    t.querySelector('.tab-menu-btn').addEventListener('click',e=>{e.stopPropagation();openCtxMenu(t,name);});
+    box.appendChild(t);
+  });
+}
+function openCtxMenu(tab,name){
+  document.querySelectorAll('.ctx-menu').forEach(m=>m.remove());
+  const m=document.createElement('div');m.className='ctx-menu open';
+  m.innerHTML=`<button class="ctx-menu-item" data-a="rename">Rename</button>
+    <button class="ctx-menu-item" data-a="pic">Set Picture</button>
+    <button class="ctx-menu-item" data-a="emoji">Pick Emoji</button>
+    <button class="ctx-menu-item" data-a="del">Delete</button>`;
+  tab.appendChild(m);
+  m.querySelectorAll('.ctx-menu-item').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();const a=b.dataset.a;m.remove();
+    activeProfileName=name;
+    if(a==='rename')openRename();
+    else if(a==='pic')document.getElementById('pfpInput').click();
+    else if(a==='emoji')openEmojiPicker();
+    else if(a==='del')deleteProfile(name);
+  }));
+  setTimeout(()=>document.addEventListener('click',function h(){m.remove();document.removeEventListener('click',h);}),0);
+}
+function deleteProfile(name){
+  if(Object.keys(profiles).length<=1){toast('Cannot delete the last profile');return;}
+  if(!confirm('Delete profile "'+name+'"?'))return;
+  pushUndo();delete profiles[name];activeProfileName=Object.keys(profiles)[0];save();renderAll();toast('Profile deleted');
+}
+let renameTarget=null;
+function openRename(){renameTarget=activeProfileName;document.getElementById('renameInput').value=activeProfileName;openModal('renameModal');}
+function confirmRename(){
+  const nv=document.getElementById('renameInput').value.trim();if(!nv||nv===renameTarget){closeModal('renameModal');return;}
+  if(profiles[nv]){toast('Name already exists');return;}
+  pushUndo();const np={};Object.keys(profiles).forEach(k=>{np[k===renameTarget?nv:k]=profiles[k];});profiles=np;
+  if(activeProfileName===renameTarget)activeProfileName=nv;save();closeModal('renameModal');renderAll();
+}
 
-function curP(){return S.profiles.find(p=>p.id===S.currentId)||null}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 
-// ── Persistence ─────────────────────────────────────────────────────────────
-const SK='mood-tracker-v2';
-function save(){try{localStorage.setItem(SK,JSON.stringify(S))}catch(e){}}
-function load(){
-  try{const r=localStorage.getItem(SK);if(r)S=JSON.parse(r)}catch(e){}
-  if(!Array.isArray(S.profiles))S.profiles=[];
-  S.profiles.forEach(p=>{
-    if(!Array.isArray(p.meds))p.meds=[];
-    if(!Array.isArray(p.tags))p.tags=[];
-    if(!Array.isArray(p.entries))p.entries=[];
+/* ════════════ Log Mood panel ════════════ */
+function renderEmojiScale(){
+  const box=document.getElementById('emojiScale');box.innerHTML='';
+  for(let v=-10;v<=10;v++){
+    const b=document.createElement('button');b.className='emoji-opt'+(v===selectedMood?' sel':'');
+    b.textContent=moodEmoji(v);b.title=v;b.onclick=()=>{selectedMood=v;renderEmojiScale();updateMoodDisplay();};
+    box.appendChild(b);
+  }
+}
+function updateMoodDisplay(){
+  document.getElementById('moodBigEmoji').textContent=moodEmoji(selectedMood);
+  document.getElementById('moodValDisp').textContent=(selectedMood>0?'+':'')+selectedMood;
+  document.getElementById('moodLblDisp').textContent=moodLabel(selectedMood);
+}
+function renderMoodLegend(){
+  const box=document.getElementById('moodLegend');box.innerHTML='';
+  MOOD_LEGEND.forEach(([v,e,l])=>{box.insertAdjacentHTML('beforeend',`<div class="ml-item"><span class="ml-emoji">${e}</span><span>${l}</span><span>${v>0?'+':''}${v}</span></div>`);});
+}
+let selectedTags=new Set();
+function renderMoodTags(){
+  const box=document.getElementById('moodTagRow');box.innerHTML='';
+  (P().tags||[]).forEach(tag=>{
+    const t=document.createElement('div');t.className='tag tag-pill'+(selectedTags.has(tag)?' sel':'');
+    t.textContent=tag;t.onclick=()=>{selectedTags.has(tag)?selectedTags.delete(tag):selectedTags.add(tag);renderMoodTags();};
+    box.appendChild(t);
+  });
+  const add=document.createElement('div');add.className='tag tag-pill';add.style.cursor='pointer';add.innerHTML='+ tag';
+  add.onclick=()=>openAddTag();box.appendChild(add);
+}
+function openAddTag(){document.getElementById('tagAddInput').value='';openModal('tagAddModal');}
+function confirmAddTag(){const v=document.getElementById('tagAddInput').value.trim();if(!v){closeModal('tagAddModal');return;}
+  pushUndo();if(!P().tags.includes(v))P().tags.push(v);save();closeModal('tagAddModal');renderMoodTags();}
+function logMood(){
+  pushUndo();
+  const date=readDateSelects(document.getElementById('moodDay'),document.getElementById('moodMonth'),document.getElementById('moodYear'));
+  const iso=isoDate(date);const notes=document.getElementById('moodNotes').value.trim();
+  const entry={id:editingMoodId||('m'+Date.now()+Math.random().toString(36).slice(2,6)),day:dayOffset(iso),date:iso,mood:selectedMood,tags:[...selectedTags],notes};
+  if(editingMoodId){const i=P().moods.findIndex(m=>m.id===editingMoodId);if(i>=0)P().moods[i]=entry;editingMoodId=null;}
+  else P().moods.push(entry);
+  P().moods.sort((a,b)=>a.day-b.day);
+  document.getElementById('moodNotes').value='';selectedTags.clear();
+  save();renderAll();toast('Mood logged');
+}
+
+/* ════════════ Add Dosage panel ════════════ */
+function renderDoseMedPills(){
+  const box=document.getElementById('doseMedPills');box.innerHTML='';
+  const defs=allMedDefs();
+  if(!defs.length){box.innerHTML='<span style="color:var(--text-dim);font-size:13px">No medications tracked. Use the gear to add some.</span>';selectedDoseMed=null;return;}
+  if(!selectedDoseMed||!defs.find(d=>d.id===selectedDoseMed))selectedDoseMed=defs[0].id;
+  defs.forEach(d=>{
+    const t=document.createElement('div');t.className='tag med-pill'+(d.id===selectedDoseMed?' selected':'');
+    t.innerHTML=`<span class="tag-dot" style="background:${medColor(d.id)}"></span>${esc(d.name)}`;
+    t.onclick=()=>{selectedDoseMed=d.id;renderDoseMedPills();};
+    box.appendChild(t);
+  });
+}
+function addDose(){
+  if(!selectedDoseMed){toast('No medication selected');return;}
+  const amt=parseFloat(document.getElementById('doseAmount').value);
+  if(isNaN(amt)){toast('Enter an amount');return;}
+  pushUndo();
+  const date=readDateSelects(document.getElementById('doseDay'),document.getElementById('doseMonth'),document.getElementById('doseYear'));
+  const recurOpen=document.querySelector('.recur-body').classList.contains('open');
+  const every=parseInt(document.getElementById('recurEvery').value)||1;
+  const unit=parseInt(document.getElementById('recurUnit').value)||1;
+  const count=recurOpen?(parseInt(document.getElementById('recurCount').value)||1):1;
+  if(!P().doses[selectedDoseMed])P().doses[selectedDoseMed]=[];
+  for(let i=0;i<count;i++){
+    const d=new Date(date.getTime()+i*every*unit*86400000);
+    P().doses[selectedDoseMed].push([dayOffset(isoDate(d)),amt]);
+  }
+  P().doses[selectedDoseMed].sort((a,b)=>a[0]-b[0]);
+  save();renderAll();toast(count>1?count+' doses added':'Dose added');
+}
+
+/* ════════════ Chart tabs ════════════ */
+function renderChartTabs(){
+  const box=document.getElementById('chartTabs');box.innerHTML='';
+  const tabs=[['multi','Multi'],['mood','Mood only']];
+  allMedDefs().forEach(d=>tabs.push(['med:'+d.id,d.name]));
+  if(!tabs.find(t=>t[0]===chartView))chartView='multi';
+  tabs.forEach(([id,label])=>{
+    const b=document.createElement('button');b.className='chart-tab'+(id===chartView?' active':'');
+    b.textContent=label;b.onclick=()=>{chartView=id;renderChartTabs();render();};
+    box.appendChild(b);
   });
 }
 
-// ── Theme ────────────────────────────────────────────────────────────────────
-function applyTheme(t){
-  document.body.setAttribute('data-theme',t||'');
-  document.getElementById('themeSelect').value=t||'';
-  try{localStorage.setItem('mood-theme',t||'')}catch(e){}
+/* ════════════ Step function for meds ════════════ */
+function doseStepSeries(id){
+  const arr=(P().doses[id]||[]).slice().sort((a,b)=>a[0]-b[0]);
+  return arr; // [day,amount]
 }
+function doseAtDay(arr,day){let v=0;for(const[d,a]of arr){if(d<=day)v=a;else break;}return v;}
 
-// ── Toast ────────────────────────────────────────────────────────────────────
-let _tt;
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('show'),2200)}
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2)}
-function todayStr(){const d=new Date();return`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`}
-function p2(n){return String(n).padStart(2,'0')}
-function parseD(s){const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
-function fmtD(s){const d=parseD(s);return`${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`}
-function fmtDs(s){const d=parseD(s);return`${MONTHS[d.getMonth()]} ${d.getDate()}`}
-function moodOf(v){return MOODS.find(m=>m.v===v)||MOODS[10]}
-function dateStr(y,m,d){return`${y}-${p2(Number(m)+1)}-${p2(Number(d))}`}
-
-// Date select builder
-function buildDateSelects(baseId,initStr){
-  const init=initStr?initStr.split('-').map(Number):[new Date().getFullYear(),new Date().getMonth()+1,new Date().getDate()];
-  const mOpts=MONTHS.map((mn,i)=>`<option value="${i}"${i===init[1]-1?' selected':''}>${mn}</option>`).join('');
-  let dOpts='';for(let i=1;i<=31;i++)dOpts+=`<option value="${i}"${i===init[2]?' selected':''}>${i}</option>`;
-  const yr=new Date().getFullYear();let yOpts='';for(let y=yr+1;y>=yr-5;y--)yOpts+=`<option value="${y}"${y===init[0]?' selected':''}>${y}</option>`;
-  return`<select class="ds-month" id="${baseId}M">${mOpts}</select><select class="ds-day" id="${baseId}D">${dOpts}</select><select class="ds-year" id="${baseId}Y">${yOpts}</select>`;
-}
-function getDateFrom(baseId){
-  const m=document.getElementById(baseId+'M')?.value;
-  const d=document.getElementById(baseId+'D')?.value;
-  const y=document.getElementById(baseId+'Y')?.value;
-  if(m==null||!d||!y)return todayStr();
-  return dateStr(y,m,d);
-}
-
-// ── Profile ops ──────────────────────────────────────────────────────────────
-function addProfile(name){const id=uid();S.profiles.push({id,name,entries:[],tags:[],meds:[]});S.currentId=id;save();render()}
-function deleteProfile(id){S.profiles=S.profiles.filter(p=>p.id!==id);if(S.currentId===id)S.currentId=S.profiles[0]?.id||null;save();render()}
-function renameProfile(id,name){const p=S.profiles.find(p=>p.id===id);if(p){p.name=name;save();render()}}
-
-// ── Entry ops ────────────────────────────────────────────────────────────────
-function addEntry(date,mood,tags,medIds){
-  const p=curP();if(!p)return;
-  p.entries.push({id:uid(),date,mood,tags:[...tags],meds:[...medIds]});
-  p.entries.sort((a,b)=>a.date.localeCompare(b.date));
-  save();
-}
-function delEntry(eid){const p=curP();if(!p)return;p.entries=p.entries.filter(e=>e.id!==eid);save();render()}
-
-// ── Med ops ──────────────────────────────────────────────────────────────────
-function addMed(name,color,category,dose,unit,startDate,notes){
-  const p=curP();if(!p)return;
-  p.meds.push({id:uid(),name,color,category,dose,unit,startDate,endDate:null,notes:notes||''});
-  save();
-}
-function deleteMed(mid){const p=curP();if(!p)return;p.meds=p.meds.filter(m=>m.id!==mid);save();render()}
-function editMed(mid,dose,unit,endDate,notes){
-  const p=curP();if(!p)return;
-  const m=p.meds.find(m=>m.id===mid);if(!m)return;
-  m.dose=dose;m.unit=unit;m.endDate=endDate||null;m.notes=notes;save();render();
-}
-
-// ── Main render ──────────────────────────────────────────────────────────────
-function render(){renderProfiles();renderMain()}
-
-function renderProfiles(){
-  const tabs=document.getElementById('profileTabs');tabs.innerHTML='';
-  for(const p of S.profiles){
-    const tab=document.createElement('button');
-    tab.className='profile-tab'+(p.id===S.currentId?' active':'');
-    const menu=document.createElement('div');
-    menu.className='ctx-menu';
-    menu.innerHTML=`<button class="ctx-menu-item" data-a="rename">rename</button><button class="ctx-menu-item danger" data-a="delete">delete</button>`;
-    const menuBtn=document.createElement('button');
-    menuBtn.className='tab-menu-btn';
-    menuBtn.innerHTML=`<svg viewBox="0 0 16 16" fill="currentColor"><circle cx="8" cy="3" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="8" cy="13" r="1.5"/></svg>`;
-    const nameSpan=document.createElement('span');nameSpan.textContent=p.name;
-    const dot=document.createElement('span');dot.className='tab-dot';
-    tab.appendChild(dot);tab.appendChild(nameSpan);tab.appendChild(menuBtn);tab.appendChild(menu);
-    menuBtn.addEventListener('click',e=>{e.stopPropagation();document.querySelectorAll('.ctx-menu.open').forEach(m=>{if(m!==menu)m.classList.remove('open')});menu.classList.toggle('open')});
-    menu.addEventListener('click',e=>{const btn=e.target.closest('[data-a]');if(!btn)return;e.stopPropagation();menu.classList.remove('open');if(btn.dataset.a==='delete'){if(confirm(`Delete "${p.name}"? All data will be lost.`))deleteProfile(p.id)}else{renamingId=p.id;document.getElementById('renameInput').value=p.name;openModal('renameModal');setTimeout(()=>document.getElementById('renameInput').focus(),50)}});
-    tab.addEventListener('click',e=>{if(e.target.closest('.tab-menu-btn')||e.target.closest('.ctx-menu'))return;S.currentId=p.id;pendingMood=null;pendingTags=new Set();pendingMedIds=new Set();render()});
-    tabs.appendChild(tab);
+/* ════════════ Catmull-Rom spline ════════════ */
+function catmullRom(ctx,pts){
+  if(pts.length<2){return;}
+  ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||pts[i+1];
+    const cp1x=p1.x+(p2.x-p0.x)/6,cp1y=p1.y+(p2.y-p0.y)/6;
+    const cp2x=p2.x-(p3.x-p1.x)/6,cp2y=p2.y-(p3.y-p1.y)/6;
+    ctx.bezierCurveTo(cp1x,cp1y,cp2x,cp2y,p2.x,p2.y);
   }
 }
 
-function renderMain(){
-  const el=document.getElementById('mainContent');
-  const p=curP();
-  if(!p){el.innerHTML=`<div class="no-profile"><div class="big">🌙</div><p>no profiles yet</p><button class="btn btn-accent" onclick="document.getElementById('addProfileBtn').click()">+ add profile</button></div>`;return}
-
-  const today=new Date();
-  const mOpts=MONTHS.map((m,i)=>`<option value="${i}"${i===today.getMonth()?' selected':''}>${m}</option>`).join('');
-  let dOpts='';for(let i=1;i<=31;i++)dOpts+=`<option value="${i}"${i===today.getDate()?' selected':''}>${i}</option>`;
-  const ty=today.getFullYear();let yOpts='';for(let y=ty+1;y>=ty-5;y--)yOpts+=`<option value="${y}"${y===ty?' selected':''}>${y}</option>`;
-
-  const activeMeds=p.meds.filter(m=>{
-    if(!m.startDate)return false;
-    const t=todayStr();
-    return m.startDate<=t&&(!m.endDate||m.endDate>=t);
-  });
-
-  el.innerHTML=`
-  <div class="panels-grid">
-    <div class="panel">
-      <div class="panel-header"><span class="panel-title">log mood</span></div>
-      <div class="emoji-wrap">
-        <div class="emoji-row" id="emojiRow">
-          ${MOODS.map(m=>`<button class="emoji-btn ${m.c}${pendingMood===m.v?' selected':''}" data-v="${m.v}">${m.e}</button>`).join('')}
-        </div>
-        <div class="emoji-axis"><span>−10</span><span>0</span><span>+10</span></div>
-        <div class="mood-readout">
-          <div class="mood-value" id="moodVal" style="color:${pendingMood===null?'var(--text-dim)':pendingMood>0?'var(--pos)':pendingMood<0?'var(--neg)':'var(--accent)'}">${pendingMood===null?'—':pendingMood>0?`+${pendingMood}`:pendingMood}</div>
-          <div class="mood-label" id="moodLbl">${pendingMood!==null?moodOf(pendingMood).label:''}</div>
-        </div>
-      </div>
-      <div class="mood-legend">${LEGEND_PTS.map(v=>{const m=moodOf(v);return`<div class="legend-item">${m.e} ${m.label}</div>`}).join('')}</div>
-
-      <div style="margin-top:14px">
-        <div class="field-label">date</div>
-        <div class="date-selects"><select class="ds-month" id="logM">${mOpts}</select><select class="ds-day" id="logD">${dOpts}</select><select class="ds-year" id="logY">${yOpts}</select></div>
-      </div>
-
-      ${activeMeds.length?`<div style="margin-top:12px">
-        <div class="field-label">active meds today <span style="color:var(--text-dim);font-size:10px;text-transform:none;letter-spacing:0">(tap to include)</span></div>
-        <div class="med-log-row" id="medLogRow">${activeMeds.map(m=>`<span class="med-pill${pendingMedIds.has(m.id)?' checked':''}" data-mid="${m.id}" style="background:${m.color}22;color:${m.color};border-color:${m.color}">${esc(m.name)}${m.dose?` ${m.dose}${m.unit}`:''}‎</span>`).join('')}</div>
-      </div>`:''}
-
-      <div style="margin-top:12px">
-        <div class="field-label">tags</div>
-        <div class="tag-row" id="tagRow">${renderTags()}</div>
-        <button class="btn btn-sm" id="addTagBtn">+ tag</button>
-      </div>
-      <button class="btn btn-accent" id="logBtn" style="margin-top:16px;width:100%;justify-content:center;font-size:16px">log mood</button>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">medications &amp; therapy</span>
-        <button class="btn btn-sm btn-accent" id="addMedOpenBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>add
-        </button>
-      </div>
-      <div class="med-list" id="medList">${renderMedList(p)}</div>
-      ${!p.meds.length?'<div style="color:var(--text-dim);font-size:13px;padding:8px 0">no medications tracked yet</div>':''}
-    </div>
-  </div>
-
-  <div style="margin-top:20px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)${document.body.getAttribute('data-theme')==='cottage'?' background:linear-gradient(180deg,#fdf9f0 0%,var(--surface) 6%)':''}">
-    <div class="panel-header"><span class="panel-title">stats</span></div>
-    ${renderStats(p)}
-  </div>
-
-  <div class="chart-section">
-    <div class="panel-header"><span class="panel-title">mood over time</span></div>
-    <canvas id="moodChart"></canvas>
-  </div>
-
-  <div class="history-section">
-    <div class="panel-header">
-      <span class="panel-title">history</span>
-      <span style="font-size:12px;color:var(--text-dim)">${p.entries.length} entr${p.entries.length===1?'y':'ies'}</span>
-    </div>
-    ${renderHistory(p)}
-  </div>`;
-
-  // Emoji events
-  document.querySelectorAll('.emoji-btn').forEach(btn=>{
-    const v=parseInt(btn.dataset.v);
-    btn.addEventListener('click',()=>selectMood(v));
-    btn.addEventListener('mouseenter',()=>{const lbl=document.getElementById('moodLbl');if(lbl)lbl.textContent=moodOf(v).label});
-    btn.addEventListener('mouseleave',()=>{const lbl=document.getElementById('moodLbl');if(lbl)lbl.textContent=pendingMood!==null?moodOf(pendingMood).label:''});
-  });
-
-  // Med pills in log
-  document.querySelectorAll('.med-pill').forEach(pill=>{
-    pill.addEventListener('click',()=>{
-      const mid=pill.dataset.mid;
-      pendingMedIds.has(mid)?pendingMedIds.delete(mid):pendingMedIds.add(mid);
-      pill.classList.toggle('checked',pendingMedIds.has(mid));
-    });
-  });
-
-  bindTagEvents();
-  document.getElementById('addTagBtn')?.addEventListener('click',()=>{document.getElementById('tagInput').value='';openModal('addTagModal');setTimeout(()=>document.getElementById('tagInput').focus(),50)});
-  document.getElementById('logBtn')?.addEventListener('click',handleLog);
-  document.getElementById('addMedOpenBtn')?.addEventListener('click',openAddMedModal);
-
-  document.querySelectorAll('.med-action-btn[data-action="edit"]').forEach(btn=>{
-    btn.addEventListener('click',()=>openEditMedModal(btn.dataset.mid));
-  });
-  document.querySelectorAll('.med-action-btn.del').forEach(btn=>{
-    btn.addEventListener('click',()=>{if(confirm('remove this medication?'))deleteMed(btn.dataset.mid)});
-  });
-
-  document.querySelectorAll('.hist-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{if(confirm('delete this entry?'))delEntry(btn.dataset.eid)});
-  });
-
-  if(pendingMood!==null)selectMoodDisplay(pendingMood);
-  requestAnimationFrame(()=>drawChart(p));
-}
-
-function renderMedList(p){
-  if(!p.meds.length)return'';
-  return p.meds.map(m=>{
-    const ended=m.endDate&&m.endDate<todayStr();
-    return`<div class="med-item">
-      <div class="med-color-dot" style="background:${m.color}"></div>
-      <div class="med-info">
-        <div class="med-name-text" style="color:${ended?'var(--text-dim)':'var(--text)'};${ended?'text-decoration:line-through':''}">${esc(m.name)}${m.dose?` <span style="color:var(--text-dim);font-size:12px;font-weight:400">${m.dose} ${m.unit}</span>`:''}</div>
-        <div class="med-sub">${m.category} · started ${fmtDs(m.startDate)}${m.endDate?' · ended '+fmtDs(m.endDate):''}${m.notes?' · '+esc(m.notes):''}</div>
-      </div>
-      <div class="med-actions">
-        <button class="med-action-btn" data-action="edit" data-mid="${m.id}" title="edit">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="med-action-btn del" data-mid="${m.id}" title="remove">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderTags(){
-  const p=curP();if(!p)return'';
-  return p.tags.map(t=>`<span class="tag${pendingTags.has(t)?' selected':''}" data-tag="${esc(t)}">${esc(t)}<button class="tag-x">×</button></span>`).join('');
-}
-function bindTagEvents(){
-  document.querySelectorAll('#tagRow .tag').forEach(tag=>{
-    tag.addEventListener('click',e=>{
-      if(e.target.closest('.tag-x')){const p=curP();if(!p)return;p.tags=p.tags.filter(t=>t!==tag.dataset.tag);pendingTags.delete(tag.dataset.tag);save();refreshTags();return}
-      pendingTags.has(tag.dataset.tag)?pendingTags.delete(tag.dataset.tag):pendingTags.add(tag.dataset.tag);refreshTags();
-    });
-  });
-}
-function refreshTags(){const r=document.getElementById('tagRow');if(!r)return;r.innerHTML=renderTags();bindTagEvents()}
-
-function selectMood(v){pendingMood=v;selectMoodDisplay(v)}
-function selectMoodDisplay(v){
-  document.querySelectorAll('.emoji-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.v)===v));
-  const val=document.getElementById('moodVal');const lbl=document.getElementById('moodLbl');
-  if(val){val.textContent=v>0?`+${v}`:String(v);val.style.color=v>0?'var(--pos)':v<0?'var(--neg)':'var(--accent)'}
-  if(lbl)lbl.textContent=moodOf(v).label;
-}
-
-function handleLog(){
-  if(pendingMood===null){toast('pick a mood first 👆');return}
-  const d=dateStr(document.getElementById('logY').value,document.getElementById('logM').value,document.getElementById('logD').value);
-  addEntry(d,pendingMood,pendingTags,pendingMedIds);
-  pendingMood=null;pendingTags=new Set();pendingMedIds=new Set();
-  render();toast('mood logged ✓');
-}
-
-function renderStats(p){
-  if(!p.entries.length)return`<div style="color:var(--text-dim);font-size:14px;padding:8px 0">no entries yet</div>`;
-  const moods=p.entries.map(e=>e.mood);
-  const avg=moods.reduce((a,b)=>a+b,0)/moods.length;
-  const best=Math.max(...moods),worst=Math.min(...moods);
-  const bE=p.entries.find(e=>e.mood===best),wE=p.entries.find(e=>e.mood===worst);
-  const dates=new Set(p.entries.map(e=>e.date));
-  let streak=0;const d=new Date();
-  while(true){const s=`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;if(!dates.has(s))break;streak++;d.setDate(d.getDate()-1)}
-  const avgM=MOODS.reduce((p,c)=>Math.abs(c.v-avg)<Math.abs(p.v-avg)?c:p);
-  return`<div class="stats-grid">
-    <div class="stat-card"><div class="s-label">avg mood</div><div class="s-val">${avgM.e} ${avg>0?'+':''}${avg.toFixed(1)}</div></div>
-    <div class="stat-card"><div class="s-label">streak</div><div class="s-val">${streak}d</div><div class="s-sub">consecutive days</div></div>
-    <div class="stat-card"><div class="s-label">best day</div><div class="s-val" style="color:var(--pos)">${best>0?'+':''}${best}</div><div class="s-sub">${fmtDs(bE.date)}</div></div>
-    <div class="stat-card"><div class="s-label">worst day</div><div class="s-val" style="color:var(--neg)">${worst}</div><div class="s-sub">${fmtDs(wE.date)}</div></div>
-    <div class="stat-card" style="grid-column:1/-1"><div class="s-label">entries</div><div class="s-val">${p.entries.length} <span style="font-size:13px;font-weight:400;color:var(--text-muted)">· ${p.meds.length} med${p.meds.length!==1?'s':''} tracked</span></div></div>
-  </div>`;
-}
-
-function renderHistory(p){
-  if(!p.entries.length)return`<div class="history-empty">no entries yet</div>`;
-  const medMap=Object.fromEntries((p.meds||[]).map(m=>[m.id,m]));
-  return`<div style="overflow-x:auto"><table class="history-table"><thead><tr><th>date</th><th>mood</th><th></th></tr></thead><tbody>
-    ${[...p.entries].reverse().map(e=>{
-      const m=moodOf(e.mood);const cls=e.mood>0?'pos':e.mood<0?'neg':'neutral';
-      const pills=(e.meds||[]).filter(id=>medMap[id]).map(id=>{const md=medMap[id];return`<span class="hist-med-pill" style="background:${md.color}22;color:${md.color}">${esc(md.name)}</span>`}).join('');
-      const tags=(e.tags||[]).map(t=>`<span class="hist-tag">${esc(t)}</span>`).join('');
-      const extras=pills||tags?`<div class="hist-pills">${pills}${tags}</div>`:'';
-      return`<tr>
-        <td style="font-family:'JetBrains Mono',monospace;font-size:12px;white-space:nowrap">${fmtD(e.date)}</td>
-        <td><span class="mood-badge ${cls}">${m.e} ${e.mood>0?'+':''}${e.mood}</span>${extras}</td>
-        <td style="text-align:right"><button class="hist-btn" data-eid="${e.id}" title="delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg></button></td>
-      </tr>`;
-    }).join('')}
-  </tbody></table></div>`;
-}
-
-// ── Chart ────────────────────────────────────────────────────────────────────
-function drawChart(p){
-  const canvas=document.getElementById('moodChart');if(!canvas)return;
-  const cw=canvas.parentElement.clientWidth-2;
-  canvas.width=Math.max(300,cw);
-
-  const entries=[...p.entries].sort((a,b)=>a.date.localeCompare(b.date));
-  const meds=p.meds||[];
-
-  // Med track height
-  const medH=meds.length?Math.min(meds.length*18+10,meds.length*18+14):0;
-  canvas.height=240+medH;
-  const W=canvas.width,H=canvas.height;
-  const PAD={t:20,r:20,b:36+medH,l:44};
-  const cW=W-PAD.l-PAD.r,cH=H-PAD.t-PAD.b;
-  const ctx=canvas.getContext('2d');
+/* ════════════ Draw chart ════════════ */
+let chartDPR=1;
+function render(){
+  const canvas=document.getElementById('chart');const ctx=canvas.getContext('2d');
+  const cssW=canvas.parentElement.clientWidth;
+  const cssH=parseInt(canvas.dataset.h||'420');
+  const dpr=window.devicePixelRatio||1;chartDPR=dpr;
+  canvas.width=cssW*dpr;canvas.height=cssH*dpr;canvas.style.height=cssH+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
   const cs=getComputedStyle(document.body);
-  const cv=v=>cs.getPropertyValue(v).trim();
-  const colBg=cv('--surface2'),colBorder=cv('--border'),colDim=cv('--text-dim');
-  const colAccent=cv('--accent'),colPos=cv('--pos'),colNeg=cv('--neg'),colSurf=cv('--bg');
+  const C={bg:cs.getPropertyValue('--chart-bg').trim(),text:cs.getPropertyValue('--text').trim(),dim:cs.getPropertyValue('--text-dim').trim(),muted:cs.getPropertyValue('--text-muted').trim(),border:cs.getPropertyValue('--border').trim(),accent:cs.getPropertyValue('--accent').trim()};
+  ctx.clearRect(0,0,cssW,cssH);ctx.fillStyle=C.bg;ctx.fillRect(0,0,cssW,cssH);
 
-  ctx.clearRect(0,0,W,H);
-  ctx.fillStyle=colBg;
-  ctx.beginPath();if(ctx.roundRect)ctx.roundRect(0,0,W,H,8);else ctx.rect(0,0,W,H);ctx.fill();
+  const opt={grid:tg('tgGrid'),legend:tg('tgLegend'),labels:tg('tgLabels'),values:tg('tgValues'),guides:tg('tgGuides'),doseChanges:tg('tgDoseChanges'),lines:tg('tgLines'),curves:tg('tgCurves')};
+  const xMin=parseFloat(document.getElementById('xMinInput').value)||-20;
+  const xMax=parseFloat(document.getElementById('xMaxInput').value)||200;
+  const padL=46,padR=46,padT=18,padB=34;
+  const plotW=cssW-padL-padR,plotH=cssH-padT-padB;
+  const x2px=d=>padL+(d-xMin)/(xMax-xMin)*plotW;
+  const showMood=chartView==='multi'||chartView==='mood';
+  const medIds=chartView==='multi'?allMedDefs().map(d=>d.id):chartView.startsWith('med:')?[chartView.slice(4)]:[];
+  // med y scale (left)
+  let maxDose=1;medIds.forEach(id=>doseStepSeries(id).forEach(([,a])=>{if(a>maxDose)maxDose=a;}));
+  const dose2px=v=>padT+plotH-(v/maxDose)*plotH;
+  // mood y scale (right) -10..10
+  const mood2px=v=>padT+plotH-((v+10)/20)*plotH;
 
-  if(!entries.length){ctx.fillStyle=colDim;ctx.font='14px DM Sans,sans-serif';ctx.textAlign='center';ctx.fillText('no entries yet',W/2,(H-medH)/2);return}
+  // grid
+  if(opt.grid){ctx.strokeStyle=C.border;ctx.globalAlpha=.4;ctx.lineWidth=1;
+    for(let gx=Math.ceil(xMin/25)*25;gx<=xMax;gx+=25){const px=x2px(gx);ctx.beginPath();ctx.moveTo(px,padT);ctx.lineTo(px,padT+plotH);ctx.stroke();}
+    for(let i=0;i<=4;i++){const py=padT+plotH*i/4;ctx.beginPath();ctx.moveTo(padL,py);ctx.lineTo(padL+plotW,py);ctx.stroke();}
+    ctx.globalAlpha=1;}
+  // axis labels
+  ctx.fillStyle=C.dim;ctx.font='11px JetBrains Mono, monospace';ctx.textAlign='center';
+  for(let gx=Math.ceil(xMin/50)*50;gx<=xMax;gx+=50){ctx.fillText('d'+gx,x2px(gx),cssH-12);}
 
-  const allDates=entries.map(e=>e.date);
-  const minDate=allDates[0],maxDate=allDates[allDates.length-1];
-  const minTs=parseD(minDate).getTime(),maxTs=parseD(maxDate).getTime();
-  const span=Math.max(maxTs-minTs,86400000);
+  // zero line for mood
+  if(showMood){
+    const zy=mood2px(0);
+    ctx.strokeStyle=C.dim;ctx.setLineDash([5,4]);ctx.globalAlpha=.7;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(padL,zy);ctx.lineTo(padL+plotW,zy);ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    // right axis labels
+    ctx.fillStyle=C.dim;ctx.textAlign='left';
+    [10,5,0,-5,-10].forEach(v=>{ctx.fillText((v>0?'+':'')+v,padL+plotW+6,mood2px(v)+4);});
+  }
+  // left axis labels (dose)
+  if(medIds.length){ctx.fillStyle=C.dim;ctx.textAlign='right';
+    for(let i=0;i<=4;i++){const v=maxDose*(4-i)/4;ctx.fillText(v.toFixed(maxDose<5?1:0),padL-6,padT+plotH*i/4+4);}}
 
-  const xOf=d=>{const ts=parseD(d).getTime();return PAD.l+(entries.length===1?cW/2:(ts-minTs)/span*cW)};
-  const yOf=v=>PAD.t+cH*(1-(v+10)/20);
-  const zeroY=yOf(0);
+  // med step lines
+  if(opt.lines)medIds.forEach(id=>{
+    const arr=doseStepSeries(id);if(!arr.length)return;
+    ctx.strokeStyle=medColor(id);ctx.lineWidth=2;ctx.beginPath();
+    let started=false,prevY=null;
+    for(let i=0;i<arr.length;i++){
+      const[d,a]=arr[i];const px=x2px(d),py=dose2px(a);
+      if(!started){ctx.moveTo(Math.max(padL,x2px(xMin)),py);ctx.lineTo(px,py);started=true;}
+      else{ctx.lineTo(px,prevY);ctx.lineTo(px,py);}
+      prevY=py;
+    }
+    ctx.lineTo(padL+plotW,prevY);ctx.stroke();
+    // dose change labels
+    if(opt.doseChanges){ctx.fillStyle=medColor(id);ctx.font='10px JetBrains Mono, monospace';ctx.textAlign='center';
+      arr.forEach(([d,a])=>{if(d>=xMin&&d<=xMax)ctx.fillText(a+'',x2px(d),dose2px(a)-6);});}
+  });
 
-  // Med background bands
-  if(meds.length){
-    meds.forEach((m,i)=>{
-      const sTs=m.startDate?parseD(m.startDate).getTime():minTs;
-      const eTs=m.endDate?parseD(m.endDate).getTime():Date.now();
-      const sx=PAD.l+Math.max(0,(sTs-minTs)/span*cW);
-      const ex=PAD.l+Math.min(cW,(eTs-minTs)/span*cW);
-      if(ex<=sx)return;
-      ctx.fillStyle=m.color+'28';
-      ctx.fillRect(sx,PAD.t,ex-sx,cH);
-      ctx.fillStyle=m.color+'40';
-      ctx.fillRect(sx,PAD.t,2,cH);
+  // mood curve
+  if(showMood){
+    const ms=P().moods.filter(m=>m.day>=xMin-5&&m.day<=xMax+5).sort((a,b)=>a.day-b.day);
+    if(ms.length){
+      const pts=ms.map(m=>({x:x2px(m.day),y:mood2px(m.mood),m}));
+      // area fills (green above zero, red below)
+      const zy=mood2px(0);
+      ctx.save();
+      ctx.beginPath();catmullRom(ctx,pts);
+      ctx.lineTo(pts[pts.length-1].x,zy);ctx.lineTo(pts[0].x,zy);ctx.closePath();
+      // clip top half green
+      ctx.save();ctx.beginPath();ctx.rect(padL,padT,plotW,zy-padT);ctx.clip();
+      ctx.fillStyle='rgba(126,199,138,.18)';ctx.fill();ctx.restore();
+      ctx.save();ctx.beginPath();ctx.rect(padL,zy,plotW,padT+plotH-zy);ctx.clip();
+      ctx.fillStyle='rgba(224,120,120,.18)';ctx.fill();ctx.restore();
+      ctx.restore();
+      // line
+      if(opt.curves){ctx.strokeStyle=C.accent;ctx.lineWidth=2.5;ctx.beginPath();catmullRom(ctx,pts);ctx.stroke();}
+      else{ctx.strokeStyle=C.accent;ctx.lineWidth=2.5;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();}
+      // dots + value labels
+      pts.forEach(p=>{
+        ctx.fillStyle=p.m.mood>=0?'#7ec78a':'#e07878';
+        ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();
+        ctx.strokeStyle=C.bg;ctx.lineWidth=1.5;ctx.stroke();
+        if(opt.values){ctx.fillStyle=C.text;ctx.font='10px JetBrains Mono, monospace';ctx.textAlign='center';
+          ctx.fillText((p.m.mood>0?'+':'')+p.m.mood,p.x,p.y-9);}
+      });
+    }
+  }
+
+  // legend
+  if(opt.legend){
+    let lx=padL+6,ly=padT+10;ctx.textAlign='left';ctx.font='12px DM Sans, sans-serif';
+    function leg(color,label){ctx.fillStyle=color;ctx.fillRect(lx,ly-8,12,4);ctx.fillStyle=C.muted;ctx.fillText(label,lx+18,ly-1);lx+=ctx.measureText(label).width+44;if(lx>cssW-120){lx=padL+6;ly+=18;}}
+    if(showMood)leg(C.accent,'Mood');
+    medIds.forEach(id=>{const d=medDef(id);if(d)leg(medColor(id),d.name);});
+  }
+}
+function tg(id){return document.getElementById(id).checked;}
+
+/* ════════════ Stats ════════════ */
+function renderStats(){
+  const box=document.getElementById('statsBar');
+  const today=Math.round((new Date()-parseISO(P().startDate))/86400000);
+  const ms=P().moods.slice().sort((a,b)=>a.day-b.day);
+  let avg=0,best=null,worst=null;
+  if(ms.length){avg=ms.reduce((s,m)=>s+m.mood,0)/ms.length;
+    best=ms.reduce((a,b)=>b.mood>a.mood?b:a);worst=ms.reduce((a,b)=>b.mood<a.mood?b:a);}
+  // streak: consecutive days with an entry up to most recent
+  let streak=0;
+  if(ms.length){const days=new Set(ms.map(m=>m.day));let d=ms[ms.length-1].day;while(days.has(d)){streak++;d--;}}
+  const icon=s=>`<span class="stat-icon">${s}</span>`;
+  box.innerHTML=`
+    <span class="stat-item"><span class="stat-label">Tracking</span> <strong>Day ${today}</strong></span>
+    <span class="stat-item">${icon(ms.length?moodEmoji(avg):'😐')} <span class="stat-label">Avg</span> <strong>${ms.length?(avg>0?'+':'')+avg.toFixed(1):'—'}</strong></span>
+    <span class="stat-item"><span class="stat-label">Entries</span> <strong>${ms.length}</strong></span>
+    <span class="stat-item"><span class="stat-label">Streak</span> <strong>${streak} day${streak===1?'':'s'}</strong></span>
+    <span class="stat-item">${best?icon(moodEmoji(best.mood)):''} <span class="stat-label">Best</span> <strong>${best?(best.mood>0?'+':'')+best.mood:'—'}</strong></span>
+    <span class="stat-item">${worst?icon(moodEmoji(worst.mood)):''} <span class="stat-label">Worst</span> <strong>${worst?(worst.mood>0?'+':'')+worst.mood:'—'}</strong></span>`;
+}
+
+/* ════════════ History ════════════ */
+function setHistTab(t){histTab=t;document.getElementById('htMood').classList.toggle('active',t==='mood');document.getElementById('htDoses').classList.toggle('active',t==='doses');renderHistory();}
+function renderHistory(){
+  const box=document.getElementById('historyArea');
+  if(histTab==='mood'){
+    const ms=P().moods.slice().sort((a,b)=>b.day-a.day);
+    if(!ms.length){box.innerHTML='<div class="history-empty">No mood entries yet.</div>';return;}
+    let html='<table class="history-table"><thead><tr><th>Date</th><th>Day</th><th>Mood</th><th>Tags</th><th>Notes</th><th></th></tr></thead><tbody>';
+    ms.forEach(m=>{html+=`<tr><td>${fmtDate(m.date)}</td><td>${m.day}</td><td>${moodEmoji(m.mood)} ${(m.mood>0?'+':'')+m.mood}</td><td><div class="tag-cell">${(m.tags||[]).map(t=>`<span class="tag-mini">${esc(t)}</span>`).join('')}</div></td><td>${esc(m.notes||'')}</td>
+      <td class="hist-actions"><button class="hist-btn" onclick="editMood('${m.id}')" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button><button class="hist-btn hist-del" onclick="delMood('${m.id}')" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></td></tr>`;});
+    box.innerHTML=html+'</tbody></table>';
+  }else{
+    const rows=[];allMedDefs().forEach(d=>{(P().doses[d.id]||[]).forEach((dose,i)=>rows.push({id:d.id,name:d.name,day:dose[0],amt:dose[1],idx:i}));});
+    rows.sort((a,b)=>b.day-a.day);
+    if(!rows.length){box.innerHTML='<div class="history-empty">No doses logged yet.</div>';return;}
+    let html='<table class="history-table"><thead><tr><th>Date</th><th>Day</th><th>Medication</th><th>Amount</th><th></th></tr></thead><tbody>';
+    rows.forEach(r=>{html+=`<tr><td>${fmtDate(isoDate(offsetToDate(r.day)))}</td><td>${r.day}</td><td><span class="tag-dot" style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${medColor(r.id)};margin-right:6px"></span><span class="med-name">${esc(r.name)}</span></td><td>${r.amt} ${esc(medUnit(r.id))}</td>
+      <td class="hist-actions"><button class="hist-btn hist-del" onclick="delDose('${r.id}',${r.idx})" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button></td></tr>`;});
+    box.innerHTML=html+'</tbody></table>';
+  }
+}
+function fmtDate(iso){const d=parseISO(iso);return d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();}
+function editMood(id){const m=P().moods.find(x=>x.id===id);if(!m)return;editingMoodId=id;selectedMood=m.mood;
+  const d=parseISO(m.date);fillDateSelects(document.getElementById('moodDay'),document.getElementById('moodMonth'),document.getElementById('moodYear'),d);
+  selectedTags=new Set(m.tags||[]);document.getElementById('moodNotes').value=m.notes||'';
+  renderEmojiScale();updateMoodDisplay();renderMoodTags();window.scrollTo({top:0,behavior:'smooth'});toast('Editing entry');}
+function delMood(id){pushUndo();P().moods=P().moods.filter(m=>m.id!==id);save();renderAll();toast('Entry deleted');}
+function delDose(id,idx){pushUndo();if(P().doses[id])P().doses[id].splice(idx,1);save();renderAll();toast('Dose deleted');}
+
+/* ════════════ Range ════════════ */
+function updateRange(){
+  P().tMin=parseFloat(document.getElementById('xMinInput').value)||-20;
+  P().xMax=parseFloat(document.getElementById('xMaxInput').value)||200;
+  save();render();
+}
+
+/* ════════════ Resize grips ════════════ */
+function setupGrips(){
+  const canvas=document.getElementById('chart');const resizer=document.getElementById('chartResizer');
+  if(!canvas.dataset.h)canvas.dataset.h='420';
+  const vert=(grip)=>{
+    grip.addEventListener('pointerdown',e=>{
+      e.preventDefault();grip.classList.add('active');grip.setPointerCapture(e.pointerId);
+      const startY=e.clientY,startH=parseInt(canvas.dataset.h);
+      const move=ev=>{canvas.dataset.h=Math.max(200,startH+(ev.clientY-startY));render();};
+      const up=()=>{grip.classList.remove('active');grip.removeEventListener('pointermove',move);grip.removeEventListener('pointerup',up);};
+      grip.addEventListener('pointermove',move);grip.addEventListener('pointerup',up);
     });
-  }
-
-  // Grid
-  for(const v of[-10,-5,0,5,10]){
-    const y=yOf(v);
-    ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cW,y);
-    if(v===0){ctx.strokeStyle=colAccent;ctx.lineWidth=1.5;ctx.setLineDash([6,4])}
-    else{ctx.strokeStyle=colBorder;ctx.lineWidth=1;ctx.setLineDash([3,4])}
-    ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle=colDim;ctx.font='11px JetBrains Mono,monospace';ctx.textAlign='right';
-    ctx.fillText(v>0?`+${v}`:String(v),PAD.l-6,y+4);
-  }
-
-  // Area fills
-  if(entries.length>=2){
-    ctx.beginPath();ctx.moveTo(xOf(entries[0].date),Math.min(yOf(entries[0].mood),zeroY));
-    entries.forEach(e=>ctx.lineTo(xOf(e.date),Math.min(yOf(e.mood),zeroY)));
-    ctx.lineTo(xOf(entries[entries.length-1].date),zeroY);ctx.lineTo(xOf(entries[0].date),zeroY);ctx.closePath();
-    const gp=ctx.createLinearGradient(0,PAD.t,0,zeroY);gp.addColorStop(0,colPos+'55');gp.addColorStop(1,colPos+'0a');ctx.fillStyle=gp;ctx.fill();
-
-    ctx.beginPath();ctx.moveTo(xOf(entries[0].date),Math.max(yOf(entries[0].mood),zeroY));
-    entries.forEach(e=>ctx.lineTo(xOf(e.date),Math.max(yOf(e.mood),zeroY)));
-    ctx.lineTo(xOf(entries[entries.length-1].date),zeroY);ctx.lineTo(xOf(entries[0].date),zeroY);ctx.closePath();
-    const gn=ctx.createLinearGradient(0,zeroY,0,PAD.t+cH);gn.addColorStop(0,colNeg+'0a');gn.addColorStop(1,colNeg+'55');ctx.fillStyle=gn;ctx.fill();
-  }
-
-  // Line
-  ctx.beginPath();ctx.strokeStyle=colAccent;ctx.lineWidth=2;ctx.lineJoin='round';
-  entries.forEach((e,i)=>{const x=xOf(e.date),y=yOf(e.mood);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
-
-  // Dots
-  entries.forEach(e=>{
-    const x=xOf(e.date),y=yOf(e.mood);const col=e.mood>0?colPos:e.mood<0?colNeg:colAccent;
-    ctx.beginPath();ctx.arc(x,y,4.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
-    ctx.strokeStyle=colSurf;ctx.lineWidth=2;ctx.stroke();
-  });
-
-  // X labels
-  ctx.fillStyle=colDim;ctx.font='11px DM Sans,sans-serif';ctx.textAlign='center';
-  const maxL=Math.max(2,Math.floor(cW/70));const step=Math.max(1,Math.floor(entries.length/maxL));
-  const shown=new Set();
-  for(let i=0;i<entries.length;i+=step){ctx.fillText(fmtDs(entries[i].date),xOf(entries[i].date),H-medH-PAD.b+cH+16);shown.add(i)}
-  if(!shown.has(entries.length-1))ctx.fillText(fmtDs(entries[entries.length-1].date),xOf(entries[entries.length-1].date),H-medH-PAD.b+cH+16);
-
-  // Med timeline tracks at bottom
-  if(meds.length){
-    const trackTop=H-medH+4;
-    meds.forEach((m,i)=>{
-      const y=trackTop+i*18;
-      const sTs=m.startDate?parseD(m.startDate).getTime():minTs;
-      const eTs=m.endDate?parseD(m.endDate).getTime():Date.now();
-      const sx=PAD.l+Math.max(0,(sTs-minTs)/span*cW);
-      const ex=PAD.l+Math.min(cW,(eTs-minTs)/span*cW);
-      ctx.fillStyle=m.color+'33';ctx.beginPath();
-      if(ctx.roundRect)ctx.roundRect(sx,y,Math.max(4,ex-sx),14,3);else ctx.rect(sx,y,Math.max(4,ex-sx),14);ctx.fill();
-      ctx.fillStyle=m.color;ctx.beginPath();
-      if(ctx.roundRect)ctx.roundRect(sx,y,Math.min(4,ex-sx||4),14,3);else ctx.rect(sx,y,Math.min(4,ex-sx||4),14);ctx.fill();
-      ctx.fillStyle=colDim;ctx.font='10px DM Sans,sans-serif';ctx.textAlign='left';
-      ctx.fillText(m.name,sx+6,y+10);
+  };
+  const horiz=(grip,dir)=>{
+    grip.addEventListener('pointerdown',e=>{
+      e.preventDefault();grip.classList.add('active');grip.setPointerCapture(e.pointerId);
+      const startX=e.clientX,startW=resizer.offsetWidth;
+      const move=ev=>{const dw=(ev.clientX-startX)*(dir==='l'?-2:2);resizer.style.maxWidth=Math.max(300,startW+dw)+'px';resizer.style.marginLeft='auto';resizer.style.marginRight='auto';render();};
+      const up=()=>{grip.classList.remove('active');grip.removeEventListener('pointermove',move);grip.removeEventListener('pointerup',up);};
+      grip.addEventListener('pointermove',move);grip.addEventListener('pointerup',up);
     });
-  }
+  };
+  vert(document.getElementById('gripB'));
+  horiz(document.getElementById('gripL'),'l');
+  horiz(document.getElementById('gripR'),'r');
 }
 
-// ── Add med modal ─────────────────────────────────────────────────────────────
-function openAddMedModal(){
-  selectedCatalogItem=null;activeCatFilter='All';chosenColor=CAT_COLORS[0];
-  document.getElementById('catalogView').style.display='';
-  document.getElementById('medFormView').style.display='none';
-  document.getElementById('addMedBack').style.display='none';
-  document.getElementById('saveMedBtn').style.display='none';
-  document.getElementById('addMedTitle').textContent='add medication';
-  renderCatalog();
-  openModal('addMedModal');
+/* ════════════ Export / Import / PNG / Print ════════════ */
+function exportProfiles(){
+  const blob=new Blob([JSON.stringify({profiles,active:activeProfileName},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='mood-tracker-export.json';a.click();
+  toast('Exported');
 }
-function renderCatalog(){
-  // Tabs
-  const tabsEl=document.getElementById('catTabs');
-  tabsEl.innerHTML=CAT_NAMES.map(n=>`<button class="cat-tab${activeCatFilter===n?' active':''}" data-cat="${n}">${n}</button>`).join('');
-  tabsEl.querySelectorAll('.cat-tab').forEach(btn=>{
-    btn.addEventListener('click',()=>{activeCatFilter=btn.dataset.cat;renderCatalog()});
-  });
-  // Grid
-  const grid=document.getElementById('catalogGrid');
-  const items=activeCatFilter==='All'?CATALOG:CATALOG.filter(c=>c.cat===activeCatFilter);
-  grid.innerHTML=items.map((item,i)=>`<div class="catalog-item" data-idx="${CATALOG.indexOf(item)}">
-    <div class="cat-dot" style="background:${item.color}"></div>
-    <div class="cat-item-main">
-      <div class="cat-item-name">${esc(item.name)}</div>
-      <div class="cat-item-sub">${esc(item.sub)}</div>
-    </div>
-    <span class="cat-item-badge">${item.cat}</span>
-  </div>`).join('');
-  grid.querySelectorAll('.catalog-item').forEach(el=>{
-    el.addEventListener('click',()=>{
-      const item=CATALOG[parseInt(el.dataset.idx)];
-      selectedCatalogItem=item;chosenColor=item.color;
-      // Show form
-      document.getElementById('catalogView').style.display='none';
-      document.getElementById('medFormView').style.display='';
-      document.getElementById('addMedBack').style.display='';
-      document.getElementById('saveMedBtn').style.display='';
-      document.getElementById('addMedTitle').textContent=item.name;
-      document.getElementById('selectedCatItem').innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface2)"><div style="width:10px;height:10px;border-radius:50%;background:${item.color}"></div><div><div style="font-size:14px;font-weight:500;color:var(--text)">${esc(item.name)}</div><div style="font-size:11px;color:var(--text-dim)">${esc(item.sub)} · ${item.cat}</div></div></div>`;
-      document.getElementById('medDoseInput').value=item.defaultDose||'';
-      document.getElementById('medUnitInput').value=item.units||'mg';
-      document.getElementById('medNotesInput').value='';
-      document.getElementById('medStartSelects').innerHTML=buildDateSelects('addMedStart',todayStr());
-      renderColorSwatches();
-    });
-  });
-}
-function renderColorSwatches(){
-  const el=document.getElementById('colorSwatches');if(!el)return;
-  el.innerHTML=CAT_COLORS.map(c=>`<div class="color-swatch${c===chosenColor?' selected':''}" style="background:${c}" data-c="${c}"></div>`).join('');
-  el.querySelectorAll('.color-swatch').forEach(sw=>{
-    sw.addEventListener('click',()=>{chosenColor=sw.dataset.c;renderColorSwatches()});
-  });
-}
-
-document.getElementById('addMedBack').addEventListener('click',()=>{
-  document.getElementById('catalogView').style.display='';
-  document.getElementById('medFormView').style.display='none';
-  document.getElementById('addMedBack').style.display='none';
-  document.getElementById('saveMedBtn').style.display='none';
-  document.getElementById('addMedTitle').textContent='add medication';
-});
-document.getElementById('cancelMedBtn').addEventListener('click',()=>closeModal('addMedModal'));
-document.getElementById('addMedModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('addMedModal')});
-document.getElementById('saveMedBtn').addEventListener('click',()=>{
-  if(!selectedCatalogItem)return;
-  const dose=document.getElementById('medDoseInput').value;
-  const unit=document.getElementById('medUnitInput').value;
-  const start=getDateFrom('addMedStart');
-  const notes=document.getElementById('medNotesInput').value.trim();
-  addMed(selectedCatalogItem.name,chosenColor,selectedCatalogItem.cat,dose,unit,start,notes);
-  closeModal('addMedModal');toast(`${selectedCatalogItem.name} added ✓`);render();
-});
-
-// ── Edit med modal ──────────────────────────────────────────────────────────
-function openEditMedModal(mid){
-  const p=curP();if(!p)return;
-  const m=p.meds.find(m=>m.id===mid);if(!m)return;
-  editingMedId=mid;
-  document.getElementById('editMedTitle').textContent=m.name;
-  document.getElementById('editDoseInput').value=m.dose||'';
-  document.getElementById('editUnitInput').value=m.unit||'mg';
-  document.getElementById('editNotesInput').value=m.notes||'';
-  document.getElementById('medEndSelects').innerHTML=buildDateSelects('editMedEnd',m.endDate||todayStr());
-  document.getElementById('medEndCheck').checked=!!m.endDate;
-  openModal('editMedModal');
-}
-document.getElementById('cancelEditMedBtn').addEventListener('click',()=>closeModal('editMedModal'));
-document.getElementById('editMedModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('editMedModal')});
-document.getElementById('saveEditMedBtn').addEventListener('click',()=>{
-  if(!editingMedId)return;
-  const dose=document.getElementById('editDoseInput').value;
-  const unit=document.getElementById('editUnitInput').value;
-  const endDate=document.getElementById('medEndCheck').checked?getDateFrom('editMedEnd'):null;
-  const notes=document.getElementById('editNotesInput').value.trim();
-  editMed(editingMedId,dose,unit,endDate,notes);
-  closeModal('editMedModal');toast('saved ✓');
-});
-
-// ── Profile modals ───────────────────────────────────────────────────────────
-document.getElementById('addProfileBtn').addEventListener('click',()=>{document.getElementById('profileNameInput').value='';openModal('addProfileModal');setTimeout(()=>document.getElementById('profileNameInput').focus(),50)});
-document.getElementById('cancelProfileBtn').addEventListener('click',()=>closeModal('addProfileModal'));
-document.getElementById('addProfileModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('addProfileModal')});
-document.getElementById('saveProfileBtn').addEventListener('click',()=>{const n=document.getElementById('profileNameInput').value.trim();if(!n)return;closeModal('addProfileModal');addProfile(n)});
-document.getElementById('profileNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveProfileBtn').click()});
-
-document.getElementById('cancelRenameBtn').addEventListener('click',()=>closeModal('renameModal'));
-document.getElementById('renameModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('renameModal')});
-document.getElementById('saveRenameBtn').addEventListener('click',()=>{const n=document.getElementById('renameInput').value.trim();if(!n||!renamingId)return;closeModal('renameModal');renameProfile(renamingId,n);renamingId=null});
-document.getElementById('renameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveRenameBtn').click()});
-
-// ── Tag modal ────────────────────────────────────────────────────────────────
-document.getElementById('cancelTagBtn').addEventListener('click',()=>closeModal('addTagModal'));
-document.getElementById('addTagModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal('addTagModal')});
-document.getElementById('saveTagBtn').addEventListener('click',()=>{
-  const n=document.getElementById('tagInput').value.trim();if(!n)return;
-  const p=curP();if(!p)return;if(!p.tags.includes(n))p.tags.push(n);
-  save();closeModal('addTagModal');refreshTags();
-});
-document.getElementById('tagInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('saveTagBtn').click()});
-
-// ── Modal helpers ─────────────────────────────────────────────────────────────
-function openModal(id){document.getElementById(id).classList.add('open')}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-
-// ── Theme & header ───────────────────────────────────────────────────────────
-document.getElementById('themeSelect').addEventListener('change',e=>{applyTheme(e.target.value);const p=curP();if(p)requestAnimationFrame(()=>drawChart(p))});
-document.getElementById('headerMenuToggle').addEventListener('click',()=>{const c=document.getElementById('headerControls');c.classList.toggle('open');document.getElementById('headerMenuToggle').classList.toggle('open',c.classList.contains('open'))});
-document.addEventListener('click',e=>{
-  document.querySelectorAll('.ctx-menu.open').forEach(m=>m.classList.remove('open'));
-  if(!e.target.closest('#headerMenuToggle')&&!e.target.closest('#headerControls'))document.getElementById('headerControls').classList.remove('open');
-});
-
-// ── Export / Import ──────────────────────────────────────────────────────────
-document.getElementById('exportBtn').addEventListener('click',()=>{
-  const a=document.createElement('a');a.href='data:application/json,'+encodeURIComponent(JSON.stringify(S,null,2));a.download='mood-export.json';a.click();
-});
-document.getElementById('importTrigger').addEventListener('click',()=>document.getElementById('importInput').click());
-document.getElementById('importInput').addEventListener('change',e=>{
-  const f=e.target.files[0];if(!f)return;
-  const r=new FileReader();r.onload=ev=>{try{const imp=JSON.parse(ev.target.result);if(!Array.isArray(imp.profiles))throw 0;S=imp;if(!S.currentId&&S.profiles.length)S.currentId=S.profiles[0].id;save();render();toast('imported!')}catch{toast('invalid file')}};
+function importProfiles(e){
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);if(o.profiles){pushUndo();profiles=o.profiles;activeProfileName=o.active||Object.keys(profiles)[0];save();renderAll();toast('Imported');}else throw 0;}catch(_){toast('Invalid file');}};
   r.readAsText(f);e.target.value='';
-});
+}
+function exportPNG(){const canvas=document.getElementById('chart');const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='mood-chart.png';a.click();}
+function printChart(){window.print();}
 
-// ── Init ─────────────────────────────────────────────────────────────────────
-load();
-try{applyTheme(localStorage.getItem('mood-theme')||'')}catch(e){applyTheme('')}
-render();
-window.addEventListener('resize',()=>{const p=curP();if(p)requestAnimationFrame(()=>drawChart(p))});
+/* ════════════ Start date modal ════════════ */
+function openStartDateModal(){fillDateSelects(document.getElementById('sdDay'),document.getElementById('sdMonth'),document.getElementById('sdYear'),parseISO(P().startDate));openModal('startDateModal');}
+function saveStartDate(){pushUndo();const d=readDateSelects(document.getElementById('sdDay'),document.getElementById('sdMonth'),document.getElementById('sdYear'));P().startDate=isoDate(d);save();closeModal('startDateModal');renderAll();toast('Start date updated');}
+
+/* ════════════ Catalog ════════════ */
+function openCatalog(){renderCatalog();openModal('catalogModal');}
+function renderCatalog(){
+  const box=document.getElementById('catalogList');box.innerHTML='';
+  GROUP_ORDER.forEach(g=>{
+    const meds=MED_CATALOG.filter(m=>m.group===g);if(!meds.length)return;
+    const h=document.createElement('div');h.className='epick-cat';h.textContent=g;box.appendChild(h);
+    meds.forEach(m=>{
+      const tracked=P().medications.includes(m.id);
+      const row=document.createElement('div');row.className='catalog-row med-row'+(tracked?' tracked':'');
+      row.innerHTML=`<span class="catalog-swatch" style="background:${medColor(m.id)}"></span><span class="catalog-name">${esc(m.name)}</span><span class="catalog-tag">${esc(m.unit)}</span>`;
+      const btn=document.createElement('button');btn.className='btn btn-sm'+(tracked?' btn-accent':'');btn.textContent=tracked?'Tracked':'+ Add';
+      btn.onclick=()=>{pushUndo();if(tracked)P().medications=P().medications.filter(x=>x!==m.id);else P().medications.push(m.id);save();renderCatalog();renderAll();};
+      row.appendChild(btn);box.appendChild(row);
+    });
+  });
+  // custom meds
+  (P().customMeds||[]).forEach((m,i)=>{
+    const row=document.createElement('div');row.className='catalog-row med-row tracked';
+    row.innerHTML=`<span class="catalog-swatch" style="background:${m.color}"></span><span class="catalog-name">${esc(m.name)}</span><span class="catalog-tag">${esc(m.unit)}</span>`;
+    const btn=document.createElement('button');btn.className='btn btn-sm';btn.textContent='Remove';
+    btn.onclick=()=>{pushUndo();P().customMeds.splice(i,1);delete P().doses[m.id];save();renderCatalog();renderAll();};
+    row.appendChild(btn);box.appendChild(row);
+  });
+}
+function addCustomMedRow(){
+  const name=prompt('Custom medication name:');if(!name)return;
+  const unit=prompt('Unit (e.g. mg):','mg')||'mg';
+  pushUndo();const id='custom_'+Date.now();
+  if(!P().customMeds)P().customMeds=[];
+  P().customMeds.push({id,name,color:'#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'),unit});
+  save();renderCatalog();renderAll();
+}
+
+/* ════════════ Data settings ════════════ */
+function openDataSettings(){
+  const b=document.getElementById('dataMgmtBody');
+  b.innerHTML=`<p style="color:var(--text-muted);margin-bottom:14px">All data is stored locally in your browser.</p>
+    <button class="btn" style="width:100%;justify-content:center;margin-bottom:10px" onclick="exportProfiles()">Export All Data</button>
+    <button class="btn" style="width:100%;justify-content:center;margin-bottom:10px" onclick="document.getElementById('importInput').click()">Import Data</button>
+    <button class="btn" style="width:100%;justify-content:center;color:var(--danger);border-color:var(--danger)" onclick="clearActiveData()">Clear This Profile's Data</button>`;
+  openModal('dataMgmtModal');
+}
+function clearActiveData(){if(!confirm('Clear all moods and doses for this profile?'))return;pushUndo();P().moods=[];P().doses={};save();renderAll();closeModal('dataMgmtModal');toast('Data cleared');}
+
+/* ════════════ Info modal ════════════ */
+function openInfoModal(){
+  document.getElementById('infoBody').innerHTML=`
+    <p style="color:var(--text-muted);line-height:1.7">A private, offline mood tracker. Log how you feel on a −10 to +10 scale, track medications and therapy, and watch your trends over time.</p>
+    <h4 style="margin:14px 0 6px">Disclaimer</h4>
+    <p style="color:var(--text-dim);font-size:14px;line-height:1.7">This tool is for personal tracking only and is not medical advice. Always consult a qualified healthcare professional regarding medication and mental health decisions.</p>
+    <h4 style="margin:14px 0 6px">Privacy</h4>
+    <p style="color:var(--text-dim);font-size:14px;line-height:1.7">Everything is stored locally in your browser. Nothing is uploaded. Use Export to back up your data.</p>`;
+  openModal('infoModal');
+}
+
+/* ════════════ Wizard ════════════ */
+let wizardStep=0,wizardData=null;
+function openNewProfileModal(){
+  wizardStep=0;
+  wizardData={name:'',pic:'',startDate:isoDate(new Date()),tags:TAG_PRESETS.slice(0,6),meds:[]};
+  document.getElementById('wizardTitle').textContent='New Profile';
+  renderWizard();openModal('wizardModal');
+}
+function renderWizard(){
+  const c=document.getElementById('wizardContent');
+  document.getElementById('wizardBack').style.visibility=wizardStep===0?'hidden':'visible';
+  document.getElementById('wizardNext').textContent=wizardStep===3?'Create':'Next';
+  if(wizardStep===0){
+    c.innerHTML=`<div class="wizard-step"><div class="modal-label">Profile name</div>
+      <input type="text" id="wzName" placeholder="e.g. Me" value="${esc(wizardData.name)}">
+      <div class="modal-label">Photo / Emoji</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div id="wzPicPreview" style="width:64px;height:64px;border-radius:50%;background:var(--surface3);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:30px">${wizardData.pic?`<img src="${wizardData.pic}" style="width:100%;height:100%;object-fit:cover">`:'🙂'}</div>
+        <button class="btn btn-sm" onclick="document.getElementById('pfpInput').dataset.wizard='1';document.getElementById('pfpInput').click()">Upload</button>
+        <button class="btn btn-sm" onclick="wizardEmoji()">Emoji</button>
+      </div></div>`;
+  }else if(wizardStep===1){
+    fillThenRenderWizardDate();
+    c.innerHTML=`<div class="wizard-step"><div class="modal-label">Tracking start date (day 0)</div>
+      <div class="date-selects" style="margin-top:6px"><select class="ds-day" id="wzDay"></select><select class="ds-month" id="wzMonth"></select><select class="ds-year" id="wzYear"></select></div></div>`;
+    setTimeout(()=>fillDateSelects(document.getElementById('wzDay'),document.getElementById('wzMonth'),document.getElementById('wzYear'),parseISO(wizardData.startDate)),0);
+  }else if(wizardStep===2){
+    c.innerHTML=`<div class="wizard-step"><div class="modal-label">Pick tags to track (optional)</div><div class="tag-row" id="wzTags"></div></div>`;
+    setTimeout(()=>{const box=document.getElementById('wzTags');TAG_PRESETS.forEach(t=>{const el=document.createElement('div');el.className='tag tag-pill'+(wizardData.tags.includes(t)?' sel':'');el.textContent=t;el.onclick=()=>{wizardData.tags.includes(t)?wizardData.tags=wizardData.tags.filter(x=>x!==t):wizardData.tags.push(t);renderWizard();};box.appendChild(el);});},0);
+  }else if(wizardStep===3){
+    c.innerHTML=`<div class="wizard-step"><div class="modal-label">Add medications (optional)</div><div id="wzMeds" class="catalog-list" style="max-height:40vh"></div></div>`;
+    setTimeout(()=>{const box=document.getElementById('wzMeds');GROUP_ORDER.forEach(g=>{const meds=MED_CATALOG.filter(m=>m.group===g);if(!meds.length)return;const h=document.createElement('div');h.className='epick-cat';h.textContent=g;box.appendChild(h);meds.forEach(m=>{const sel=wizardData.meds.includes(m.id);const row=document.createElement('div');row.className='catalog-row med-row'+(sel?' tracked':'');row.innerHTML=`<span class="catalog-swatch" style="background:${m.color}"></span><span class="catalog-name">${esc(m.name)}</span><span class="catalog-tag">${esc(m.unit)}</span>`;const b=document.createElement('button');b.className='btn btn-sm'+(sel?' btn-accent':'');b.textContent=sel?'Added':'+ Add';b.onclick=()=>{sel?wizardData.meds=wizardData.meds.filter(x=>x!==m.id):wizardData.meds.push(m.id);renderWizard();};row.appendChild(b);box.appendChild(row);});});},0);
+  }
+}
+function fillThenRenderWizardDate(){}
+function wizardEmoji(){emojiTarget='wizard';openEmojiPicker();}
+function wizardBack(){if(wizardStep===0){closeModal('wizardModal');return;}captureWizardStep();wizardStep--;renderWizard();}
+function wizardNext(){captureWizardStep();if(wizardStep<3){wizardStep++;renderWizard();return;}
+  // create
+  let name=wizardData.name.trim()||'Profile';let n=name,i=2;while(profiles[n])n=name+' '+(i++);
+  pushUndo();const p=blankProfile();p.profilePic=wizardData.pic;p.startDate=wizardData.startDate;p.tags=wizardData.tags.slice();p.medications=wizardData.meds.slice();
+  profiles[n]=p;activeProfileName=n;save();closeModal('wizardModal');renderAll();toast('Profile created');
+}
+function captureWizardStep(){
+  if(wizardStep===0){const el=document.getElementById('wzName');if(el)wizardData.name=el.value;}
+  else if(wizardStep===1){const d=document.getElementById('wzDay');if(d)wizardData.startDate=isoDate(readDateSelects(d,document.getElementById('wzMonth'),document.getElementById('wzYear')));}
+}
+
+/* ════════════ Profile pic upload + crop ════════════ */
+let cropImg=null,cropPan={x:0,y:0},cropTarget='profile';
+function onPfpFile(e){
+  const f=e.target.files[0];if(!f)return;const isWiz=e.target.dataset.wizard==='1';e.target.dataset.wizard='';
+  cropTarget=isWiz?'wizard':'profile';
+  const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{cropImg=img;cropPan={x:0,y:0};document.getElementById('cropZoom').value=1;openModal('cropModal');drawCrop();};img.src=r.result;};r.readAsDataURL(f);e.target.value='';
+}
+function drawCrop(){
+  if(!cropImg)return;const cv=document.getElementById('cropCanvas');const ctx=cv.getContext('2d');
+  const z=parseFloat(document.getElementById('cropZoom').value);
+  const base=Math.max(cv.width/cropImg.width,cv.height/cropImg.height);
+  const scale=base*z;const w=cropImg.width*scale,h=cropImg.height*scale;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.drawImage(cropImg,(cv.width-w)/2+cropPan.x,(cv.height-h)/2+cropPan.y,w,h);
+}
+(function cropPanSetup(){
+  const stage=document.getElementById('cropStage');let drag=false,sx,sy;
+  stage.addEventListener('pointerdown',e=>{drag=true;sx=e.clientX;sy=e.clientY;stage.setPointerCapture(e.pointerId);stage.style.cursor='grabbing';});
+  stage.addEventListener('pointermove',e=>{if(!drag)return;cropPan.x+=e.clientX-sx;cropPan.y+=e.clientY-sy;sx=e.clientX;sy=e.clientY;drawCrop();});
+  stage.addEventListener('pointerup',()=>{drag=false;stage.style.cursor='grab';});
+})();
+function saveCrop(){
+  const out=document.createElement('canvas');out.width=200;out.height=200;const octx=out.getContext('2d');
+  const src=document.getElementById('cropCanvas');octx.drawImage(src,0,0,src.width,src.height,0,0,200,200);
+  const data=out.toDataURL('image/jpeg',0.85);
+  if(cropTarget==='wizard'){wizardData.pic=data;renderWizard();}
+  else{pushUndo();P().profilePic=data;save();renderProfileTabs();}
+  closeModal('cropModal');
+}
+
+/* ════════════ Emoji picker ════════════ */
+let emojiTarget='profile';
+const EMOJI_CATS={'Faces':['😀','😄','😊','🙂','😎','🥳','😇','🤓','😌','😏','🥰','😍','🤗','😴','🤔','😅'],'Animals':['🐱','🐶','🦊','🐻','🐼','🐨','🦁','🐯','🐰','🐹','🦄','🐸','🦋','🐙','🦦','🐧'],'Nature':['🌸','🌼','🌷','🌹','🌻','🍀','🌿','🌙','⭐','☀️','🌈','🔥','💧','❄️','🍄','🌊'],'Symbols':['💜','💙','💚','💛','🧡','❤️','🩷','✨','💫','🎀','🎈','💎','🦴','🩹','🌟','💝']};
+function openEmojiPicker(){
+  const b=document.getElementById('emojiPickerBody');b.innerHTML='';
+  Object.entries(EMOJI_CATS).forEach(([cat,list])=>{
+    const h=document.createElement('div');h.className='epick-cat';h.textContent=cat;b.appendChild(h);
+    const g=document.createElement('div');g.className='emoji-picker-grid';
+    list.forEach(em=>{const btn=document.createElement('button');btn.textContent=em;btn.onclick=()=>emojiToPic(em);g.appendChild(btn);});
+    b.appendChild(g);
+  });
+  openModal('emojiModal');
+}
+function emojiToPic(em){
+  const cv=document.createElement('canvas');cv.width=120;cv.height=120;const ctx=cv.getContext('2d');
+  const cs=getComputedStyle(document.body);ctx.fillStyle=cs.getPropertyValue('--surface3').trim();ctx.fillRect(0,0,120,120);
+  ctx.font='80px serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(em,60,66);
+  const data=cv.toDataURL('image/png');
+  if(emojiTarget==='wizard'){wizardData.pic=data;renderWizard();}
+  else{pushUndo();P().profilePic=data;save();renderProfileTabs();}
+  emojiTarget='profile';closeModal('emojiModal');
+}
+
+/* ════════════ Render all ════════════ */
+function renderAll(){
+  renderProfileTabs();renderChartTabs();renderEmojiScale();updateMoodDisplay();renderMoodLegend();renderMoodTags();
+  renderDoseMedPills();renderStats();renderHistory();
+  document.getElementById('xMinInput').value=P().tMin;document.getElementById('xMaxInput').value=P().xMax;
+  // sync date selects to today
+  const today=new Date();
+  fillDateSelects(document.getElementById('moodDay'),document.getElementById('moodMonth'),document.getElementById('moodYear'),today);
+  fillDateSelects(document.getElementById('doseDay'),document.getElementById('doseMonth'),document.getElementById('doseYear'),today);
+  render();
+}
+
+/* ════════════ Init ════════════ */
+function init(){
+  setTheme(localStorage.getItem(THEME_KEY)||'dark');
+  const raw=localStorage.getItem(LS_KEY);
+  if(raw){try{const o=JSON.parse(raw);profiles=o.profiles||{};activeProfileName=o.active;}catch(_){}}
+  if(!profiles||!Object.keys(profiles).length){profiles={'Me':blankProfile()};activeProfileName='Me';save();}
+  if(!activeProfileName||!profiles[activeProfileName])activeProfileName=Object.keys(profiles)[0];
+  // migrate
+  Object.values(profiles).forEach(p=>{p.moods=p.moods||[];p.doses=p.doses||{};p.tags=p.tags||TAG_PRESETS.slice(0,6);p.medications=p.medications||[];p.customMeds=p.customMeds||[];p.medCustom=p.medCustom||{};if(p.tMin==null)p.tMin=-20;if(p.xMax==null)p.xMax=200;if(!p.startDate)p.startDate=isoDate(new Date());});
+  setupGrips();renderAll();
+  window.addEventListener('resize',()=>render());
+  document.addEventListener('keydown',e=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();if(e.shiftKey)redo();else undo();}
+    if(e.key==='Escape')document.querySelectorAll('.modal-overlay.open').forEach(m=>{m.classList.remove('open');document.body.classList.remove('modal-open');});
+  });
+  document.querySelectorAll('.modal-overlay').forEach(ov=>ov.addEventListener('click',e=>{if(e.target===ov){ov.classList.remove('open');document.body.classList.remove('modal-open');}}));
+}
+init();
 </script>
 </body>
 </html>
