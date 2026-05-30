@@ -3316,17 +3316,17 @@ function cancelLongExposure() {
 function cropRect(srcW, srcH) {
   if (currentRatio === 'free' && (cropT || cropB || cropL || cropR)) {
     const r = viewport.getBoundingClientRect();
-    // object-fit:cover — video may extend beyond the viewport on one axis
+    // object-fit:contain in free mode — video letterboxed inside viewport
     const srcAR = srcW / srcH, vpAR = r.width / r.height;
-    const rendW = srcAR > vpAR ? r.height * srcAR : r.width;
-    const rendH = srcAR > vpAR ? r.height          : r.width / srcAR;
-    const offX  = (rendW - r.width)  / 2;
-    const offY  = (rendH - r.height) / 2;
+    const rendW = srcAR > vpAR ? r.width : r.height * srcAR;
+    const rendH = srcAR > vpAR ? r.width / srcAR : r.height;
+    const offX  = (r.width  - rendW) / 2;
+    const offY  = (r.height - rendH) / 2;
     const scaleX = srcW / rendW, scaleY = srcH / rendH;
-    const sx = Math.round((cropL + offX) * scaleX);
-    const sy = Math.round((cropT + offY) * scaleY);
-    const ex = Math.round((r.width  - cropR + offX) * scaleX);
-    const ey = Math.round((r.height - cropB + offY) * scaleY);
+    const sx = Math.round(Math.max(0, cropL - offX) * scaleX);
+    const sy = Math.round(Math.max(0, cropT - offY) * scaleY);
+    const ex = Math.round(Math.min(rendW, r.width  - cropR - offX) * scaleX);
+    const ey = Math.round(Math.min(rendH, r.height - cropB - offY) * scaleY);
     return { sx, sy, cw: ex - sx, ch: ey - sy };
   }
   if (currentRatio !== 'free') {
@@ -3380,8 +3380,13 @@ async function capturePhoto() {
   const vw = preview.videoWidth, vh = preview.videoHeight;
   if (!vw || !vh) { cfOverlay.style.display = 'none'; return; }
 
+  // Snapshot the current frame immediately — freezes both pixels and dimensions
+  // together so a mid-capture camera switch (iOS auto-lens) can't corrupt the crop.
+  const snap = Object.assign(document.createElement('canvas'), { width: vw, height: vh });
+  snap.getContext('2d').drawImage(preview, 0, 0, vw, vh);
+
   const { sx, sy, cw, ch } = cropRect(vw, vh);
-  drawToCanvas(preview, sx, sy, cw, ch);
+  drawToCanvas(snap, sx, sy, cw, ch);
 
   const facingMode = stream?.getVideoTracks()[0]?.getSettings()?.facingMode;
   const devLabel   = devices.find(d => d.deviceId === currentDeviceId)?.label ?? '';
