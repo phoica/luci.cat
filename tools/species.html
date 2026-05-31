@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101216">
+<title>Species Picturizer — luci.cat</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="apple-touch-icon" href="/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0f15;--surface:#141821;--surface2:#1c2230;--surface3:#262d3d;
+  --border:#2e3545;--border-h:#444c60;--text:#e6e9ef;--text-m:#a0a7b6;--text-d:#6b7282;
+  --accent:#ffb070;--accent-dim:rgba(255,176,112,.16);--accent-glow:rgba(255,176,112,.5);
+  --danger:#ff8a8a;--ok:#7ed4a0;--r:12px;--rs:8px
+}
+body[data-theme="light"]{
+  --bg:#f4f2ef;--surface:#ffffff;--surface2:#f0eee9;--surface3:#e6e3dd;
+  --border:#d4d0c8;--border-h:#b8b4ac;--text:#2c2a26;--text-m:#6b6860;--text-d:#9c9890;
+  --accent:#c47138;--accent-dim:rgba(196,113,56,.1);--accent-glow:rgba(196,113,56,.25);
+  --danger:#c45050;--ok:#4a8c5e
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:20px;line-height:1.5;font-size:15px}
+
+.header{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.header h1{font-family:'Silkscreen',monospace;font-size:28px;font-weight:400;letter-spacing:1px;background:linear-gradient(135deg,var(--accent),#ffd29c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1}
+.header .by{font-size:13px;color:var(--text-d)}
+.spacer{flex:1}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface2);color:var(--text-m);font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--border-h);color:var(--text);background:var(--surface3)}
+.btn.danger{color:var(--danger)}
+.btn.danger:hover{border-color:var(--danger);background:rgba(255,138,138,.08)}
+.btn svg{width:14px;height:14px}
+
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:18px;flex-wrap:wrap;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.search{flex:1;min-width:220px;height:36px;padding:0 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none}
+.search:focus{border-color:var(--accent)}
+.stats{font-size:13px;color:var(--text-d);padding:0 4px}
+.stats strong{color:var(--accent);font-weight:600}
+
+.section{margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.section-head{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--surface2);cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.section-head:hover{background:var(--surface3)}
+.section-head h2{font-size:18px;font-weight:600;color:var(--text);letter-spacing:.3px}
+.section-head .chev{transition:transform .2s;color:var(--text-m)}
+.section.collapsed .chev{transform:rotate(-90deg)}
+.section.collapsed .section-body{display:none}
+.section-body{padding:8px 14px 14px}
+.section-stats{margin-left:auto;font-size:12px;color:var(--text-d)}
+.section-stats strong{color:var(--accent)}
+
+.subgroup{margin-top:10px}
+.subgroup-head{font-size:14px;font-weight:600;color:var(--text-m);text-transform:uppercase;letter-spacing:1px;padding:8px 4px;border-bottom:1px dashed var(--border);margin-bottom:10px}
+.subgroup-head .sub-stats{float:right;font-size:11px;color:var(--text-d);text-transform:none;letter-spacing:0;font-weight:400}
+.subgroup-head .sub-stats strong{color:var(--accent)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+
+.card{position:relative;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface2);overflow:hidden;transition:all .15s;cursor:pointer}
+.card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.card.has-image{border-color:rgba(126,212,160,.3)}
+.card.drag-over{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 2px var(--accent-glow)}
+.card .pic{width:100%;aspect-ratio:1;background:var(--surface3);display:flex;align-items:center;justify-content:center;color:var(--text-d);font-size:11px;overflow:hidden;position:relative}
+.card .pic img{width:100%;height:100%;object-fit:cover;display:block}
+.card .pic .ph{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text-d);font-size:11px;text-align:center;padding:6px}
+.card .pic .ph svg{width:22px;height:22px;opacity:.5}
+.card .label{padding:7px 8px;font-size:13px;font-weight:500;text-align:center;border-top:1px solid var(--border);background:var(--surface);color:var(--text);line-height:1.25;word-break:break-word}
+.card.has-image .label{color:var(--text)}
+.card .clear-btn{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:14px;line-height:1;padding:0;z-index:2}
+.card.has-image:hover .clear-btn{display:inline-flex}
+.card .clear-btn:hover{background:var(--danger)}
+
+.hidden{display:none !important}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:16px;backdrop-filter:blur(4px)}
+.modal-bg.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);max-width:480px;width:100%;max-height:90vh;overflow:auto;padding:22px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.modal h3{font-size:18px;margin-bottom:4px;color:var(--text)}
+.modal .modal-sub{color:var(--text-d);font-size:13px;margin-bottom:18px}
+.modal .opts{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.modal .opt-row{display:flex;gap:8px;align-items:center}
+.modal label.lbl{display:block;font-size:12px;color:var(--text-m);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.modal input[type="text"]{flex:1;height:36px;padding:0 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:inherit;font-size:14px;outline:none}
+.modal input[type="text"]:focus{border-color:var(--accent)}
+.modal .preview{margin-top:14px;border:1px dashed var(--border);border-radius:var(--rs);padding:10px;display:none;text-align:center}
+.modal .preview.show{display:block}
+.modal .preview img{max-width:100%;max-height:240px;border-radius:var(--rs)}
+.modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.modal .drop-zone{border:2px dashed var(--border);border-radius:var(--rs);padding:18px;text-align:center;color:var(--text-d);font-size:13px;transition:all .15s}
+.modal .drop-zone.over{border-color:var(--accent);background:var(--accent-dim);color:var(--accent)}
+
+.empty-msg{padding:28px;text-align:center;color:var(--text-d);font-size:14px}
+
+@media (max-width:600px){
+  body{padding:14px}
+  .header h1{font-size:22px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+  .card .label{font-size:12px;padding:6px}
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="header">
+  <h1>Species Picturizer</h1>
+  <span class="by">— assign a picture to each species</span>
+  <div class="spacer"></div>
+  <button class="btn" id="themeBtn" title="toggle theme">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <span>theme</span>
+  </button>
+  <button class="btn" id="expandBtn">expand all</button>
+  <button class="btn" id="collapseBtn">collapse all</button>
+  <button class="btn" id="exportBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    export
+  </button>
+  <button class="btn" id="importBtn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+    import
+  </button>
+  <button class="btn danger" id="clearAllBtn">clear all</button>
+  <input type="file" id="importFile" accept="application/json" hidden>
+</div>
+
+<div class="toolbar">
+  <input type="text" class="search" id="searchBox" placeholder="search species…">
+  <div class="stats" id="globalStats">0 / 0 filled</div>
+</div>
+
+<main id="root"></main>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal">
+    <h3 id="modalTitle">Set image</h3>
+    <p class="modal-sub" id="modalSub"></p>
+
+    <div class="opts">
+      <div>
+        <label class="lbl" for="urlInput">paste image url</label>
+        <div class="opt-row">
+          <input type="text" id="urlInput" placeholder="https://… or data:image/…">
+        </div>
+      </div>
+      <div>
+        <label class="lbl">or upload / drop file</label>
+        <div class="drop-zone" id="dropZone">
+          drag image here, or
+          <button class="btn" id="chooseFile" style="margin-left:6px">choose file</button>
+          <input type="file" id="fileInput" accept="image/*" hidden>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview" id="preview"><img id="previewImg" alt=""></div>
+
+    <div class="actions">
+      <button class="btn" id="cancelBtn">cancel</button>
+      <button class="btn danger" id="removeBtn">remove</button>
+      <button class="btn" id="saveBtn" style="background:var(--accent-dim);border-color:var(--accent);color:var(--accent)">save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TAXONOMY = {
+  "Mammals": {
+    "Canines": ["Wolves","Foxes","Coyote","Jackal","Fennec fox","Dingo","Dhole","Maned wolf","African wild dog","Tanuki","Kitsune"],
+    "Notable Dog Breeds": ["Husky","German Shepherd","Australian Shepherd","Boxer","Labrador","Golden Retriever","Dalmation","Rotweiller","Doberman","Border Collie","Rough Collie","Bearded Collie","Sheltie","Corgi","Yorkie","Shih Tzu","Chihuahua","Poodle","Pomeranian","Bichon Frise","Chowchow","Bernese Mountain Dog","Bulldog","Mastiff","Pitbull","Cane Corso","Pug","Bloodhound","Beagle","Dachshund","Cocker Spaniel","Bedlington Terrier","Scottish Terrier","Greyhound","Akita","Shiba Inu","Sharpey","Borozoi","Mutt"],
+    "Felines": ["Lion","Tiger","Jaguar","Panther","Leopard","Clouded Leopard","Snow Leopard","Cheetah","Mountain Lion","Puma/Cougar","Bobcat","Ocelot","Serval","Caracal","Lynx","Bay Cat","Marbled Cat","Fisher Cat","Pallas Cat","Jaguarundi","Non-domesticated small cats (Black-footed, Sand, African Wildcat, ect)","Sabertooth Tiger"],
+    "Notable Cat Patterns": ["Classic Tabby","Mackerel Tabby","Spotted Tabby","Ticked Tabby","Tuxedo/Locket","Calico","Bengal","Tortoiseshell","Dilute Tortoiseshell","Snowshoe","Harlequin/Bicolor/Cow Print","Siamese/Seal Point","Flamepoint","Hairless"],
+    "Other Carnivores": ["Mongoose","Meerkat","Fossa","Civet","Binturong","Spotted hyena","Striped hyena","Aardwolf","Bears","Panda"],
+    "Lagamorphs": ["Rabbits","Lop Rabbits","Hares","Jackalope","Wolpertinger","Pika"],
+    "Rodents": ["Mice","Rats","Squirrels","Flying Squirrels","Chipmunks","Hampsters","Gerbils/Voles/Lemmings","Guinea Pigs","Chinchilla","Jerboa","Prairie Dog","Gopher","Groundhog","Beaver/Muskrat","Porcupines","Capybara"],
+    "Mustelids": ["Skunk","Badger","Wolverine","Ferret/Weasel/Stoat/Ermine/Mink/Sable/Marten/Polecat","Otter","Fisher"],
+    "Procyonidae": ["Racoon","Red Panda","Ringtail","Coati","Kinkajous"],
+    "Other Insectivores": ["Hedgehogs","Shrews","Moles","Bats","Lemurs","Loris","Pangolin"],
+    "Equines": ["Horses","Donkeys/Mules","Ponies","Zebras","Unicorn","Pegasus","Kelpie","Nightmare","Kirin"],
+    "Cervids": ["Deers","Elk","Caribou/Reindeer","Moose","Marsh Deer","Water Deer","Muntjac","Pudu"],
+    "Bovines": ["Cows/Bulls/Cattles","Ox","Yak","Buffalo","Bison","Water Buffalo","Wildebeast","Antelopes","Gazelle","Dik dik"],
+    "Other Ungulates": ["Sheep","Goats","Ibex","Pigs","Warthog","Hippo","Rhino","Tapir","Giraffe","Okapi","Camel","Mouse Deer","Musk Deer"],
+    "Marsupials": ["Kangaroos","Koala","Opossums","Sugar Glider","Tasmanian Devil","Wombat","Wallaby","Bandicoot","Quokka"],
+    "Aquatics": ["Dolphins","Whales","Seels","Sea Lions","Walrus","Manatee"],
+    "Other Mammals": ["Sloths","Anteaters","Armadillos","Elephants","Mammoth","Elephant shrews","Aardvark","Platypus","Echidna"]
+  },
+  "Birds": {
+    "Accipitriformes": ["Eagles","Hawks","Kites","Ospreys","Vultures","Secretarybirds"],
+    "Falconiformes": ["Falcons"],
+    "Corvids": ["Ravens","Crow","Magpies","Blue Jay"],
+    "Passeriformes": ["Cardinals","Robins","Canary","Sparrows"],
+    "Piciformes": ["Woodpeckers","Toucans"],
+    "Strigiformes": ["Owls"],
+    "Anseriformes": ["Ducks","Geese","Swans"],
+    "Gaviiformes": ["Loons"],
+    "Pelecanimorphae": ["Herons","Ibis","Shoebill","Pelicans"],
+    "Gruiformes": ["Cranes"],
+    "Ciconiiformes": ["Storks"],
+    "Psittaciformes": ["Parrots","Parakeets","Lovebirds","Cockatiels","Cockatoos"],
+    "Apodiformes": ["Hummingbirds"],
+    "Coraciiformes": ["King Fisher","Hornbills","Quetzals"],
+    "Paleognaths": ["Ostrichs","Emus","Cassowarts","Kiwi"],
+    "Mirandornithes": ["Flamingos"],
+    "Columbiformes": ["Pigeons","Doves","Cuckcoos","Roadrunner","Dodo"],
+    "Procellariiformes": ["Albatrosses","Petrels"],
+    "Charadriiformes": ["Seagulls","Puffins"],
+    "Sphenisciformes": ["Penguins"],
+    "Galliformes": ["Chickens","Quails/Partridges","Turkeys","Peacocks"],
+    "Mythical Birds": ["Phoenix","Griffon/Hippogriff"]
+  },
+  "Reptiles/Amphibians": {
+    "_": ["Crocodiles","Alligators","Caimins","Turtles","Tortoises","Frogs","Toads","Newts","Salamanders","Skinks","Axolotl","Snakes","Lizards","Chameleons","Iguanas","Bearded Dragons","Horned Lizards","Komodo Dragon","Gila Monsters","Leopard Lizards","Tegus","Geckos","Anoles","Dragons","Dinosaurs"]
+  },
+  "Fish/Aquatic Life": {
+    "_": ["Orca","Great White Shark","Whale Shark","Tiger Shark","Hammerhead Shark","Leopard Shark","Zebra Shark","Narwhal","Octopus","Squid","Cuttlefish","Manta Ray/Stingray","Sea Turtle","Electric Eel","Moray Eel","Garden Eel","Sea Snake","Jellyfish","Seahorse/Sea Dragon","Lionfish/Scorpionfish","Cardinalfish","Angelfish","Butterflyfish","Surgeonfish/Blue Tang/Yellow Tang","Clownfish","Triggerfish","Wrasse","Cichlid","Neon Tetra","Damselfish","Rainbowfish","Parrotfish","Mahi Mahi","Sunfish","Flounder","Pufferfish","Anglerfish","Pirannha","Catfish","Goldfish","Koi","Betta Fish/Guppy","Sardine","Anchovy","Swordfish","Marlin","Opah","Sawfish","Sturgeon","Tuna","Salmon","Snapper","Rockfish","Rabbitfish","Anthias","Basslet","Lamprey","Coelcanth","Starfish","Crab","Lobster","Hermitcrab","Shrimp/Crayfish/Krill","Nautilus","Sea Slugs/Snails/Butterflies/Angels","Urchin","Coral"]
+  },
+  "Insects/Other Invertebrates": {
+    "_": ["Butterfly/Caterpillars","Moths","Bees","Wasps/Hornets","Ladybugs","Mantis","Grasshoppers/Locus","Crickets","Stickbugs","Pondskaters","Ants","Dragonflies","Fireflies","Stag Beetles","Weevils","Cicadas","Centipedes/Millipedes","Rolly Polly/Pill Bugs","Spiders","Scorpions","Snails","Slugs"]
+  },
+  "Fictional/Furry Species": {
+    "_": ["Cabbit","Avali","Dutch Angel Dragon","Airplane Dragon","Manokit","Sergal","Protogen","Nardragon","Novabeast","Rexoulum","Wickerbeast","Drekkubus/Drekkie","Skully/Skulldog","Sparkledog","Freakhound","Monsterdog","Worm on a String","Robot","Pooltoy","Hybrid","Chimera"]
+  },
+  "Modifiers": {
+    "_": ["Antlers","Rhino Horn","Unicorn Horn","Devil/Demon Horns","Ram/Bull Horns","Insect Antenna","Feathered Wings","Bat/Dragon Wings","Insect Wings","Additional Wings","Additional Eyes","Additional Ears","Additional Tails","Fangs/Saber Teeth","Longer Tail","Longer Mane/Crest Down Back","Dinosaur/Dragon Spikes","Hooves/Paws","Wool","Shell","Spines","Quadrupedal","Aquatic/Terrestrial/Cosmos/Change of Habitat","Seaweed/Kelp/Coral-like","Rainbow","Mouth on Stomach","Mouth on Tail","Different Pupils/Irises","Piercings/Jewelry/Bandana/Accessories","Makeup/Makeup-like patterns","Robotic Parts","Glowing/Bioluminescence","Plush","Heart/Star/Sparkle Motif","Checkers/Stripes/Polkadots","Goth/Punk aesthetic","Rave/Scene Aesthetic","Food-Themed/Hybrid","Flowers/Moss/Foliage","Fire"]
+  }
+};
+
+const STORAGE_KEY = "luci.species.images.v1";
+const COLLAPSE_KEY = "luci.species.collapsed.v1";
+const THEME_KEY = "luci.species.theme";
+
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,"");
+const keyFor = (cat, sub, name) => `${slug(cat)}::${slug(sub)}::${slug(name)}`;
+
+let images = {};
+let collapsed = {};
+let currentTarget = null; // {key, name, cat, sub}
+let pendingValue = null;  // string url/dataurl being staged in modal
+
+function loadState(){
+  try { images = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { images = {}; }
+  try { collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}"); } catch { collapsed = {}; }
+  const t = localStorage.getItem(THEME_KEY);
+  if (t) document.body.dataset.theme = t;
+}
+function saveImages(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(images)); }
+function saveCollapsed(){ localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed)); }
+
+function placeholderSVG(){
+  return `<div class="ph">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+    <span>add image</span>
+  </div>`;
+}
+
+function render(){
+  const root = document.getElementById("root");
+  root.innerHTML = "";
+  const q = document.getElementById("searchBox").value.trim().toLowerCase();
+  let totalFilled = 0, totalCount = 0;
+
+  for (const [cat, subs] of Object.entries(TAXONOMY)){
+    const sec = document.createElement("section");
+    sec.className = "section" + (collapsed[cat] ? " collapsed" : "");
+    sec.dataset.cat = cat;
+
+    let catCount = 0, catFilled = 0;
+    const subsHtml = [];
+
+    for (const [sub, items] of Object.entries(subs)){
+      const filteredItems = q ? items.filter(n => n.toLowerCase().includes(q) || sub.toLowerCase().includes(q) || cat.toLowerCase().includes(q)) : items;
+      const subCount = items.length;
+      let subFilled = 0;
+      const cards = items.map(name => {
+        const k = keyFor(cat, sub, name);
+        const has = !!images[k];
+        if (has) subFilled++;
+        const hidden = q && !filteredItems.includes(name) ? "hidden" : "";
+        return `<div class="card ${has?"has-image":""} ${hidden}" data-key="${k}" data-cat="${encodeURIComponent(cat)}" data-sub="${encodeURIComponent(sub)}" data-name="${encodeURIComponent(name)}">
+          <button class="clear-btn" title="remove">×</button>
+          <div class="pic">${has ? `<img loading="lazy" src="${images[k]}" alt="">` : placeholderSVG()}</div>
+          <div class="label">${escapeHtml(name)}</div>
+        </div>`;
+      }).join("");
+
+      catCount += subCount;
+      catFilled += subFilled;
+
+      const hideSub = q && filteredItems.length === 0;
+      const subLabel = sub === "_" ? "" : `<div class="subgroup-head">${escapeHtml(sub)}<span class="sub-stats"><strong>${subFilled}</strong>/${subCount}</span></div>`;
+      subsHtml.push(`<div class="subgroup ${hideSub?"hidden":""}">${subLabel}<div class="grid">${cards}</div></div>`);
+    }
+
+    totalCount += catCount;
+    totalFilled += catFilled;
+
+    sec.innerHTML = `
+      <header class="section-head" data-toggle="${escapeHtml(cat)}">
+        <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+        <h2>${escapeHtml(cat)}</h2>
+        <span class="section-stats"><strong>${catFilled}</strong>/${catCount} filled</span>
+      </header>
+      <div class="section-body">${subsHtml.join("")}</div>
+    `;
+    root.appendChild(sec);
+  }
+
+  document.getElementById("globalStats").innerHTML = `<strong>${totalFilled}</strong> / ${totalCount} filled`;
+
+  // hide whole section if all subgroups hidden in search
+  if (q){
+    document.querySelectorAll(".section").forEach(s => {
+      const anyVisible = s.querySelector(".subgroup:not(.hidden)");
+      if (!anyVisible) s.classList.add("hidden"); else s.classList.remove("hidden");
+    });
+  } else {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("hidden"));
+  }
+}
+
+function escapeHtml(s){return s.replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+
+// — Modal —
+function openModal(card){
+  const key = card.dataset.key;
+  const name = decodeURIComponent(card.dataset.name);
+  const cat = decodeURIComponent(card.dataset.cat);
+  const sub = decodeURIComponent(card.dataset.sub);
+  currentTarget = { key, name, cat, sub };
+  pendingValue = images[key] || null;
+
+  document.getElementById("modalTitle").textContent = name;
+  document.getElementById("modalSub").textContent = sub === "_" ? cat : `${cat} › ${sub}`;
+  document.getElementById("urlInput").value = (images[key] && !images[key].startsWith("data:")) ? images[key] : "";
+
+  refreshPreview();
+  document.getElementById("removeBtn").style.display = images[key] ? "" : "none";
+  document.getElementById("modalBg").classList.add("open");
+  setTimeout(() => document.getElementById("urlInput").focus(), 50);
+}
+function closeModal(){
+  document.getElementById("modalBg").classList.remove("open");
+  currentTarget = null; pendingValue = null;
+}
+function refreshPreview(){
+  const wrap = document.getElementById("preview");
+  const img = document.getElementById("previewImg");
+  if (pendingValue){ img.src = pendingValue; wrap.classList.add("show"); }
+  else { wrap.classList.remove("show"); img.src = ""; }
+}
+
+function readFileAsDataURL(file){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+async function compressImageDataUrl(dataUrl, maxDim=512, quality=0.82){
+  return new Promise((res) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+      const w = Math.max(1, Math.round(img.width * scale));
+      const h = Math.max(1, Math.round(img.height * scale));
+      const c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      try { res(c.toDataURL("image/jpeg", quality)); }
+      catch { res(dataUrl); }
+    };
+    img.onerror = () => res(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+async function handleFile(file){
+  if (!file || !file.type.startsWith("image/")) return;
+  const raw = await readFileAsDataURL(file);
+  pendingValue = await compressImageDataUrl(raw);
+  document.getElementById("urlInput").value = "";
+  refreshPreview();
+}
+
+// — Event wiring —
+document.addEventListener("DOMContentLoaded", () => {
+  loadState();
+  render();
+
+  document.getElementById("searchBox").addEventListener("input", render);
+
+  document.getElementById("themeBtn").addEventListener("click", () => {
+    const cur = document.body.dataset.theme;
+    const next = cur === "light" ? "dark" : "light";
+    document.body.dataset.theme = next;
+    localStorage.setItem(THEME_KEY, next);
+  });
+
+  document.getElementById("expandBtn").addEventListener("click", () => {
+    collapsed = {}; saveCollapsed(); render();
+  });
+  document.getElementById("collapseBtn").addEventListener("click", () => {
+    Object.keys(TAXONOMY).forEach(c => collapsed[c] = true);
+    saveCollapsed(); render();
+  });
+
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(images, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "species-pictures.json"; a.click();
+    URL.revokeObjectURL(url);
+  });
+  document.getElementById("importBtn").addEventListener("click", () => document.getElementById("importFile").click());
+  document.getElementById("importFile").addEventListener("change", async e => {
+    const file = e.target.files[0]; if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (typeof data !== "object" || data === null) throw new Error("bad shape");
+      if (!confirm("Import will merge with current assignments. Continue?")) return;
+      Object.assign(images, data);
+      saveImages(); render();
+    } catch (err){ alert("Could not import: " + err.message); }
+    e.target.value = "";
+  });
+
+  document.getElementById("clearAllBtn").addEventListener("click", () => {
+    if (!confirm("Remove ALL image assignments? This cannot be undone.")) return;
+    images = {}; saveImages(); render();
+  });
+
+  // Section toggles + card clicks (delegated)
+  document.getElementById("root").addEventListener("click", e => {
+    const head = e.target.closest(".section-head");
+    if (head){
+      const cat = head.dataset.toggle;
+      collapsed[cat] = !collapsed[cat]; saveCollapsed();
+      head.parentElement.classList.toggle("collapsed");
+      return;
+    }
+    const clearBtn = e.target.closest(".clear-btn");
+    if (clearBtn){
+      e.stopPropagation();
+      const card = clearBtn.closest(".card");
+      delete images[card.dataset.key];
+      saveImages(); render();
+      return;
+    }
+    const card = e.target.closest(".card");
+    if (card) openModal(card);
+  });
+
+  // Drag-and-drop on cards
+  document.getElementById("root").addEventListener("dragover", e => {
+    const card = e.target.closest(".card");
+    if (!card) return;
+    e.preventDefault();
+    card.classList.add("drag-over");
+  });
+  document.getElementById("root").addEventListener("dragleave", e => {
+    const card = e.target.closest(".card");
+    if (card) card.classList.remove("drag-over");
+  });
+  document.getElementById("root").addEventListener("drop", async e => {
+    const card = e.target.closest(".card");
+    if (!card) return;
+    e.preventDefault();
+    card.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const raw = await readFileAsDataURL(file);
+    const compressed = await compressImageDataUrl(raw);
+    images[card.dataset.key] = compressed;
+    saveImages(); render();
+  });
+
+  // Modal interactions
+  document.getElementById("modalBg").addEventListener("click", e => {
+    if (e.target.id === "modalBg") closeModal();
+  });
+  document.getElementById("cancelBtn").addEventListener("click", closeModal);
+  document.getElementById("removeBtn").addEventListener("click", () => {
+    if (!currentTarget) return;
+    delete images[currentTarget.key];
+    saveImages(); closeModal(); render();
+  });
+  document.getElementById("saveBtn").addEventListener("click", () => {
+    if (!currentTarget) return;
+    const url = document.getElementById("urlInput").value.trim();
+    const value = url || pendingValue;
+    if (!value){ closeModal(); return; }
+    images[currentTarget.key] = value;
+    saveImages(); closeModal(); render();
+  });
+  document.getElementById("urlInput").addEventListener("input", e => {
+    pendingValue = e.target.value.trim() || null;
+    refreshPreview();
+  });
+  document.getElementById("urlInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("saveBtn").click();
+    if (e.key === "Escape") closeModal();
+  });
+
+  // File picker inside modal
+  document.getElementById("chooseFile").addEventListener("click", e => {
+    e.preventDefault(); document.getElementById("fileInput").click();
+  });
+  document.getElementById("fileInput").addEventListener("change", e => {
+    const f = e.target.files[0]; if (f) handleFile(f); e.target.value = "";
+  });
+
+  // Drop zone in modal
+  const dz = document.getElementById("dropZone");
+  dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("over"); });
+  dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+  dz.addEventListener("drop", e => {
+    e.preventDefault(); dz.classList.remove("over");
+    const f = e.dataTransfer.files[0]; if (f) handleFile(f);
+  });
+
+  // Paste image directly into modal
+  document.addEventListener("paste", async e => {
+    if (!document.getElementById("modalBg").classList.contains("open")) return;
+    const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+    if (!item) return;
+    const file = item.getAsFile();
+    if (file) handleFile(file);
+  });
+
+  // Esc closes modal
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && document.getElementById("modalBg").classList.contains("open")) closeModal();
+  });
+});
+</script>
+</body>
+</html>
