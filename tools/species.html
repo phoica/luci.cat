@@ -64,6 +64,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;backgroun
 .card{position:relative;display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--rs);background:var(--surface2);overflow:hidden;transition:all .15s;cursor:pointer}
 .card:hover{border-color:var(--accent);transform:translateY(-1px)}
 .card.has-image{border-color:rgba(126,212,160,.3)}
+.card.is-placeholder{border-color:rgba(255,176,112,.45)}
+.card.is-placeholder::after{content:"placeholder";position:absolute;bottom:34px;left:4px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:8px;text-transform:uppercase;pointer-events:none;z-index:1}
+.card .search-btn{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0;z-index:2}
+.card .search-btn svg{width:12px;height:12px}
+.card.has-image:hover .search-btn{display:inline-flex}
+.card .search-btn:hover{background:var(--accent);color:#000}
 .card.drag-over{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 2px var(--accent-glow)}
 .card .pic{width:100%;aspect-ratio:1;background:var(--surface3);display:flex;align-items:center;justify-content:center;color:var(--text-d);font-size:11px;overflow:hidden;position:relative}
 .card .pic img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--pos,center 30%)}
@@ -380,22 +386,44 @@ const WIKI_OVERRIDES = {
   "Weevils":"Weevil","Cicadas":"Cicada","Centipedes/Millipedes":"Centipede",
   "Rolly Polly/Pill Bugs":"Armadillidiidae","Spiders":"Spider","Scorpions":"Scorpion",
   "Snails":"Snail","Slugs":"Slug",
-  // Fictional/Furry — most have no Wikipedia page; map to nearest concept or leave blank
-  "Cabbit":"Cabbit","Avali":"","Dutch Angel Dragon":"","Airplane Dragon":"",
-  "Manokit":"","Sergal":"","Protogen":"","Nardragon":"","Novabeast":"","Rexoulum":"",
-  "Wickerbeast":"","Drekkubus/Drekkie":"","Skully/Skulldog":"","Sparkledog":"",
-  "Freakhound":"","Monsterdog":"","Worm on a String":"","Robot":"Robot",
-  "Pooltoy":"Inflatable","Hybrid":"Hybrid (biology)","Chimera":"Chimera (mythology)",
+  // Fictional/Furry — most have no Wikipedia page; map to nearest concept or
+  // leave as the literal name so the search/Commons fallback can take a shot.
+  "Cabbit":"Cabbit",
+  "Avali":["Avali","Cute alien creature"],
+  "Dutch Angel Dragon":["Dutch Angel Dragon","Dragon plush toy"],
+  "Airplane Dragon":["Airplane dragon furry","Anthropomorphic airplane"],
+  "Manokit":["Manokit","Furry fursuit fox"],
+  "Sergal":["Sergal","Mick39 Sergal"],
+  "Protogen":["Protogen","Cyborg fursona"],
+  "Nardragon":["Nardragon","Cute dragon character"],
+  "Novabeast":["Novabeast","Cosmic creature furry"],
+  "Rexoulum":["Rexoulum","Dinosaur fursona"],
+  "Wickerbeast":["Wickerbeast","Dragon creature"],
+  "Drekkubus/Drekkie":["Drekkubus","Demon creature character"],
+  "Skully/Skulldog":["Skulldog","Skull dog creature"],
+  "Sparkledog":["Sparkledog","Colorful dog character"],
+  "Freakhound":["Freakhound","Monster dog creature"],
+  "Monsterdog":["Monsterdog","Monster dog creature"],
+  "Worm on a String":["Worm on a String","Fuzzy worm toy"],
+  "Robot":"Robot","Pooltoy":["Pool float","Inflatable pool toy"],
+  "Hybrid":"Hybrid (biology)","Chimera":"Chimera (mythology)",
   // Modifiers — most won't have direct pages; pick close concepts
   "Antlers":"Antler","Rhino Horn":"Rhinoceros","Unicorn Horn":"Unicorn",
   "Devil/Demon Horns":"Demon","Ram/Bull Horns":"Horn (anatomy)","Insect Antenna":"Antenna (biology)",
   "Feathered Wings":"Feather","Bat/Dragon Wings":"Bat wing","Insect Wings":"Insect wing",
-  "Additional Wings":"","Additional Eyes":"","Additional Ears":"","Additional Tails":"",
+  "Additional Wings":["Six-winged seraph","Wing"],
+  "Additional Eyes":["Multiple eyes","Compound eye"],
+  "Additional Ears":["Ear","Cat ears"],
+  "Additional Tails":["Kitsune","Nine-tailed fox"],
   "Fangs/Saber Teeth":"Fang","Longer Tail":"Tail","Longer Mane/Crest Down Back":"Mane (horse)",
   "Dinosaur/Dragon Spikes":"Stegosaurus","Hooves/Paws":"Hoof","Wool":"Wool","Shell":"Seashell",
   "Spines":"Spine (zoology)","Quadrupedal":"Quadrupedalism",
-  "Aquatic/Terrestrial/Cosmos/Change of Habitat":"Habitat","Seaweed/Kelp/Coral-like":"Kelp",
-  "Rainbow":"Rainbow","Mouth on Stomach":"","Mouth on Tail":"","Different Pupils/Irises":"Pupil",
+  "Aquatic/Terrestrial/Cosmos/Change of Habitat":["Habitat","Aquatic animal"],
+  "Seaweed/Kelp/Coral-like":"Kelp",
+  "Rainbow":"Rainbow",
+  "Mouth on Stomach":["Mouth on stomach creature","Mouth"],
+  "Mouth on Tail":["Tail mouth creature","Tail"],
+  "Different Pupils/Irises":["Heterochromia iridum","Pupil"],
   "Piercings/Jewelry/Bandana/Accessories":"Body piercing","Makeup/Makeup-like patterns":"Cosmetics",
   "Robotic Parts":"Cyborg","Glowing/Bioluminescence":"Bioluminescence","Plush":"Stuffed toy",
   "Heart/Star/Sparkle Motif":"Heart (symbol)","Checkers/Stripes/Polkadots":"Polka dot",
@@ -460,8 +488,10 @@ function render(){
         const has = !!images[k];
         if (has) subFilled++;
         const hidden = q && !filteredItems.includes(name) ? "hidden" : "";
-        return `<div class="card ${has?"has-image":""} ${hidden}" data-key="${k}" data-cat="${encodeURIComponent(cat)}" data-sub="${encodeURIComponent(sub)}" data-name="${encodeURIComponent(name)}">
+        const isPh = has && images[k].startsWith("data:image/svg");
+        return `<div class="card ${has?"has-image":""} ${isPh?"is-placeholder":""} ${hidden}" data-key="${k}" data-cat="${encodeURIComponent(cat)}" data-sub="${encodeURIComponent(sub)}" data-name="${encodeURIComponent(name)}">
           <button class="clear-btn" title="remove">×</button>
+          <button class="search-btn" title="search image on the web" data-search="${encodeURIComponent(name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
           <div class="pic" ${has && positions[k] ? `style="--pos:${positions[k]}"` : ""}>${has ? `<img loading="lazy" src="${images[k]}" alt="" data-key="${k}" onload="onImgLoad(this)">` : placeholderSVG()}</div>
           <div class="label">${escapeHtml(name)}</div>
         </div>`;
@@ -574,15 +604,16 @@ function* iterEntries(){
       for (const name of items)
         yield { cat, sub, name, key: keyFor(cat, sub, name) };
 }
-function wikiTitleFor(name){
+function wikiTitlesFor(name){
+  // Returns an array of candidate Wikipedia page titles to try in order.
   if (Object.prototype.hasOwnProperty.call(WIKI_OVERRIDES, name)){
     const v = WIKI_OVERRIDES[name];
-    return v || null;
+    if (!v) return [];
+    return Array.isArray(v) ? v.filter(Boolean) : [v];
   }
-  // fallback: take first slash-segment, drop trailing 's' on plurals
   let t = name.split("/")[0].split("(")[0].trim();
   if (t.length > 4 && /[a-z]s$/i.test(t) && !/ss$/i.test(t)) t = t.replace(/s$/i, "");
-  return t;
+  return [t];
 }
 async function wikiSummaryThumb(title){
   if (!title) return null;
@@ -632,12 +663,53 @@ async function commonsSearchThumb(query){
     return null;
   } catch { return null; }
 }
-async function fetchWikiThumb(title, fallbackQuery){
-  // Multi-stage fallback so far fewer entries come back empty.
-  return await wikiSummaryThumb(title)
-      || await wikiSearchThumb(fallbackQuery || title)
-      || await commonsSearchThumb(fallbackQuery || title);
+async function fetchWikiThumb(titles, fallbackQuery){
+  // Multi-stage fallback. Try each candidate title's summary first (cheap),
+  // then fall back to Wikipedia search, then Wikimedia Commons file search.
+  const list = Array.isArray(titles) ? titles : (titles ? [titles] : []);
+  for (const t of list){
+    const v = await wikiSummaryThumb(t);
+    if (v) return v;
+  }
+  const q1 = fallbackQuery || list[0];
+  return await wikiSearchThumb(q1)
+      || await commonsSearchThumb(q1)
+      || (list[1] ? await wikiSearchThumb(list[1]) : null)
+      || (list[1] ? await commonsSearchThumb(list[1]) : null);
 }
+
+// Stable, friendly placeholder data URL so every card always has *something*.
+// Color is derived from the name hash; label is the entry name.
+function hashCode(s){ let h=0; for (let i=0;i<s.length;i++) h=(h<<5)-h+s.charCodeAt(i)|0; return h; }
+function placeholderDataUrl(name){
+  const h = Math.abs(hashCode(name));
+  const hue1 = h % 360, hue2 = (hue1 + 40) % 360;
+  const initials = name.replace(/[^A-Za-z ]/g,"").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase() || "?";
+  // Break the full label into lines that fit the tile.
+  const words = name.split(/[\s\/]+/);
+  const lines = [];
+  let cur = "";
+  for (const w of words){
+    if ((cur + " " + w).trim().length > 14){ if (cur) lines.push(cur); cur = w; }
+    else cur = (cur ? cur + " " : "") + w;
+  }
+  if (cur) lines.push(cur);
+  const trimmed = lines.slice(0, 3);
+  const fs = trimmed.length > 2 ? 18 : 22;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="hsl(${hue1},60%,55%)"/>
+        <stop offset="100%" stop-color="hsl(${hue2},55%,38%)"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="400" fill="url(#g)"/>
+    <text x="200" y="170" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="700" font-size="120" fill="rgba(255,255,255,.85)" letter-spacing="-2">${escapeXml(initials)}</text>
+    ${trimmed.map((ln,i) => `<text x="200" y="${260 + i * (fs + 6)}" text-anchor="middle" font-family="DM Sans, sans-serif" font-weight="500" font-size="${fs}" fill="rgba(255,255,255,.95)">${escapeXml(ln)}</text>`).join("")}
+  </svg>`;
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+}
+function escapeXml(s){ return String(s).replace(/[<>&'"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;","'":"&apos;","\"":"&quot;"}[c])); }
 
 // — Smart crop: pick an object-position that's unlikely to chop the face —
 let faceDetector = null;
@@ -693,10 +765,14 @@ async function autoFill({ onlyMissing = true } = {}){
   const btn = document.getElementById("autofillBtn");
   const status = document.getElementById("autofillStatus");
   btn.disabled = true;
-  const entries = [...iterEntries()].filter(e => onlyMissing ? !images[e.key] : true);
+  const entries = [...iterEntries()].filter(e => {
+    if (!onlyMissing) return true;
+    const v = images[e.key];
+    return !v || v.startsWith("data:image/svg"); // treat placeholders as missing
+  });
   let done = 0, found = 0;
   status.style.display = "";
-  const update = () => status.innerHTML = `auto-filling: <strong>${done}</strong> / ${entries.length} (<strong>${found}</strong> found)`;
+  const update = () => status.innerHTML = `auto-filling: <strong>${done}</strong> / ${entries.length} (<strong>${found}</strong> real, ${done - found} placeholder)`;
   update();
 
   const CONCURRENCY = 6;
@@ -705,10 +781,16 @@ async function autoFill({ onlyMissing = true } = {}){
     while (idx < entries.length){
       const i = idx++;
       const e = entries[i];
-      // Strip parens/slashes for a clean free-text query fallback.
       const cleanQuery = e.name.split("/")[0].split("(")[0].trim();
-      const thumb = await fetchWikiThumb(wikiTitleFor(e.name), cleanQuery);
-      if (thumb){ images[e.key] = thumb; found++; }
+      const titles = wikiTitlesFor(e.name);
+      let thumb = await fetchWikiThumb(titles, cleanQuery);
+      if (!thumb){
+        thumb = placeholderDataUrl(e.name);
+        images[e.key] = thumb; // still counts as filled, just a placeholder
+      } else {
+        images[e.key] = thumb;
+        found++;
+      }
       done++;
       if (done % 8 === 0){ saveImages(); update(); render(); }
       else update();
@@ -716,7 +798,7 @@ async function autoFill({ onlyMissing = true } = {}){
   }
   await Promise.all(Array.from({length: CONCURRENCY}, worker));
   saveImages();
-  status.innerHTML = `auto-fill done: <strong>${found}</strong> of ${entries.length} entries got a picture`;
+  status.innerHTML = `done: <strong>${found}</strong> real / <strong>${entries.length - found}</strong> placeholder (click the magnifier on any card to find a real image)`;
   setTimeout(() => { status.style.display = "none"; }, 6000);
   btn.disabled = false;
   render();
@@ -807,6 +889,13 @@ document.addEventListener("DOMContentLoaded", () => {
       delete images[card.dataset.key];
       delete positions[card.dataset.key];
       saveImages(); savePositions(); render();
+      return;
+    }
+    const searchBtn = e.target.closest(".search-btn");
+    if (searchBtn){
+      e.stopPropagation();
+      const q = decodeURIComponent(searchBtn.dataset.search);
+      window.open("https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(q), "_blank", "noopener");
       return;
     }
     const card = e.target.closest(".card");
