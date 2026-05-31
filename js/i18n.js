@@ -4,6 +4,7 @@ window.I18N = {
     toolsHeading: "tools lacking humanity:",
     tracker: "HRT Visualizer",
     cam: "Cầm",
+    species: "Species Picturizer",
     bottom: "i'm proud of each step we take"
   },
   PT: {
@@ -11,6 +12,7 @@ window.I18N = {
     toolsHeading: "ferramentas carentes de humanidade:",
     tracker: "Visualizador de HRT",
     cam: "Cầm",
+    species: "Picturizador de Espécies",
     bottom: "tenho orgulho de cada passo que damos"
   },
   CAT: {
@@ -18,6 +20,7 @@ window.I18N = {
     toolsHeading: "eines mancades d'humanitat:",
     tracker: "Visualitzador d'HRT",
     cam: "Cầm",
+    species: "Picturitzador d'Espècies",
     bottom: "estic orgullosa de cada pas que fem"
   }
 };
