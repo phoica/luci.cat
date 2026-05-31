@@ -66,7 +66,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;backgroun
 .card.has-image{border-color:rgba(126,212,160,.3)}
 .card.drag-over{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 2px var(--accent-glow)}
 .card .pic{width:100%;aspect-ratio:1;background:var(--surface3);display:flex;align-items:center;justify-content:center;color:var(--text-d);font-size:11px;overflow:hidden;position:relative}
-.card .pic img{width:100%;height:100%;object-fit:cover;display:block}
+.card .pic img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--pos,center 30%)}
 .card .pic .ph{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--text-d);font-size:11px;text-align:center;padding:6px}
 .card .pic .ph svg{width:22px;height:22px;opacity:.5}
 .card .label{padding:7px 8px;font-size:13px;font-weight:500;text-align:center;border-top:1px solid var(--border);background:var(--surface);color:var(--text);line-height:1.25;word-break:break-word}
@@ -405,6 +405,7 @@ const WIKI_OVERRIDES = {
 };
 
 const STORAGE_KEY = "luci.species.images.v1";
+const POS_KEY = "luci.species.positions.v1";
 const AUTOFILL_DONE_KEY = "luci.species.autofill.v1";
 const COLLAPSE_KEY = "luci.species.collapsed.v1";
 const THEME_KEY = "luci.species.theme";
@@ -413,17 +414,20 @@ const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_|_$/g,""
 const keyFor = (cat, sub, name) => `${slug(cat)}::${slug(sub)}::${slug(name)}`;
 
 let images = {};
+let positions = {};
 let collapsed = {};
 let currentTarget = null; // {key, name, cat, sub}
 let pendingValue = null;  // string url/dataurl being staged in modal
 
 function loadState(){
   try { images = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); } catch { images = {}; }
+  try { positions = JSON.parse(localStorage.getItem(POS_KEY) || "{}"); } catch { positions = {}; }
   try { collapsed = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}"); } catch { collapsed = {}; }
   const t = localStorage.getItem(THEME_KEY);
   if (t) document.body.dataset.theme = t;
 }
 function saveImages(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(images)); }
+function savePositions(){ localStorage.setItem(POS_KEY, JSON.stringify(positions)); }
 function saveCollapsed(){ localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed)); }
 
 function placeholderSVG(){
@@ -458,7 +462,7 @@ function render(){
         const hidden = q && !filteredItems.includes(name) ? "hidden" : "";
         return `<div class="card ${has?"has-image":""} ${hidden}" data-key="${k}" data-cat="${encodeURIComponent(cat)}" data-sub="${encodeURIComponent(sub)}" data-name="${encodeURIComponent(name)}">
           <button class="clear-btn" title="remove">×</button>
-          <div class="pic">${has ? `<img loading="lazy" src="${images[k]}" alt="">` : placeholderSVG()}</div>
+          <div class="pic" ${has && positions[k] ? `style="--pos:${positions[k]}"` : ""}>${has ? `<img loading="lazy" src="${images[k]}" alt="" data-key="${k}" onload="onImgLoad(this)">` : placeholderSVG()}</div>
           <div class="label">${escapeHtml(name)}</div>
         </div>`;
       }).join("");
@@ -580,7 +584,7 @@ function wikiTitleFor(name){
   if (t.length > 4 && /[a-z]s$/i.test(t) && !/ss$/i.test(t)) t = t.replace(/s$/i, "");
   return t;
 }
-async function fetchWikiThumb(title){
+async function wikiSummaryThumb(title){
   if (!title) return null;
   try {
     const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g,"_"))}`;
@@ -590,6 +594,101 @@ async function fetchWikiThumb(title){
     return data?.thumbnail?.source || data?.originalimage?.source || null;
   } catch { return null; }
 }
+async function wikiSearchThumb(query){
+  // Find the top matching page, then fetch its thumbnail via pageimages.
+  if (!query) return null;
+  try {
+    const sUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages|pageterms&generator=search&gsrlimit=3&pithumbsize=400&piprop=thumbnail&gsrsearch=${encodeURIComponent(query)}`;
+    const res = await fetch(sUrl);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const pages = data?.query?.pages;
+    if (!pages) return null;
+    const list = Object.values(pages).sort((a,b) => (a.index||99) - (b.index||99));
+    for (const p of list){
+      if (p?.thumbnail?.source) return p.thumbnail.source;
+    }
+    return null;
+  } catch { return null; }
+}
+async function commonsSearchThumb(query){
+  // Fall back to a direct Wikimedia Commons file search.
+  if (!query) return null;
+  try {
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=5&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=400`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const pages = data?.query?.pages;
+    if (!pages) return null;
+    const list = Object.values(pages).sort((a,b) => (a.index||99) - (b.index||99));
+    for (const p of list){
+      const ii = p?.imageinfo?.[0];
+      if (!ii) continue;
+      if (ii.mime && !/^image\/(jpeg|png|gif|webp)$/.test(ii.mime)) continue;
+      if (ii.thumburl) return ii.thumburl;
+      if (ii.url) return ii.url;
+    }
+    return null;
+  } catch { return null; }
+}
+async function fetchWikiThumb(title, fallbackQuery){
+  // Multi-stage fallback so far fewer entries come back empty.
+  return await wikiSummaryThumb(title)
+      || await wikiSearchThumb(fallbackQuery || title)
+      || await commonsSearchThumb(fallbackQuery || title);
+}
+
+// — Smart crop: pick an object-position that's unlikely to chop the face —
+let faceDetector = null;
+if (typeof window !== "undefined" && "FaceDetector" in window){
+  try { faceDetector = new window.FaceDetector({ fastMode: true, maxDetectedFaces: 3 }); } catch {}
+}
+async function onImgLoad(img){
+  const k = img.dataset.key;
+  if (!k) return;
+  // Already have a stored position? Apply it and stop.
+  if (positions[k]){ img.parentElement.style.setProperty("--pos", positions[k]); return; }
+
+  const w = img.naturalWidth, h = img.naturalHeight;
+  if (!w || !h) return;
+  let pos = null;
+
+  // Try the FaceDetector API first (Chromium). Works for humanoid faces; many
+  // animal close-ups also detect. If it fires, center the crop on the face.
+  if (faceDetector){
+    try {
+      const faces = await faceDetector.detect(img);
+      if (faces && faces.length){
+        const f = faces[0].boundingBox;
+        const cx = (f.x + f.width/2) / w * 100;
+        const cy = (f.y + f.height/2) / h * 100;
+        pos = `${clamp(cx,0,100).toFixed(0)}% ${clamp(cy,0,100).toFixed(0)}%`;
+      }
+    } catch {}
+  }
+
+  // Aspect-ratio heuristic: most wildlife photos put the subject's head in
+  // the upper portion of the frame. Bias the crop accordingly.
+  if (!pos){
+    const ratio = w / h;
+    if (ratio < 0.85)      pos = "center 20%";   // tall portrait → head near top
+    else if (ratio > 1.4)  pos = "center 40%";   // wide landscape → head ~upper-mid
+    else                   pos = "center 30%";   // squarish → slight upward bias
+  }
+
+  positions[k] = pos;
+  img.parentElement.style.setProperty("--pos", pos);
+  // Throttle saves: stash and flush.
+  schedulePositionSave();
+}
+function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+let _posSaveTimer = null;
+function schedulePositionSave(){
+  if (_posSaveTimer) return;
+  _posSaveTimer = setTimeout(() => { _posSaveTimer = null; savePositions(); }, 800);
+}
+window.onImgLoad = onImgLoad;
 async function autoFill({ onlyMissing = true } = {}){
   const btn = document.getElementById("autofillBtn");
   const status = document.getElementById("autofillStatus");
@@ -606,7 +705,9 @@ async function autoFill({ onlyMissing = true } = {}){
     while (idx < entries.length){
       const i = idx++;
       const e = entries[i];
-      const thumb = await fetchWikiThumb(wikiTitleFor(e.name));
+      // Strip parens/slashes for a clean free-text query fallback.
+      const cleanQuery = e.name.split("/")[0].split("(")[0].trim();
+      const thumb = await fetchWikiThumb(wikiTitleFor(e.name), cleanQuery);
       if (thumb){ images[e.key] = thumb; found++; }
       done++;
       if (done % 8 === 0){ saveImages(); update(); render(); }
@@ -666,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("clearAllBtn").addEventListener("click", () => {
     if (!confirm("Remove ALL image assignments? This cannot be undone.")) return;
-    images = {}; saveImages();
+    images = {}; positions = {}; saveImages(); savePositions();
     localStorage.removeItem(AUTOFILL_DONE_KEY);
     render();
   });
@@ -674,8 +775,12 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("autofillBtn").addEventListener("click", () => {
     const anyExisting = Object.keys(images).length > 0;
     const onlyMissing = anyExisting
-      ? !confirm("Re-fetch ALL entries from Wikipedia? Click Cancel to only fill empty entries.")
+      ? !confirm("OK = re-fetch ALL entries from Wikipedia (will overwrite).\nCancel = only fill the empty entries.")
       : true;
+    if (!onlyMissing){
+      // re-fetch all also resets stored crop positions
+      positions = {}; savePositions();
+    }
     autoFill({ onlyMissing });
     localStorage.setItem(AUTOFILL_DONE_KEY, "1");
   });
@@ -700,7 +805,8 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       const card = clearBtn.closest(".card");
       delete images[card.dataset.key];
-      saveImages(); render();
+      delete positions[card.dataset.key];
+      saveImages(); savePositions(); render();
       return;
     }
     const card = e.target.closest(".card");
@@ -728,7 +834,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const raw = await readFileAsDataURL(file);
     const compressed = await compressImageDataUrl(raw);
     images[card.dataset.key] = compressed;
-    saveImages(); render();
+    delete positions[card.dataset.key];
+    saveImages(); savePositions(); render();
   });
 
   // Modal interactions
@@ -739,7 +846,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("removeBtn").addEventListener("click", () => {
     if (!currentTarget) return;
     delete images[currentTarget.key];
-    saveImages(); closeModal(); render();
+    delete positions[currentTarget.key];
+    saveImages(); savePositions(); closeModal(); render();
   });
   document.getElementById("saveBtn").addEventListener("click", () => {
     if (!currentTarget) return;
@@ -747,7 +855,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const value = url || pendingValue;
     if (!value){ closeModal(); return; }
     images[currentTarget.key] = value;
-    saveImages(); closeModal(); render();
+    delete positions[currentTarget.key]; // recompute crop for the new image
+    saveImages(); savePositions(); closeModal(); render();
   });
   document.getElementById("urlInput").addEventListener("input", e => {
     pendingValue = e.target.value.trim() || null;
