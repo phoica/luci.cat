@@ -697,43 +697,49 @@ async function wikiSummaryThumb(title){
     return data?.thumbnail?.source || data?.originalimage?.source || null;
   } catch { return null; }
 }
-async function wikiSearchThumb(query){
-  // Find the top matching page, then fetch its thumbnail via pageimages.
-  if (!query) return null;
+async function wikiSearchThumbs(query, limit=5){
+  // Returns an array of thumbnails for the top matching pages.
+  if (!query) return [];
   try {
-    const sUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages|pageterms&generator=search&gsrlimit=3&pithumbsize=400&piprop=thumbnail&gsrsearch=${encodeURIComponent(query)}`;
+    const sUrl = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&prop=pageimages&generator=search&gsrlimit=${limit}&pithumbsize=400&piprop=thumbnail&gsrsearch=${encodeURIComponent(query)}`;
     const res = await fetch(sUrl);
-    if (!res.ok) return null;
+    if (!res.ok) return [];
     const data = await res.json();
     const pages = data?.query?.pages;
-    if (!pages) return null;
-    const list = Object.values(pages).sort((a,b) => (a.index||99) - (b.index||99));
-    for (const p of list){
-      if (p?.thumbnail?.source) return p.thumbnail.source;
-    }
-    return null;
-  } catch { return null; }
+    if (!pages) return [];
+    return Object.values(pages)
+      .sort((a,b) => (a.index||99) - (b.index||99))
+      .map(p => p?.thumbnail?.source)
+      .filter(Boolean);
+  } catch { return []; }
+}
+async function wikiSearchThumb(query){
+  const arr = await wikiSearchThumbs(query, 3);
+  return arr[0] || null;
+}
+async function commonsSearchThumbs(query, limit=10){
+  if (!query) return [];
+  try {
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=${limit}&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=400`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    const pages = data?.query?.pages;
+    if (!pages) return [];
+    return Object.values(pages)
+      .sort((a,b) => (a.index||99) - (b.index||99))
+      .map(p => {
+        const ii = p?.imageinfo?.[0];
+        if (!ii) return null;
+        if (ii.mime && !/^image\/(jpeg|png|gif|webp)$/.test(ii.mime)) return null;
+        return ii.thumburl || ii.url || null;
+      })
+      .filter(Boolean);
+  } catch { return []; }
 }
 async function commonsSearchThumb(query){
-  // Fall back to a direct Wikimedia Commons file search.
-  if (!query) return null;
-  try {
-    const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=5&gsrsearch=${encodeURIComponent(query)}&prop=imageinfo&iiprop=url|mime&iiurlwidth=400`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    const pages = data?.query?.pages;
-    if (!pages) return null;
-    const list = Object.values(pages).sort((a,b) => (a.index||99) - (b.index||99));
-    for (const p of list){
-      const ii = p?.imageinfo?.[0];
-      if (!ii) continue;
-      if (ii.mime && !/^image\/(jpeg|png|gif|webp)$/.test(ii.mime)) continue;
-      if (ii.thumburl) return ii.thumburl;
-      if (ii.url) return ii.url;
-    }
-    return null;
-  } catch { return null; }
+  const arr = await commonsSearchThumbs(query, 5);
+  return arr[0] || null;
 }
 async function fetchWikiThumb(titles, fallbackQuery){
   // Multi-stage fallback. Override entries may use prefixes to force-route:
@@ -844,16 +850,43 @@ function schedulePositionSave(){
   _posSaveTimer = setTimeout(() => { _posSaveTimer = null; savePositions(); }, 800);
 }
 window.onImgLoad = onImgLoad;
+async function getAllCandidates(name){
+  // Collect every plausible image URL we can find for this entry, across
+  // overrides, Wikipedia search, and Commons. Deduped, in priority order.
+  const titles = wikiTitlesFor(name);
+  const out = [];
+  for (const t of titles){
+    if (!t) continue;
+    if (t.startsWith("commons:")){
+      out.push(...await commonsSearchThumbs(t.slice(8), 10));
+    } else if (t.startsWith("search:")){
+      out.push(...await wikiSearchThumbs(t.slice(7), 5));
+    } else {
+      const v = await wikiSummaryThumb(t);
+      if (v) out.push(v);
+    }
+  }
+  const q = name.split("/")[0].split("(")[0].trim();
+  out.push(...await wikiSearchThumbs(q, 5));
+  out.push(...await commonsSearchThumbs(q, 10));
+  return [...new Set(out)];
+}
+
 async function refreshOne(card){
   if (!card) return;
   const key = card.dataset.key;
   const name = decodeURIComponent(card.dataset.name);
   card.classList.add("refreshing");
-  const cleanQuery = name.split("/")[0].split("(")[0].trim();
-  const titles = wikiTitlesFor(name);
-  let thumb = await fetchWikiThumb(titles, cleanQuery);
-  if (!thumb) thumb = placeholderDataUrl(name);
-  images[key] = thumb;
+  const all = await getAllCandidates(name);
+  let next;
+  if (!all.length){
+    next = placeholderDataUrl(name);
+  } else {
+    const cur = images[key];
+    const idx = cur ? all.indexOf(cur) : -1;
+    next = all[(idx + 1) % all.length]; // step to next, or pick first if current not in list
+  }
+  images[key] = next;
   delete positions[key];
   saveImages(); savePositions();
   render();
