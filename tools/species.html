@@ -189,7 +189,7 @@ const TAXONOMY = {
     "Other Carnivores": ["Mongoose","Meerkat","Fossa","Civet","Binturong","Spotted hyena","Striped hyena","Aardwolf","Bears","Panda"],
     "Lagamorphs": ["Rabbits","Lop Rabbits","Hares","Jackalope","Wolpertinger","Pika"],
     "Rodents": ["Mice","Rats","Squirrels","Flying Squirrels","Chipmunks","Hampsters","Gerbils/Voles/Lemmings","Guinea Pigs","Chinchilla","Jerboa","Prairie Dog","Gopher","Groundhog","Beaver/Muskrat","Porcupines","Capybara"],
-    "Mustelids": ["Skunk","Badger","Wolverine","Ferret/Weasel/Stoat/Ermine/Mink/Sable/Marten/Polecat","Otter","Fisher"],
+    "Mustelids": ["Skunk","Spotted Skunk","Badger","American Badger","European Badger","Honey Badger","Wolverine","Ferret","Black-footed Ferret","Weasel","Least Weasel","Long-tailed Weasel","Siberian Weasel","Stoat","Ermine","Mink","European Mink","Sable","Pine Marten","American Marten","Stone Marten","Yellow-throated Marten","Polecat","Marbled Polecat","Tayra","Grison","Otter","Sea Otter","Giant Otter","River Otter","Asian Small-clawed Otter","Eurasian Otter","Fisher"],
     "Procyonidae": ["Racoon","Red Panda","Ringtail","Coati","Kinkajous"],
     "Other Insectivores": ["Hedgehogs","Shrews","Moles","Bats","Lemurs","Loris","Pangolin"],
     "Equines": ["Horses","Donkeys/Mules","Ponies","Zebras","Unicorn","Pegasus","Kelpie","Nightmare","Kirin"],
@@ -332,9 +332,21 @@ const WIKI_OVERRIDES = {
   "Guinea Pigs":"Guinea pig","Chinchilla":"Chinchilla","Jerboa":"Jerboa",
   "Prairie Dog":"Prairie dog","Gopher":"Gopher","Groundhog":"Groundhog",
   "Beaver/Muskrat":"Beaver","Porcupines":"Porcupine","Capybara":"Capybara",
-  // Mustelids
-  "Skunk":"Skunk","Badger":"Badger","Wolverine":"Wolverine",
-  "Ferret/Weasel/Stoat/Ermine/Mink/Sable/Marten/Polecat":"Ferret","Otter":"Otter","Fisher":"Fisher (animal)",
+  // Mustelids (and the lone Mephitidae skunks)
+  "Skunk":"Striped skunk","Spotted Skunk":"Spotted skunk",
+  "Badger":"Badger","American Badger":"American badger","European Badger":"European badger",
+  "Honey Badger":"Honey badger","Wolverine":"Wolverine",
+  "Ferret":"Ferret","Black-footed Ferret":"Black-footed ferret",
+  "Weasel":"Weasel","Least Weasel":"Least weasel","Long-tailed Weasel":"Long-tailed weasel",
+  "Siberian Weasel":"Siberian weasel","Stoat":"Stoat","Ermine":"Stoat",
+  "Mink":"American mink","European Mink":"European mink",
+  "Sable":"Sable","Pine Marten":"European pine marten","American Marten":"American marten",
+  "Stone Marten":"Beech marten","Yellow-throated Marten":"Yellow-throated marten",
+  "Polecat":"European polecat","Marbled Polecat":"Marbled polecat",
+  "Tayra":"Tayra","Grison":"Greater grison",
+  "Otter":"Otter","Sea Otter":"Sea otter","Giant Otter":"Giant otter",
+  "River Otter":"North American river otter","Asian Small-clawed Otter":"Asian small-clawed otter",
+  "Eurasian Otter":"Eurasian otter","Fisher":"Fisher (animal)",
   // Procyonidae
   "Racoon":"Raccoon","Red Panda":"Red panda","Ringtail":"Ring-tailed cat","Coati":"Coati","Kinkajous":"Kinkajou",
   // Insectivores
