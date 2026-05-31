@@ -66,10 +66,15 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;backgroun
 .card.has-image{border-color:rgba(126,212,160,.3)}
 .card.is-placeholder{border-color:rgba(255,176,112,.45)}
 .card.is-placeholder::after{content:"placeholder";position:absolute;bottom:34px;left:4px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;letter-spacing:1px;padding:2px 6px;border-radius:8px;text-transform:uppercase;pointer-events:none;z-index:1}
-.card .search-btn{position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0;z-index:2}
-.card .search-btn svg{width:12px;height:12px}
-.card.has-image:hover .search-btn{display:inline-flex}
-.card .search-btn:hover{background:var(--accent);color:#000}
+.card .search-btn,.card .refresh-btn{position:absolute;top:4px;width:22px;height:22px;border-radius:50%;border:none;background:rgba(0,0,0,.6);color:#fff;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0;z-index:2}
+.card .search-btn{left:4px}
+.card .refresh-btn{left:30px}
+.card .search-btn svg,.card .refresh-btn svg{width:12px;height:12px}
+.card.has-image:hover .search-btn,.card.has-image:hover .refresh-btn{display:inline-flex}
+.card .search-btn:hover,.card .refresh-btn:hover{background:var(--accent);color:#000}
+.card.refreshing .pic{opacity:.4}
+.card.refreshing .pic::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,176,112,.15) 8px,rgba(255,176,112,.15) 16px);animation:slide 1.2s linear infinite}
+@keyframes slide{from{background-position:0 0}to{background-position:32px 0}}
 .card.drag-over{border-color:var(--accent);background:var(--accent-dim);box-shadow:0 0 0 2px var(--accent-glow)}
 .card .pic{width:100%;aspect-ratio:1;background:var(--surface3);display:flex;align-items:center;justify-content:center;color:var(--text-d);font-size:11px;overflow:hidden;position:relative}
 .card .pic img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--pos,center 30%)}
@@ -307,18 +312,28 @@ const WIKI_OVERRIDES = {
   // Felines
   "Lion":"Lion","Tiger":"Tiger","Jaguar":"Jaguar","Panther":"Black panther","Leopard":"Leopard",
   "Clouded Leopard":"Clouded leopard","Snow Leopard":"Snow leopard","Cheetah":"Cheetah",
-  "Mountain Lion":"Cougar","Puma/Cougar":"Cougar","Bobcat":"Bobcat","Ocelot":"Ocelot",
+  "Mountain Lion":["Cougar"],"Puma/Cougar":["commons:puma wild cat","Cougar"],"Bobcat":"Bobcat","Ocelot":"Ocelot",
   "Serval":"Serval","Caracal":"Caracal","Lynx":"Lynx","Bay Cat":"Bay cat",
   "Marbled Cat":"Marbled cat","Fisher Cat":"Fishing cat","Pallas Cat":"Pallas's cat",
   "Jaguarundi":"Jaguarundi",
   "Non-domesticated small cats (Black-footed, Sand, African Wildcat, ect)":"Black-footed cat",
   "Sabertooth Tiger":"Smilodon",
-  // Cat patterns
-  "Classic Tabby":"Tabby cat","Mackerel Tabby":"Tabby cat","Spotted Tabby":"Tabby cat",
-  "Ticked Tabby":"Abyssinian cat","Tuxedo/Locket":"Tuxedo cat","Calico":"Calico cat",
-  "Bengal":"Bengal cat","Tortoiseshell":"Tortoiseshell cat","Dilute Tortoiseshell":"Tortoiseshell cat",
-  "Snowshoe":"Snowshoe cat","Harlequin/Bicolor/Cow Print":"Bicolor cat",
-  "Siamese/Seal Point":"Siamese cat","Flamepoint":"Colorpoint Shorthair","Hairless":"Sphynx cat",
+  // Cat patterns — every variant gets its own Commons search so they don't
+  // all collapse onto the single "Tabby cat" thumbnail.
+  "Classic Tabby":["commons:classic tabby cat blotched","Tabby cat"],
+  "Mackerel Tabby":["commons:mackerel tabby cat striped"],
+  "Spotted Tabby":["commons:spotted tabby cat"],
+  "Ticked Tabby":["commons:ticked tabby cat","Abyssinian cat"],
+  "Tuxedo/Locket":"Tuxedo cat",
+  "Calico":"Calico cat",
+  "Bengal":"Bengal cat",
+  "Tortoiseshell":"Tortoiseshell cat",
+  "Dilute Tortoiseshell":["commons:dilute tortoiseshell cat","Tortoiseshell cat"],
+  "Snowshoe":"Snowshoe cat",
+  "Harlequin/Bicolor/Cow Print":["commons:bicolor cat black white","Bicolor cat"],
+  "Siamese/Seal Point":"Siamese cat",
+  "Flamepoint":["commons:flame point siamese cat","Colorpoint Shorthair"],
+  "Hairless":"Sphynx cat",
   // Other carnivores
   "Mongoose":"Mongoose","Meerkat":"Meerkat","Fossa":"Fossa (animal)","Civet":"Civet",
   "Binturong":"Binturong","Spotted hyena":"Spotted hyena","Striped hyena":"Striped hyena",
@@ -340,7 +355,7 @@ const WIKI_OVERRIDES = {
   "Weasel":"Weasel","Least Weasel":"Least weasel","Long-tailed Weasel":"Long-tailed weasel",
   "Siberian Weasel":"Siberian weasel","Stoat":"Stoat","Ermine":"Stoat",
   "Mink":"American mink","European Mink":"European mink",
-  "Sable":"Sable","Pine Marten":"European pine marten","American Marten":"American marten",
+  "Sable":["Sable","commons:sable Martes zibellina"],"Pine Marten":"European pine marten","American Marten":"American marten",
   "Stone Marten":"Beech marten","Yellow-throated Marten":"Yellow-throated marten",
   "Polecat":"European polecat","Marbled Polecat":"Marbled polecat",
   "Tayra":"Tayra","Grison":"Greater grison",
@@ -425,10 +440,12 @@ const WIKI_OVERRIDES = {
   "Flounder":"Flounder","Pufferfish":"Tetraodontidae","Anglerfish":"Anglerfish",
   "Pirannha":"Piranha","Catfish":"Catfish","Goldfish":"Goldfish","Koi":"Koi",
   "Betta Fish/Guppy":"Siamese fighting fish","Sardine":"Sardine","Anchovy":"Anchovy",
-  "Swordfish":"Swordfish","Marlin":"Marlin","Opah":"Opah","Sawfish":"Sawfish",
-  "Sturgeon":"Sturgeon","Tuna":"Tuna","Salmon":"Salmon","Snapper":"Lutjanidae",
+  "Swordfish":"Swordfish","Marlin":["Marlin (fish)","commons:marlin fish billfish"],
+  "Opah":"Opah","Sawfish":"Sawfish",
+  "Sturgeon":["Acipenser","Acipenseridae","commons:sturgeon fish"],
+  "Tuna":"Tuna","Salmon":"Salmon","Snapper":"Lutjanidae",
   "Rockfish":"Sebastes","Rabbitfish":"Siganidae","Anthias":"Anthiadinae","Basslet":"Grammatidae",
-  "Lamprey":"Lamprey","Coelcanth":"Coelacanth","Starfish":"Starfish","Crab":"Crab",
+  "Lamprey":"Lamprey","Coelcanth":"Coelacanth","Starfish":"Starfish","Crab":["Crab","commons:crab crustacean"],
   "Lobster":"Lobster","Hermitcrab":"Hermit crab","Shrimp/Crayfish/Krill":"Shrimp",
   "Nautilus":"Nautilus","Sea Slugs/Snails/Butterflies/Angels":"Sea slug",
   "Urchin":"Sea urchin","Coral":"Coral",
@@ -546,6 +563,7 @@ function render(){
         return `<div class="card ${has?"has-image":""} ${isPh?"is-placeholder":""} ${hidden}" data-key="${k}" data-cat="${encodeURIComponent(cat)}" data-sub="${encodeURIComponent(sub)}" data-name="${encodeURIComponent(name)}">
           <button class="clear-btn" title="remove">×</button>
           <button class="search-btn" title="search image on the web" data-search="${encodeURIComponent(name)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+          <button class="refresh-btn" title="re-fetch from Wikipedia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg></button>
           <div class="pic" ${has && positions[k] ? `style="--pos:${positions[k]}"` : ""}>${has ? `<img loading="lazy" src="${images[k]}" alt="" data-key="${k}" onload="onImgLoad(this)">` : placeholderSVG()}</div>
           <div class="label">${escapeHtml(name)}</div>
         </div>`;
@@ -718,18 +736,29 @@ async function commonsSearchThumb(query){
   } catch { return null; }
 }
 async function fetchWikiThumb(titles, fallbackQuery){
-  // Multi-stage fallback. Try each candidate title's summary first (cheap),
-  // then fall back to Wikipedia search, then Wikimedia Commons file search.
+  // Multi-stage fallback. Override entries may use prefixes to force-route:
+  //   "commons:<query>" → skip Wikipedia, go straight to Commons file search
+  //   "search:<query>"  → skip summary, go straight to Wikipedia search API
+  // Plain titles try the summary endpoint first.
   const list = Array.isArray(titles) ? titles : (titles ? [titles] : []);
   for (const t of list){
+    if (!t) continue;
+    if (t.startsWith("commons:")){
+      const v = await commonsSearchThumb(t.slice(8));
+      if (v) return v;
+      continue;
+    }
+    if (t.startsWith("search:")){
+      const v = await wikiSearchThumb(t.slice(7));
+      if (v) return v;
+      continue;
+    }
     const v = await wikiSummaryThumb(t);
     if (v) return v;
   }
-  const q1 = fallbackQuery || list[0];
+  const q1 = fallbackQuery || (list[0] || "").replace(/^(commons|search):/, "");
   return await wikiSearchThumb(q1)
-      || await commonsSearchThumb(q1)
-      || (list[1] ? await wikiSearchThumb(list[1]) : null)
-      || (list[1] ? await commonsSearchThumb(list[1]) : null);
+      || await commonsSearchThumb(q1);
 }
 
 // Stable, friendly placeholder data URL so every card always has *something*.
@@ -815,6 +844,21 @@ function schedulePositionSave(){
   _posSaveTimer = setTimeout(() => { _posSaveTimer = null; savePositions(); }, 800);
 }
 window.onImgLoad = onImgLoad;
+async function refreshOne(card){
+  if (!card) return;
+  const key = card.dataset.key;
+  const name = decodeURIComponent(card.dataset.name);
+  card.classList.add("refreshing");
+  const cleanQuery = name.split("/")[0].split("(")[0].trim();
+  const titles = wikiTitlesFor(name);
+  let thumb = await fetchWikiThumb(titles, cleanQuery);
+  if (!thumb) thumb = placeholderDataUrl(name);
+  images[key] = thumb;
+  delete positions[key];
+  saveImages(); savePositions();
+  render();
+}
+
 async function autoFill({ onlyMissing = true } = {}){
   const btn = document.getElementById("autofillBtn");
   const status = document.getElementById("autofillStatus");
@@ -950,6 +994,13 @@ document.addEventListener("DOMContentLoaded", () => {
       e.stopPropagation();
       const q = decodeURIComponent(searchBtn.dataset.search);
       window.open("https://www.google.com/search?tbm=isch&q=" + encodeURIComponent(q), "_blank", "noopener");
+      return;
+    }
+    const refreshBtn = e.target.closest(".refresh-btn");
+    if (refreshBtn){
+      e.stopPropagation();
+      const card = refreshBtn.closest(".card");
+      refreshOne(card);
       return;
     }
     const card = e.target.closest(".card");
