@@ -125,6 +125,10 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;backgroun
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
     import
   </button>
+  <button class="btn" id="autofillBtn" style="background:var(--accent-dim);border-color:var(--accent);color:var(--accent)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg>
+    auto-fill
+  </button>
   <button class="btn danger" id="clearAllBtn">clear all</button>
   <input type="file" id="importFile" accept="application/json" hidden>
 </div>
@@ -132,6 +136,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,sans-serif;backgroun
 <div class="toolbar">
   <input type="text" class="search" id="searchBox" placeholder="search species…">
   <div class="stats" id="globalStats">0 / 0 filled</div>
+  <div class="stats" id="autofillStatus" style="display:none"></div>
 </div>
 
 <main id="root"></main>
@@ -230,7 +235,177 @@ const TAXONOMY = {
   }
 };
 
+// Name → Wikipedia page title. For things where the literal display name is
+// ambiguous, redirects poorly, or is a slash-separated group, pick a sensible
+// page so the auto-fetched thumbnail is actually relevant.
+const WIKI_OVERRIDES = {
+  // Canines
+  "Wolves":"Wolf","Foxes":"Fox","Coyote":"Coyote","Jackal":"Jackal","Fennec fox":"Fennec fox",
+  "Dingo":"Dingo","Dhole":"Dhole","Maned wolf":"Maned wolf","African wild dog":"African wild dog",
+  "Tanuki":"Japanese raccoon dog","Kitsune":"Kitsune",
+  // Dog breeds (Wikipedia spelling)
+  "Husky":"Siberian Husky","German Shepherd":"German Shepherd","Australian Shepherd":"Australian Shepherd",
+  "Boxer":"Boxer (dog)","Labrador":"Labrador Retriever","Golden Retriever":"Golden Retriever",
+  "Dalmation":"Dalmatian (dog)","Rotweiller":"Rottweiler","Doberman":"Dobermann",
+  "Border Collie":"Border Collie","Rough Collie":"Rough Collie","Bearded Collie":"Bearded Collie",
+  "Sheltie":"Shetland Sheepdog","Corgi":"Welsh Corgi","Yorkie":"Yorkshire Terrier",
+  "Shih Tzu":"Shih Tzu","Chihuahua":"Chihuahua (dog)","Poodle":"Poodle","Pomeranian":"Pomeranian dog",
+  "Bichon Frise":"Bichon Frise","Chowchow":"Chow Chow","Bernese Mountain Dog":"Bernese Mountain Dog",
+  "Bulldog":"Bulldog","Mastiff":"English Mastiff","Pitbull":"Pit bull","Cane Corso":"Cane Corso",
+  "Pug":"Pug","Bloodhound":"Bloodhound","Beagle":"Beagle","Dachshund":"Dachshund",
+  "Cocker Spaniel":"Cocker Spaniel","Bedlington Terrier":"Bedlington Terrier",
+  "Scottish Terrier":"Scottish Terrier","Greyhound":"Greyhound","Akita":"Akita (dog)",
+  "Shiba Inu":"Shiba Inu","Sharpey":"Shar Pei","Borozoi":"Borzoi","Mutt":"Mongrel",
+  // Felines
+  "Lion":"Lion","Tiger":"Tiger","Jaguar":"Jaguar","Panther":"Black panther","Leopard":"Leopard",
+  "Clouded Leopard":"Clouded leopard","Snow Leopard":"Snow leopard","Cheetah":"Cheetah",
+  "Mountain Lion":"Cougar","Puma/Cougar":"Cougar","Bobcat":"Bobcat","Ocelot":"Ocelot",
+  "Serval":"Serval","Caracal":"Caracal","Lynx":"Lynx","Bay Cat":"Bay cat",
+  "Marbled Cat":"Marbled cat","Fisher Cat":"Fishing cat","Pallas Cat":"Pallas's cat",
+  "Jaguarundi":"Jaguarundi",
+  "Non-domesticated small cats (Black-footed, Sand, African Wildcat, ect)":"Black-footed cat",
+  "Sabertooth Tiger":"Smilodon",
+  // Cat patterns
+  "Classic Tabby":"Tabby cat","Mackerel Tabby":"Tabby cat","Spotted Tabby":"Tabby cat",
+  "Ticked Tabby":"Abyssinian cat","Tuxedo/Locket":"Tuxedo cat","Calico":"Calico cat",
+  "Bengal":"Bengal cat","Tortoiseshell":"Tortoiseshell cat","Dilute Tortoiseshell":"Tortoiseshell cat",
+  "Snowshoe":"Snowshoe cat","Harlequin/Bicolor/Cow Print":"Bicolor cat",
+  "Siamese/Seal Point":"Siamese cat","Flamepoint":"Colorpoint Shorthair","Hairless":"Sphynx cat",
+  // Other carnivores
+  "Mongoose":"Mongoose","Meerkat":"Meerkat","Fossa":"Fossa (animal)","Civet":"Civet",
+  "Binturong":"Binturong","Spotted hyena":"Spotted hyena","Striped hyena":"Striped hyena",
+  "Aardwolf":"Aardwolf","Bears":"Bear","Panda":"Giant panda",
+  // Lagomorphs
+  "Rabbits":"Rabbit","Lop Rabbits":"Lop rabbit","Hares":"Hare","Jackalope":"Jackalope",
+  "Wolpertinger":"Wolpertinger","Pika":"Pika",
+  // Rodents
+  "Mice":"Mouse","Rats":"Rat","Squirrels":"Squirrel","Flying Squirrels":"Flying squirrel",
+  "Chipmunks":"Chipmunk","Hampsters":"Hamster","Gerbils/Voles/Lemmings":"Gerbil",
+  "Guinea Pigs":"Guinea pig","Chinchilla":"Chinchilla","Jerboa":"Jerboa",
+  "Prairie Dog":"Prairie dog","Gopher":"Gopher","Groundhog":"Groundhog",
+  "Beaver/Muskrat":"Beaver","Porcupines":"Porcupine","Capybara":"Capybara",
+  // Mustelids
+  "Skunk":"Skunk","Badger":"Badger","Wolverine":"Wolverine",
+  "Ferret/Weasel/Stoat/Ermine/Mink/Sable/Marten/Polecat":"Ferret","Otter":"Otter","Fisher":"Fisher (animal)",
+  // Procyonidae
+  "Racoon":"Raccoon","Red Panda":"Red panda","Ringtail":"Ring-tailed cat","Coati":"Coati","Kinkajous":"Kinkajou",
+  // Insectivores
+  "Hedgehogs":"Hedgehog","Shrews":"Shrew","Moles":"Mole (animal)","Bats":"Bat",
+  "Lemurs":"Lemur","Loris":"Loris","Pangolin":"Pangolin",
+  // Equines
+  "Horses":"Horse","Donkeys/Mules":"Donkey","Ponies":"Pony","Zebras":"Zebra",
+  "Unicorn":"Unicorn","Pegasus":"Pegasus","Kelpie":"Kelpie","Nightmare":"Nightmare (folklore)","Kirin":"Qilin",
+  // Cervids
+  "Deers":"Deer","Elk":"Elk","Caribou/Reindeer":"Reindeer","Moose":"Moose",
+  "Marsh Deer":"Marsh deer","Water Deer":"Water deer","Muntjac":"Muntjac","Pudu":"Pudú",
+  // Bovines
+  "Cows/Bulls/Cattles":"Cattle","Ox":"Ox","Yak":"Yak","Buffalo":"African buffalo",
+  "Bison":"Bison","Water Buffalo":"Water buffalo","Wildebeast":"Wildebeest",
+  "Antelopes":"Antelope","Gazelle":"Gazelle","Dik dik":"Dik-dik",
+  // Other ungulates
+  "Sheep":"Sheep","Goats":"Goat","Ibex":"Ibex","Pigs":"Pig","Warthog":"Common warthog",
+  "Hippo":"Hippopotamus","Rhino":"Rhinoceros","Tapir":"Tapir","Giraffe":"Giraffe",
+  "Okapi":"Okapi","Camel":"Camel","Mouse Deer":"Chevrotain","Musk Deer":"Musk deer",
+  // Marsupials
+  "Kangaroos":"Kangaroo","Koala":"Koala","Opossums":"Opossum","Sugar Glider":"Sugar glider",
+  "Tasmanian Devil":"Tasmanian devil","Wombat":"Wombat","Wallaby":"Wallaby",
+  "Bandicoot":"Bandicoot","Quokka":"Quokka",
+  // Aquatic mammals
+  "Dolphins":"Dolphin","Whales":"Whale","Seels":"Seal (mammal)","Sea Lions":"Sea lion",
+  "Walrus":"Walrus","Manatee":"Manatee",
+  // Other mammals
+  "Sloths":"Sloth","Anteaters":"Anteater","Armadillos":"Armadillo","Elephants":"Elephant",
+  "Mammoth":"Woolly mammoth","Elephant shrews":"Elephant shrew","Aardvark":"Aardvark",
+  "Platypus":"Platypus","Echidna":"Echidna",
+  // Birds
+  "Eagles":"Eagle","Hawks":"Hawk","Kites":"Kite (bird)","Ospreys":"Osprey",
+  "Vultures":"Vulture","Secretarybirds":"Secretarybird",
+  "Falcons":"Falcon",
+  "Ravens":"Common raven","Crow":"Crow","Magpies":"Magpie","Blue Jay":"Blue jay",
+  "Cardinals":"Northern cardinal","Robins":"American robin","Canary":"Atlantic canary","Sparrows":"Sparrow",
+  "Woodpeckers":"Woodpecker","Toucans":"Toucan",
+  "Owls":"Owl",
+  "Ducks":"Duck","Geese":"Goose","Swans":"Swan",
+  "Loons":"Loon",
+  "Herons":"Heron","Ibis":"Ibis","Shoebill":"Shoebill","Pelicans":"Pelican",
+  "Cranes":"Crane (bird)",
+  "Storks":"Stork",
+  "Parrots":"Parrot","Parakeets":"Parakeet","Lovebirds":"Lovebird",
+  "Cockatiels":"Cockatiel","Cockatoos":"Cockatoo",
+  "Hummingbirds":"Hummingbird",
+  "King Fisher":"Kingfisher","Hornbills":"Hornbill","Quetzals":"Resplendent quetzal",
+  "Ostrichs":"Common ostrich","Emus":"Emu","Cassowarts":"Cassowary","Kiwi":"Kiwi (bird)",
+  "Flamingos":"Flamingo",
+  "Pigeons":"Columbidae","Doves":"Mourning dove","Cuckcoos":"Cuckoo","Roadrunner":"Roadrunner","Dodo":"Dodo",
+  "Albatrosses":"Albatross","Petrels":"Petrel",
+  "Seagulls":"Gull","Puffins":"Puffin",
+  "Penguins":"Penguin",
+  "Chickens":"Chicken","Quails/Partridges":"Quail","Turkeys":"Wild turkey","Peacocks":"Peafowl",
+  "Phoenix":"Phoenix (mythology)","Griffon/Hippogriff":"Griffin",
+  // Reptiles/Amphibians
+  "Crocodiles":"Crocodile","Alligators":"Alligator","Caimins":"Caiman","Turtles":"Turtle",
+  "Tortoises":"Tortoise","Frogs":"Frog","Toads":"Toad","Newts":"Newt",
+  "Salamanders":"Salamander","Skinks":"Skink","Axolotl":"Axolotl","Snakes":"Snake",
+  "Lizards":"Lizard","Chameleons":"Chameleon","Iguanas":"Iguana",
+  "Bearded Dragons":"Pogona","Horned Lizards":"Horned lizard","Komodo Dragon":"Komodo dragon",
+  "Gila Monsters":"Gila monster","Leopard Lizards":"Leopard lizard","Tegus":"Tegu",
+  "Geckos":"Gecko","Anoles":"Anole","Dragons":"Dragon","Dinosaurs":"Dinosaur",
+  // Fish/Aquatic
+  "Orca":"Killer whale","Great White Shark":"Great white shark","Whale Shark":"Whale shark",
+  "Tiger Shark":"Tiger shark","Hammerhead Shark":"Hammerhead shark","Leopard Shark":"Leopard shark",
+  "Zebra Shark":"Zebra shark","Narwhal":"Narwhal","Octopus":"Octopus","Squid":"Squid",
+  "Cuttlefish":"Cuttlefish","Manta Ray/Stingray":"Manta ray","Sea Turtle":"Sea turtle",
+  "Electric Eel":"Electric eel","Moray Eel":"Moray eel","Garden Eel":"Garden eel",
+  "Sea Snake":"Sea snake","Jellyfish":"Jellyfish","Seahorse/Sea Dragon":"Seahorse",
+  "Lionfish/Scorpionfish":"Lionfish","Cardinalfish":"Apogonidae","Angelfish":"Marine angelfish",
+  "Butterflyfish":"Butterflyfish","Surgeonfish/Blue Tang/Yellow Tang":"Acanthuridae",
+  "Clownfish":"Clownfish","Triggerfish":"Triggerfish","Wrasse":"Wrasse","Cichlid":"Cichlid",
+  "Neon Tetra":"Neon tetra","Damselfish":"Damselfish","Rainbowfish":"Rainbowfish",
+  "Parrotfish":"Parrotfish","Mahi Mahi":"Mahi-mahi","Sunfish":"Ocean sunfish",
+  "Flounder":"Flounder","Pufferfish":"Tetraodontidae","Anglerfish":"Anglerfish",
+  "Pirannha":"Piranha","Catfish":"Catfish","Goldfish":"Goldfish","Koi":"Koi",
+  "Betta Fish/Guppy":"Siamese fighting fish","Sardine":"Sardine","Anchovy":"Anchovy",
+  "Swordfish":"Swordfish","Marlin":"Marlin","Opah":"Opah","Sawfish":"Sawfish",
+  "Sturgeon":"Sturgeon","Tuna":"Tuna","Salmon":"Salmon","Snapper":"Lutjanidae",
+  "Rockfish":"Sebastes","Rabbitfish":"Siganidae","Anthias":"Anthiadinae","Basslet":"Grammatidae",
+  "Lamprey":"Lamprey","Coelcanth":"Coelacanth","Starfish":"Starfish","Crab":"Crab",
+  "Lobster":"Lobster","Hermitcrab":"Hermit crab","Shrimp/Crayfish/Krill":"Shrimp",
+  "Nautilus":"Nautilus","Sea Slugs/Snails/Butterflies/Angels":"Sea slug",
+  "Urchin":"Sea urchin","Coral":"Coral",
+  // Insects
+  "Butterfly/Caterpillars":"Butterfly","Moths":"Moth","Bees":"Bee","Wasps/Hornets":"Wasp",
+  "Ladybugs":"Coccinellidae","Mantis":"Mantis","Grasshoppers/Locus":"Grasshopper",
+  "Crickets":"Cricket (insect)","Stickbugs":"Phasmatodea","Pondskaters":"Gerridae",
+  "Ants":"Ant","Dragonflies":"Dragonfly","Fireflies":"Firefly","Stag Beetles":"Stag beetle",
+  "Weevils":"Weevil","Cicadas":"Cicada","Centipedes/Millipedes":"Centipede",
+  "Rolly Polly/Pill Bugs":"Armadillidiidae","Spiders":"Spider","Scorpions":"Scorpion",
+  "Snails":"Snail","Slugs":"Slug",
+  // Fictional/Furry — most have no Wikipedia page; map to nearest concept or leave blank
+  "Cabbit":"Cabbit","Avali":"","Dutch Angel Dragon":"","Airplane Dragon":"",
+  "Manokit":"","Sergal":"","Protogen":"","Nardragon":"","Novabeast":"","Rexoulum":"",
+  "Wickerbeast":"","Drekkubus/Drekkie":"","Skully/Skulldog":"","Sparkledog":"",
+  "Freakhound":"","Monsterdog":"","Worm on a String":"","Robot":"Robot",
+  "Pooltoy":"Inflatable","Hybrid":"Hybrid (biology)","Chimera":"Chimera (mythology)",
+  // Modifiers — most won't have direct pages; pick close concepts
+  "Antlers":"Antler","Rhino Horn":"Rhinoceros","Unicorn Horn":"Unicorn",
+  "Devil/Demon Horns":"Demon","Ram/Bull Horns":"Horn (anatomy)","Insect Antenna":"Antenna (biology)",
+  "Feathered Wings":"Feather","Bat/Dragon Wings":"Bat wing","Insect Wings":"Insect wing",
+  "Additional Wings":"","Additional Eyes":"","Additional Ears":"","Additional Tails":"",
+  "Fangs/Saber Teeth":"Fang","Longer Tail":"Tail","Longer Mane/Crest Down Back":"Mane (horse)",
+  "Dinosaur/Dragon Spikes":"Stegosaurus","Hooves/Paws":"Hoof","Wool":"Wool","Shell":"Seashell",
+  "Spines":"Spine (zoology)","Quadrupedal":"Quadrupedalism",
+  "Aquatic/Terrestrial/Cosmos/Change of Habitat":"Habitat","Seaweed/Kelp/Coral-like":"Kelp",
+  "Rainbow":"Rainbow","Mouth on Stomach":"","Mouth on Tail":"","Different Pupils/Irises":"Pupil",
+  "Piercings/Jewelry/Bandana/Accessories":"Body piercing","Makeup/Makeup-like patterns":"Cosmetics",
+  "Robotic Parts":"Cyborg","Glowing/Bioluminescence":"Bioluminescence","Plush":"Stuffed toy",
+  "Heart/Star/Sparkle Motif":"Heart (symbol)","Checkers/Stripes/Polkadots":"Polka dot",
+  "Goth/Punk aesthetic":"Goth subculture","Rave/Scene aesthetic":"Rave",
+  "Rave/Scene Aesthetic":"Rave","Food-Themed/Hybrid":"Food",
+  "Flowers/Moss/Foliage":"Flower","Fire":"Fire"
+};
+
 const STORAGE_KEY = "luci.species.images.v1";
+const AUTOFILL_DONE_KEY = "luci.species.autofill.v1";
 const COLLAPSE_KEY = "luci.species.collapsed.v1";
 const THEME_KEY = "luci.species.theme";
 
@@ -388,6 +563,64 @@ async function handleFile(file){
   refreshPreview();
 }
 
+// — Auto-fill from Wikipedia —
+function* iterEntries(){
+  for (const [cat, subs] of Object.entries(TAXONOMY))
+    for (const [sub, items] of Object.entries(subs))
+      for (const name of items)
+        yield { cat, sub, name, key: keyFor(cat, sub, name) };
+}
+function wikiTitleFor(name){
+  if (Object.prototype.hasOwnProperty.call(WIKI_OVERRIDES, name)){
+    const v = WIKI_OVERRIDES[name];
+    return v || null;
+  }
+  // fallback: take first slash-segment, drop trailing 's' on plurals
+  let t = name.split("/")[0].split("(")[0].trim();
+  if (t.length > 4 && /[a-z]s$/i.test(t) && !/ss$/i.test(t)) t = t.replace(/s$/i, "");
+  return t;
+}
+async function fetchWikiThumb(title){
+  if (!title) return null;
+  try {
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g,"_"))}`;
+    const res = await fetch(url, { headers: { "accept":"application/json" } });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.thumbnail?.source || data?.originalimage?.source || null;
+  } catch { return null; }
+}
+async function autoFill({ onlyMissing = true } = {}){
+  const btn = document.getElementById("autofillBtn");
+  const status = document.getElementById("autofillStatus");
+  btn.disabled = true;
+  const entries = [...iterEntries()].filter(e => onlyMissing ? !images[e.key] : true);
+  let done = 0, found = 0;
+  status.style.display = "";
+  const update = () => status.innerHTML = `auto-filling: <strong>${done}</strong> / ${entries.length} (<strong>${found}</strong> found)`;
+  update();
+
+  const CONCURRENCY = 6;
+  let idx = 0;
+  async function worker(){
+    while (idx < entries.length){
+      const i = idx++;
+      const e = entries[i];
+      const thumb = await fetchWikiThumb(wikiTitleFor(e.name));
+      if (thumb){ images[e.key] = thumb; found++; }
+      done++;
+      if (done % 8 === 0){ saveImages(); update(); render(); }
+      else update();
+    }
+  }
+  await Promise.all(Array.from({length: CONCURRENCY}, worker));
+  saveImages();
+  status.innerHTML = `auto-fill done: <strong>${found}</strong> of ${entries.length} entries got a picture`;
+  setTimeout(() => { status.style.display = "none"; }, 6000);
+  btn.disabled = false;
+  render();
+}
+
 // — Event wiring —
 document.addEventListener("DOMContentLoaded", () => {
   loadState();
@@ -433,8 +666,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("clearAllBtn").addEventListener("click", () => {
     if (!confirm("Remove ALL image assignments? This cannot be undone.")) return;
-    images = {}; saveImages(); render();
+    images = {}; saveImages();
+    localStorage.removeItem(AUTOFILL_DONE_KEY);
+    render();
   });
+
+  document.getElementById("autofillBtn").addEventListener("click", () => {
+    const anyExisting = Object.keys(images).length > 0;
+    const onlyMissing = anyExisting
+      ? !confirm("Re-fetch ALL entries from Wikipedia? Click Cancel to only fill empty entries.")
+      : true;
+    autoFill({ onlyMissing });
+    localStorage.setItem(AUTOFILL_DONE_KEY, "1");
+  });
+
+  // First-load auto-population: kick off Wikipedia fetches if storage is empty.
+  if (!localStorage.getItem(AUTOFILL_DONE_KEY) && Object.keys(images).length === 0){
+    localStorage.setItem(AUTOFILL_DONE_KEY, "1");
+    setTimeout(() => autoFill({ onlyMissing: true }), 300);
+  }
 
   // Section toggles + card clicks (delegated)
   document.getElementById("root").addEventListener("click", e => {
