@@ -181,6 +181,12 @@ body[data-theme="evil"] .panel-watermark{opacity:.035;color:var(--accent)}
 .toggle-switch input:checked+.toggle-slider{background:var(--accent-dim);border-color:var(--accent)}
 .toggle-switch input:checked+.toggle-slider::before{transform:translateX(18px);background:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.3)}
 .toggle-label{font-size:14px;color:var(--text-muted)}
+/* Subtle dotted underline to hint that more info is available on hover/tap. cursor:default
+   so the text-selection caret doesn't appear (it's not really "selectable" — it's a label). */
+.toggle-label[data-i18n-title]{border-bottom:1px dotted var(--text-dim);cursor:default}
+/* Custom tooltip: no native-title delay, mobile-friendly via tap. */
+#appTooltip{position:fixed;z-index:9999;background:var(--surface3);color:var(--text);padding:8px 12px;border:1px solid var(--border-hover);border-radius:6px;font-size:12px;line-height:1.4;max-width:280px;pointer-events:none;opacity:0;transition:opacity .08s;box-shadow:0 6px 20px rgba(0,0,0,.4);font-family:'DM Sans',sans-serif}
+#appTooltip.show{opacity:1}
 
 /* Custom add modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:100;align-items:center;justify-content:center}
@@ -829,18 +835,18 @@ body[data-theme="nonchalant"] .btn-accent:hover{background:linear-gradient(180de
   </div>
 </div>
 <div class="toggle-bar">
-  <div class="toggle-pair" data-i18n-title="adaptiveScaleTip" title="Y-axis range fits each hormone's actual data so curves use the full chart height."><label class="toggle-switch"><input type="checkbox" id="showAdaptiveScaleToggle" checked onchange="toggleAdaptiveScale()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showAdaptiveScale">Adaptive Y</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showAdaptiveScaleToggle" checked onchange="toggleAdaptiveScale()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showAdaptiveScale" data-i18n-title="adaptiveScaleTip">Adaptive Y</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showGridToggle" checked onchange="toggleGrid()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showGrid">Grid</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showLegendToggle" checked onchange="toggleLegend()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showLegend">Legend</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showLabelsToggle" checked onchange="toggleLabels()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showLabels">Labels</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showValuesToggle" checked onchange="toggleValues()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showValues">Values</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showGuidesToggle" checked onchange="toggleGuides()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showGuides">Guides</span></div>
-  <div class="toggle-pair" data-i18n-title="doseChangesTip" title="Show the new dose value at every step where the dosage changes."><label class="toggle-switch"><input type="checkbox" id="showDoseChangesToggle" checked onchange="toggleDoseChanges()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showDoseChanges">Dose changes</span></div>
-  <div class="toggle-pair" data-i18n-title="preHrtTip" title="Draws a dashed line at the typical pre-HRT baseline, ramping to your first lab measurement."><label class="toggle-switch"><input type="checkbox" id="showPreHrtToggle" checked onchange="togglePreHrt()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showPreHrt">Pre-HRT Simulation</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showDoseChangesToggle" checked onchange="toggleDoseChanges()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showDoseChanges" data-i18n-title="doseChangesTip">Dose changes</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showPreHrtToggle" checked onchange="togglePreHrt()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showPreHrt" data-i18n-title="preHrtTip">Pre-HRT Simulation</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showAxesToggle" onchange="toggleShowAxes()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showAxesLabel">Axes</span></div>
   <div class="toggle-pair" id="showRangesPair"><label class="toggle-switch"><input type="checkbox" id="showRangesToggle" checked onchange="toggleRanges()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showRanges">Ranges</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showLinesToggle" checked onchange="toggleLines()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showLines">Lines</span></div>
-  <div class="toggle-pair" data-i18n-title="errorTip" title="Show a fuzzy halo around each curve indicating per-hormone lab measurement uncertainty."><label class="toggle-switch"><input type="checkbox" id="showErrorToggle" onchange="toggleError()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showError">Error</span></div>
+  <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showErrorToggle" onchange="toggleError()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showError" data-i18n-title="errorTip">Error</span></div>
   <div class="toggle-pair"><label class="toggle-switch"><input type="checkbox" id="showCurvesToggle" checked onchange="toggleCurves()"><span class="toggle-slider"></span></label><span class="toggle-label" data-i18n="showCurves">Curves</span></div>
 </div>
 
@@ -1037,6 +1043,10 @@ let chartView='multi'; // 'multi' = combined chart of selected items; 'individua
 // Both null = use responsive defaults. Pull-tab drag updates whichever mode is active.
 let multiContainerH=null;
 let individualPerChartH=null;
+// In-memory cache of auto-placed label offsets (labelKey → {dx, dy} relative to dot anchor).
+// Persists across redraws so changing canvas size doesn't shuffle every un-dragged label.
+// Cleared on profile switch; individual entries cleared on dbl-click to re-run auto-placement.
+let _autoOffsets={};
 let dpr=1;
 const MONTHS_EN=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const MONTHS_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -1598,7 +1608,7 @@ function fitHeaderLogo(){
   }
 }
 function getChartBg(){const s=getComputedStyle(document.body);return s.getPropertyValue('--chart-bg').trim()||'#181b20';}
-function updateStaticLabels(){document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t(el.dataset.i18nPlaceholder);});document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});const sel=document.getElementById('langSelect');if(sel)sel.value=lang;}
+function updateStaticLabels(){document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{el.placeholder=t(el.dataset.i18nPlaceholder);});document.querySelectorAll('[data-i18n-title]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nTitle));});const sel=document.getElementById('langSelect');if(sel)sel.value=lang;}
 
 // ═══ UNDO / REDO ═══
 let redoStack=[];
@@ -1706,7 +1716,7 @@ function saveToStorage(){try{localStorage.setItem('hrt_profiles_v5',JSON.stringi
 function getActive(){if(!activeProfileName||!profiles[activeProfileName])return null;return profiles[activeProfileName];}
 function syncFromProfile(){const p=getActive();
   if(!p){startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);medications=[];medCustom={};customMeds=[];customHormones=[];doses={};trackedHormones=[];shownAxes=[];labs=[];profilePic='';preHrtPerHormone={};labelOffsets={};baseline='none';tMin=-20;xMax=200;selectedMedId='';document.getElementById('xMaxInput').value='200';document.getElementById('xMinInput').value='-20';return;}
-  if(p.startDate){startDate=new Date(p.startDate.includes('.')?p.startDate.split('.').reverse().join('-'):p.startDate);startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}else{startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}baseline=p.baseline||'tprehrtm';medications=[...(p.medications||[])];medCustom=JSON.parse(JSON.stringify(p.medCustom||{}));customMeds=[...(p.customMeds||[])];customHormones=[...(p.customHormones||[])];doses=JSON.parse(JSON.stringify(p.doses||{}));trackedHormones=[...(p.trackedHormones||[])];shownAxes=[...(p.shownAxes||[])];labs=JSON.parse(JSON.stringify(p.labs||[]));profilePic=p.profilePic||'';preHrtPerHormone=JSON.parse(JSON.stringify(p.preHrtPerHormone||{}));labelOffsets=JSON.parse(JSON.stringify(p.labelOffsets||{}));
+  if(p.startDate){startDate=new Date(p.startDate.includes('.')?p.startDate.split('.').reverse().join('-'):p.startDate);startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}else{startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}baseline=p.baseline||'tprehrtm';medications=[...(p.medications||[])];medCustom=JSON.parse(JSON.stringify(p.medCustom||{}));customMeds=[...(p.customMeds||[])];customHormones=[...(p.customHormones||[])];doses=JSON.parse(JSON.stringify(p.doses||{}));trackedHormones=[...(p.trackedHormones||[])];shownAxes=[...(p.shownAxes||[])];labs=JSON.parse(JSON.stringify(p.labs||[]));profilePic=p.profilePic||'';preHrtPerHormone=JSON.parse(JSON.stringify(p.preHrtPerHormone||{}));labelOffsets=JSON.parse(JSON.stringify(p.labelOffsets||{}));_autoOffsets={};
   // Use stored range if present, otherwise auto-compute from data
   if(Number.isFinite(p.tMin)&&Number.isFinite(p.xMax)){
     tMin=p.tMin;xMax=p.xMax;
@@ -3376,13 +3386,21 @@ function drawChart(canvas,opts){
     const lineH=Math.max(...lines.map(l=>parseFloat(l.font)))*1.05;
     const blockW=Math.max(...lines.map(l=>l.w));
     const N=lines.length;
-    // User-drag override: if this label has been manually positioned via drag, skip scoring
-    // entirely and use the stored offset (relative to the dot anchor).
+    // Position priority:
+    //   1. User-drag offset (from labelOffsets) — persisted across sessions, wins always.
+    //   2. Cached auto-offset (from _autoOffsets) — in-memory, persists across redraws so
+    //      resizing the canvas doesn't shuffle every label.
+    //   3. Run the scorer and cache the result for next time.
     const userOff=labelKey&&labelOffsets?labelOffsets[labelKey]:null;
+    const autoOff=labelKey&&!userOff?_autoOffsets[labelKey]:null;
     let chosen;
     if(userOff&&Number.isFinite(userOff.dx)&&Number.isFinite(userOff.dy)){
       const lx=X+userOff.dx;
       const blockTopOverride=Y+userOff.dy;
+      chosen={lx,ly1:blockTopOverride+lineH,side:(lx+blockW/2<X?'left':'right')};
+    }else if(autoOff&&Number.isFinite(autoOff.dx)&&Number.isFinite(autoOff.dy)){
+      const lx=X+autoOff.dx;
+      const blockTopOverride=Y+autoOff.dy;
       chosen={lx,ly1:blockTopOverride+lineH,side:(lx+blockW/2<X?'left':'right')};
     }else{
       const candidates=[];
@@ -3426,6 +3444,13 @@ function drawChart(canvas,opts){
         if(score<chosenScore){chosenScore=score;chosen=c;}
       }
       _sideToggle++;
+      // Cache the auto-placement so subsequent redraws (resize, theme switch, etc.) reuse the
+      // same position relative to the dot — the chart no longer reshuffles every un-dragged
+      // label whenever the canvas changes size.
+      if(labelKey){
+        const blockTopCache=chosen.ly1-lineH;
+        _autoOffsets[labelKey]={dx:chosen.lx-X,dy:blockTopCache-Y};
+      }
     }
     const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
     // labelKey + anchor go on the rect so drag-handlers can identify which label is being grabbed.
@@ -4146,6 +4171,41 @@ if(document.fonts&&document.fonts.ready){
 window.addEventListener('load',()=>fitHeaderLogo());
 loadLang();loadTheme();loadFromStorage();fullRefresh();_applyRangesDependency();
 
+// Custom tooltip layer for [data-i18n-title] elements. No native-title delay; instant show on
+// hover (desktop) and tap (mobile). Native title attribute is removed on each element so the
+// browser's own delayed tooltip doesn't compete.
+(function setupAppTooltip(){
+  const tip=document.createElement('div');tip.id='appTooltip';document.body.appendChild(tip);
+  let hideTimer=null;
+  function getText(el){const k=el.dataset.i18nTitle;if(k){const v=t(k);if(v)return v;}return el.title||'';}
+  function show(el){
+    const text=getText(el);if(!text)return;
+    // Suppress native title tooltip
+    if(el.title){el._origTitle=el.title;el.title='';}
+    tip.textContent=text;
+    tip.classList.add('show');
+    // Position: prefer above the element; flip below if it would clip the viewport top.
+    tip.style.left='0';tip.style.top='0';
+    const tr=tip.getBoundingClientRect();
+    const r=el.getBoundingClientRect();
+    let x=r.left+r.width/2-tr.width/2;
+    let y=r.top-tr.height-8;
+    if(y<4)y=r.bottom+8;
+    x=Math.max(4,Math.min(window.innerWidth-tr.width-4,x));
+    tip.style.left=x+'px';tip.style.top=y+'px';
+    clearTimeout(hideTimer);
+  }
+  function hide(){tip.classList.remove('show');}
+  document.addEventListener('pointerover',e=>{const el=e.target.closest('[data-i18n-title]');if(el)show(el);});
+  document.addEventListener('pointerout',e=>{const el=e.target.closest('[data-i18n-title]');if(el)hide();});
+  // Mobile: tap a label to show; auto-hide after ~3s or on next outside-tap.
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('[data-i18n-title]');
+    if(el){show(el);clearTimeout(hideTimer);hideTimer=setTimeout(hide,3000);}
+    else{hide();}
+  });
+})();
+
 // Draggable chart labels. Each label rect (pushed in placeLabel) carries a `labelKey` and the
 // pixel coords of its dot anchor. The handler hit-tests against canvas._labelHits, captures
 // the pointer, and updates `labelOffsets[labelKey]` relative to the anchor on move. Dbl-click
@@ -4208,8 +4268,13 @@ loadLang();loadTheme();loadFromStorage();fullRefresh();_applyRangesDependency();
     const r=canvas.getBoundingClientRect();
     const cx=e.clientX-r.left,cy=e.clientY-r.top;
     const hit=findHit(canvas,cx,cy);
-    if(!hit||!labelOffsets||!labelOffsets[hit.labelKey])return;
-    delete labelOffsets[hit.labelKey];
+    if(!hit)return;
+    let changed=false;
+    if(labelOffsets&&labelOffsets[hit.labelKey]){delete labelOffsets[hit.labelKey];changed=true;}
+    // Also clear the cached auto-offset so the label re-runs the scorer next redraw and
+    // settles in a fresh auto position rather than the previously-cached one.
+    if(_autoOffsets[hit.labelKey]){delete _autoOffsets[hit.labelKey];changed=true;}
+    if(!changed)return;
     syncToProfile();redraw();
   });
 })();
