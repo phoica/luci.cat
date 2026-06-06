@@ -1026,7 +1026,7 @@ const BUILTIN_MEDS=[{id:'een',name:'Estradiol Enanthate (EEn)',color:'#b07cd8',u
 const DEFAULT_PROFILE={startDate:'2024-11-11',baseline:'tprehrtm',profilePic:'',medications:['een'],medCustom:{een:{showDots:true}},customMeds:[],customHormones:[],doses:{een:[[0,10],[6,10],[13,10],[20,10],[27,10],[34,10],[41,10],[48,10],[55,10],[62,10],[70,7.5],[76,7.5],[83,7.5],[90,7.5],[97,7.5],[104,7.5],[111,10],[118,10],[125,10],[132,10],[139,10],[146,10],[153,10],[160,10],[167,10],[179,12.5],[188,10],[195,10],[202,10],[216,4],[223,4],[230,5],[237,5],[246,5],[253,5],[261,5],[268,5],[276,5],[285,5],[293,5],[300,5],[308,4],[316,4]]},trackedHormones:['E2','PRL','T'],shownAxes:['E2','PRL','T'],labs:[{day:76,date:'2025-01-26',values:{E2:343,PRL:31.6,T:0.14}},{day:257,date:'2025-07-26',values:{E2:446,PRL:19.7,T:0.30}}]};
 
 // ═══ STATE ═══
-let profiles={},activeProfileName='',startDate,baseline,doses,labs,trackedHormones,medications,shownAxes,medCustom,profilePic,customMeds,customHormones,preHrtPerHormone;
+let profiles={},activeProfileName='',startDate,baseline,doses,labs,trackedHormones,medications,shownAxes,medCustom,profilePic,customMeds,customHormones,preHrtPerHormone,labelOffsets;
 let selectedMedId='',tMin=-20,xMax=350;
 let historyTab='doses',histSortKey='day',histSortAsc=false,editingDose=null,editingLab=null,editingLabExtra=new Set();
 let undoStack=[],recurOpen=false,showLabels=true,showLegend=true,showValues=true,showGuides=true;
@@ -1705,8 +1705,8 @@ function loadFromStorage(){
 function saveToStorage(){try{localStorage.setItem('hrt_profiles_v5',JSON.stringify({profiles,active:activeProfileName}));}catch(e){}}
 function getActive(){if(!activeProfileName||!profiles[activeProfileName])return null;return profiles[activeProfileName];}
 function syncFromProfile(){const p=getActive();
-  if(!p){startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);medications=[];medCustom={};customMeds=[];customHormones=[];doses={};trackedHormones=[];shownAxes=[];labs=[];profilePic='';preHrtPerHormone={};baseline='none';tMin=-20;xMax=200;selectedMedId='';document.getElementById('xMaxInput').value='200';document.getElementById('xMinInput').value='-20';return;}
-  if(p.startDate){startDate=new Date(p.startDate.includes('.')?p.startDate.split('.').reverse().join('-'):p.startDate);startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}else{startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}baseline=p.baseline||'tprehrtm';medications=[...(p.medications||[])];medCustom=JSON.parse(JSON.stringify(p.medCustom||{}));customMeds=[...(p.customMeds||[])];customHormones=[...(p.customHormones||[])];doses=JSON.parse(JSON.stringify(p.doses||{}));trackedHormones=[...(p.trackedHormones||[])];shownAxes=[...(p.shownAxes||[])];labs=JSON.parse(JSON.stringify(p.labs||[]));profilePic=p.profilePic||'';preHrtPerHormone=JSON.parse(JSON.stringify(p.preHrtPerHormone||{}));
+  if(!p){startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);medications=[];medCustom={};customMeds=[];customHormones=[];doses={};trackedHormones=[];shownAxes=[];labs=[];profilePic='';preHrtPerHormone={};labelOffsets={};baseline='none';tMin=-20;xMax=200;selectedMedId='';document.getElementById('xMaxInput').value='200';document.getElementById('xMinInput').value='-20';return;}
+  if(p.startDate){startDate=new Date(p.startDate.includes('.')?p.startDate.split('.').reverse().join('-'):p.startDate);startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}else{startDate=new Date();startDate=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate(),12,0,0);}baseline=p.baseline||'tprehrtm';medications=[...(p.medications||[])];medCustom=JSON.parse(JSON.stringify(p.medCustom||{}));customMeds=[...(p.customMeds||[])];customHormones=[...(p.customHormones||[])];doses=JSON.parse(JSON.stringify(p.doses||{}));trackedHormones=[...(p.trackedHormones||[])];shownAxes=[...(p.shownAxes||[])];labs=JSON.parse(JSON.stringify(p.labs||[]));profilePic=p.profilePic||'';preHrtPerHormone=JSON.parse(JSON.stringify(p.preHrtPerHormone||{}));labelOffsets=JSON.parse(JSON.stringify(p.labelOffsets||{}));
   // Use stored range if present, otherwise auto-compute from data
   if(Number.isFinite(p.tMin)&&Number.isFinite(p.xMax)){
     tMin=p.tMin;xMax=p.xMax;
@@ -1726,7 +1726,7 @@ function syncFromProfile(){const p=getActive();
     for(const h of trackedHormones)selectedChartItems.add('h_'+h);
   }
 }
-function syncToProfile(){const p=getActive();if(!p)return;p.baseline=baseline;p.medications=[...medications];p.medCustom=JSON.parse(JSON.stringify(medCustom));p.customMeds=[...customMeds];p.customHormones=[...customHormones];p.doses=JSON.parse(JSON.stringify(doses));p.trackedHormones=[...trackedHormones];p.shownAxes=[...shownAxes];p.labs=JSON.parse(JSON.stringify(labs));p.profilePic=profilePic;p.tMin=tMin;p.xMax=xMax;p.preHrtPerHormone=JSON.parse(JSON.stringify(preHrtPerHormone||{}));saveToStorage();}
+function syncToProfile(){const p=getActive();if(!p)return;p.baseline=baseline;p.medications=[...medications];p.medCustom=JSON.parse(JSON.stringify(medCustom));p.customMeds=[...customMeds];p.customHormones=[...customHormones];p.doses=JSON.parse(JSON.stringify(doses));p.trackedHormones=[...trackedHormones];p.shownAxes=[...shownAxes];p.labs=JSON.parse(JSON.stringify(labs));p.profilePic=profilePic;p.tMin=tMin;p.xMax=xMax;p.preHrtPerHormone=JSON.parse(JSON.stringify(preHrtPerHormone||{}));p.labelOffsets=JSON.parse(JSON.stringify(labelOffsets||{}));saveToStorage();}
 function getFirstLabHormoneSet(){const real=labs.filter(l=>!l.isBaseline);if(!real.length)return new Set(trackedHormones);const sorted=[...real].sort((a,b)=>a.day-b.day);return new Set(Object.keys(sorted[0].values||{}));}
 function isPreHrtShownFor(hk){if(!showPreHrt)return false;if(preHrtPerHormone&&hk in preHrtPerHormone)return !!preHrtPerHormone[hk];return getFirstLabHormoneSet().has(hk);}
 function catalogTogglePreHrtForHormone(hk,on){if(!preHrtPerHormone)preHrtPerHormone={};preHrtPerHormone[hk]=!!on;renderCatalog();redraw();renderHistory();}
@@ -3371,60 +3371,71 @@ function drawChart(canvas,opts){
   //   opts.excludeCurveHk: a hormone id to skip in curve-crossing checks (its own curve)
   //                       — pass null to skip the curve check entirely (med/dose labels).
   function placeLabel(opts){
-    const {lines,anchor,color,tiers,includeMiddle=true,excludeCurveHk=null}=opts;
+    const {lines,anchor,color,tiers,includeMiddle=true,excludeCurveHk=null,labelKey=null}=opts;
     const X=anchor.X,Y=anchor.Y;
     const lineH=Math.max(...lines.map(l=>parseFloat(l.font)))*1.05;
     const blockW=Math.max(...lines.map(l=>l.w));
     const N=lines.length;
-    const candidates=[];
-    for(const tr of tiers){
-      if(includeMiddle){
-        const midLy1=Y+(2-N)*lineH/2;
+    // User-drag override: if this label has been manually positioned via drag, skip scoring
+    // entirely and use the stored offset (relative to the dot anchor).
+    const userOff=labelKey&&labelOffsets?labelOffsets[labelKey]:null;
+    let chosen;
+    if(userOff&&Number.isFinite(userOff.dx)&&Number.isFinite(userOff.dy)){
+      const lx=X+userOff.dx;
+      const blockTopOverride=Y+userOff.dy;
+      chosen={lx,ly1:blockTopOverride+lineH,side:(lx+blockW/2<X?'left':'right')};
+    }else{
+      const candidates=[];
+      for(const tr of tiers){
+        if(includeMiddle){
+          const midLy1=Y+(2-N)*lineH/2;
+          candidates.push(
+            {lx:X+tr.offX,ly1:midLy1,side:'right'},
+            {lx:X-blockW-tr.offX,ly1:midLy1,side:'left'}
+          );
+        }
         candidates.push(
-          {lx:X+tr.offX,ly1:midLy1,side:'right'},
-          {lx:X-blockW-tr.offX,ly1:midLy1,side:'left'}
+          {lx:X+tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'right'},
+          {lx:X-blockW-tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'left'},
+          {lx:X+tr.offX,ly1:Y+tr.offY+lineH,side:'right'},
+          {lx:X-blockW-tr.offX,ly1:Y+tr.offY+lineH,side:'left'}
         );
       }
-      candidates.push(
-        {lx:X+tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'right'},
-        {lx:X-blockW-tr.offX,ly1:Y-tr.offY-(N-1)*lineH,side:'left'},
-        {lx:X+tr.offX,ly1:Y+tr.offY+lineH,side:'right'},
-        {lx:X-blockW-tr.offX,ly1:Y+tr.offY+lineH,side:'left'}
-      );
-    }
-    const preferredSide=(_sideToggle%2===0)?'right':'left';
-    let chosen=candidates[0];
-    let chosenScore=Infinity;
-    for(const c of candidates){
-      const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
-      const r1={x:c.lx,y:top,w:blockW,h:bottom-top};
-      let labelHits=0;
-      for(const r2 of _placedLabels){
-        if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;}
-      }
-      let curveHits=0;
-      if(excludeCurveHk!==null){
-        for(const other of _allCurves){
-          if(_rectCrossesCurve(r1,other,excludeCurveHk))curveHits++;
+      const preferredSide=(_sideToggle%2===0)?'right':'left';
+      chosen=candidates[0];
+      let chosenScore=Infinity;
+      for(const c of candidates){
+        const top=c.ly1-lineH,bottom=c.ly1+(N-1)*lineH;
+        const r1={x:c.lx,y:top,w:blockW,h:bottom-top};
+        let labelHits=0;
+        for(const r2 of _placedLabels){
+          if(!(r1.x+r1.w<r2.x||r2.x+r2.w<r1.x||r1.y+r1.h<r2.y||r2.y+r2.h<r1.y)){labelHits++;}
         }
+        let curveHits=0;
+        if(excludeCurveHk!==null){
+          for(const other of _allCurves){
+            if(_rectCrossesCurve(r1,other,excludeCurveHk))curveHits++;
+          }
+        }
+        const nx=Math.max(r1.x,Math.min(X,r1.x+r1.w));
+        const ny=Math.max(r1.y,Math.min(Y,r1.y+r1.h));
+        const dx=nx-X,dy=ny-Y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        const sidePenalty=(c.side===preferredSide)?0:1500;
+        const score=labelHits*10000+sidePenalty+curveHits*200+dist;
+        if(score<chosenScore){chosenScore=score;chosen=c;}
       }
-      const nx=Math.max(r1.x,Math.min(X,r1.x+r1.w));
-      const ny=Math.max(r1.y,Math.min(Y,r1.y+r1.h));
-      const dx=nx-X,dy=ny-Y;
-      const dist=Math.sqrt(dx*dx+dy*dy);
-      const sidePenalty=(c.side===preferredSide)?0:1500;
-      const score=labelHits*10000+sidePenalty+curveHits*200+dist;
-      if(score<chosenScore){chosenScore=score;chosen=c;}
+      _sideToggle++;
     }
-    _sideToggle++;
     const blockTop=chosen.ly1-lineH,blockBottom=chosen.ly1+(N-1)*lineH;
-    _placedLabels.push({x:chosen.lx,y:blockTop,w:blockW,h:blockBottom-blockTop});
+    // labelKey + anchor go on the rect so drag-handlers can identify which label is being grabbed.
+    _placedLabels.push({x:chosen.lx,y:blockTop,w:blockW,h:blockBottom-blockTop,labelKey,anchorX:X,anchorY:Y});
     const blockRight=chosen.lx+blockW;
     let curLy=chosen.ly1;
     for(let li=0;li<lines.length;li++){
       const L=lines[li];
       const entryLx=chosen.side==='left'?(blockRight-L.w):chosen.lx;
-      const entry={text:L.text,lx:entryLx,ly:curLy,color,font:L.font,haloW:L.haloW};
+      const entry={text:L.text,lx:entryLx,ly:curLy,color,font:L.font,haloW:L.haloW,labelKey};
       if(li===0)entry.leader={X:anchor.X,Y:anchor.Y,dotR:anchor.dotR,blockX:chosen.lx,blockY:blockTop,blockW,blockH:blockBottom-blockTop};
       _pendingLabels.push(entry);
       curLy+=lineH;
@@ -3504,7 +3515,8 @@ function drawChart(canvas,opts){
             color:col,
             tiers:tiersDose,
             includeMiddle:false,
-            excludeCurveHk:null
+            excludeCurveHk:null,
+            labelKey:'d_'+medId+'_'+day
           });
         }
       }
@@ -3615,6 +3627,9 @@ function drawChart(canvas,opts){
   drawHormoneLabelsPhase2();
   flushDeferredLabels();
   drawLegend();
+  // Store hit rects on the canvas so the global drag-handler can find which label is under
+  // the pointer. Each entry has {x,y,w,h,labelKey,anchorX,anchorY}.
+  canvas._labelHits=_placedLabels.filter(h=>h.labelKey);
   // drawHormoneCurvesPhase1: for each tracked+visible hormone, build its lab-spline and
   // pre-HRT bridge, draw the error halo + dashed pre-HRT segment + solid lab segments,
   // and push the curve info into _allCurves for Phase 2 to reuse.
@@ -3740,7 +3755,8 @@ function drawChart(canvas,opts){
           {offX:lerp(40,54),offY:lerp(32,44)}
         ],
         includeMiddle:true,
-        excludeCurveHk:hk
+        excludeCurveHk:hk,
+        labelKey:'h_'+hk+'_'+i
       });
     }
   }
@@ -4129,6 +4145,74 @@ if(document.fonts&&document.fonts.ready){
 // Initial fit on load
 window.addEventListener('load',()=>fitHeaderLogo());
 loadLang();loadTheme();loadFromStorage();fullRefresh();_applyRangesDependency();
+
+// Draggable chart labels. Each label rect (pushed in placeLabel) carries a `labelKey` and the
+// pixel coords of its dot anchor. The handler hit-tests against canvas._labelHits, captures
+// the pointer, and updates `labelOffsets[labelKey]` relative to the anchor on move. Dbl-click
+// over a label clears its offset (back to auto-placement).
+(function setupLabelDrag(){
+  const cc=document.getElementById('chartContainer');
+  if(!cc)return;
+  let drag=null,_rafPending=false;
+  function findHit(canvas,cx,cy){
+    const hits=canvas&&canvas._labelHits;if(!hits)return null;
+    // Iterate in reverse so labels drawn last (on top) win the hit.
+    for(let i=hits.length-1;i>=0;i--){const h=hits[i];if(!h.labelKey)continue;if(cx>=h.x&&cx<=h.x+h.w&&cy>=h.y&&cy<=h.y+h.h)return h;}
+    return null;
+  }
+  cc.addEventListener('pointerdown',e=>{
+    if(!e.target||e.target.tagName!=='CANVAS')return;
+    const canvas=e.target;
+    const r=canvas.getBoundingClientRect();
+    const cx=e.clientX-r.left,cy=e.clientY-r.top;
+    const hit=findHit(canvas,cx,cy);
+    if(!hit)return;
+    e.preventDefault();e.stopPropagation();
+    // baseDx/baseDy: current offset from anchor. If user has dragged before, use stored offset;
+    // otherwise derive from the auto-placed rect so the drag continues from where the label is.
+    const existing=(labelOffsets&&labelOffsets[hit.labelKey])||null;
+    const baseDx=existing?existing.dx:(hit.x-hit.anchorX);
+    const baseDy=existing?existing.dy:(hit.y-hit.anchorY);
+    drag={canvas,labelKey:hit.labelKey,startCx:e.clientX,startCy:e.clientY,baseDx,baseDy,moved:false,pointerId:e.pointerId};
+    try{canvas.setPointerCapture(e.pointerId);}catch(_){}
+  });
+  cc.addEventListener('pointermove',e=>{
+    // Hover affordance: if we're not currently dragging but the pointer is over a draggable
+    // label, show a grab cursor. This makes labels feel interactive.
+    if(!drag&&e.target&&e.target.tagName==='CANVAS'){
+      const canvas=e.target;
+      const r=canvas.getBoundingClientRect();
+      const cx=e.clientX-r.left,cy=e.clientY-r.top;
+      canvas.style.cursor=findHit(canvas,cx,cy)?'grab':'';
+    }
+    if(!drag||drag.pointerId!==e.pointerId)return;
+    if(drag.canvas)drag.canvas.style.cursor='grabbing';
+    const dx=e.clientX-drag.startCx,dy=e.clientY-drag.startCy;
+    if(!drag.moved&&Math.abs(dx)<4&&Math.abs(dy)<4)return;
+    drag.moved=true;
+    if(!labelOffsets)labelOffsets={};
+    labelOffsets[drag.labelKey]={dx:drag.baseDx+dx,dy:drag.baseDy+dy};
+    if(!_rafPending){_rafPending=true;requestAnimationFrame(()=>{_rafPending=false;redraw();});}
+  });
+  function endDrag(e){
+    if(!drag||drag.pointerId!==e.pointerId)return;
+    if(drag.moved){syncToProfile();}
+    drag=null;
+  }
+  cc.addEventListener('pointerup',endDrag);
+  cc.addEventListener('pointercancel',endDrag);
+  // Double-click resets the dragged label to its auto-placement.
+  cc.addEventListener('dblclick',e=>{
+    if(!e.target||e.target.tagName!=='CANVAS')return;
+    const canvas=e.target;
+    const r=canvas.getBoundingClientRect();
+    const cx=e.clientX-r.left,cy=e.clientY-r.top;
+    const hit=findHit(canvas,cx,cy);
+    if(!hit||!labelOffsets||!labelOffsets[hit.labelKey])return;
+    delete labelOffsets[hit.labelKey];
+    syncToProfile();redraw();
+  });
+})();
 // Show medical disclaimer popup on every page load
 showMedDisclaimer();
 function showMedDisclaimer(){
