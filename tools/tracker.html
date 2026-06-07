@@ -1778,6 +1778,12 @@ function setProfilePic(event){
 function fullRefresh(){renderProfileTabs();syncFromProfile();renderDosePanel();renderLabPanel();renderAxisToggles();renderChartTabs();renderHistory();renderStats();redraw();updateStaticLabels();renderInfoModal();updateUndoRedoButtons();}
 function switchProfile(name){if(!profiles[name])return;activeProfileName=name;saveToStorage();fullRefresh();}
 function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='newProfileModal'){wizardMode='create';wizardEditingName='';}updateBodyScrollLock();}
+// Click outside the modal (on the dimmed backdrop) closes any open modal. The medical
+// disclaimer is intentionally excluded — it must be acknowledged with the explicit button.
+document.querySelectorAll('.modal-overlay').forEach(ov=>{
+  if(ov.id==='medDiscModal')return;
+  ov.addEventListener('click',e=>{if(e.target===ov)closeModal(ov.id);});
+});
 // Header menu (mobile gear dropdown)
 function toggleHeaderMenu(){
   const m=document.querySelector('.header-controls');
@@ -2527,8 +2533,11 @@ function catalogAddCustom(type){
   const list=document.getElementById('catalogList');
   const rowId='newRow_'+Date.now();
   const row=document.createElement('div');row.id=rowId;
-  row.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border-bottom:1px solid var(--border);background:var(--surface3)';
-  row.innerHTML=`<input type="color" class="catalog-swatch" value="#a48bcf" style="flex:0 0 auto"><input type="text" placeholder="${pick('Name','Nome','Nom')}" style="flex:1 1 auto;min-width:0;padding:6px 10px;height:30px;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit"><select class="catalog-unit-select" style="flex:0 0 70px;height:30px;box-sizing:border-box;width:auto"><option value="mg">mg</option><option value="ml">ml</option><option value="pg/mL">pg/mL</option><option value="ng/mL">ng/mL</option><option value="ng/dL">ng/dL</option><option value="nmol/L">nmol/L</option><option value="IU">IU</option><option value="g">g</option></select><button class="btn btn-accent btn-sm" style="flex:0 0 auto;padding:0 14px;height:30px;box-sizing:border-box">${pick('OK','OK','OK')}</button><button class="btn btn-sm" style="flex:0 0 auto;padding:0;width:30px;height:30px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;font-size:16px;line-height:1">×</button>`;
+  row.style.cssText='display:flex;align-items:stretch;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border-bottom:1px solid var(--border);background:var(--surface3)';
+  // Every interactive in this row is forced to exactly 32px tall via inline height to bypass
+  // class-level paddings (.catalog-swatch was 22px, .btn padding made buttons taller, etc.).
+  const cellH=32;
+  row.innerHTML=`<input type="color" class="catalog-swatch" value="#a48bcf" style="flex:0 0 auto;width:${cellH}px;height:${cellH}px;padding:1px;box-sizing:border-box"><input type="text" placeholder="${pick('Name','Nome','Nom')}" style="flex:1 1 auto;min-width:0;padding:0 10px;height:${cellH}px;box-sizing:border-box;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-size:13px;font-family:inherit;line-height:1"><select class="catalog-unit-select" style="flex:0 0 70px;height:${cellH}px;box-sizing:border-box;padding:0 6px;width:auto"><option value="mg">mg</option><option value="ml">ml</option><option value="pg/mL">pg/mL</option><option value="ng/mL">ng/mL</option><option value="ng/dL">ng/dL</option><option value="nmol/L">nmol/L</option><option value="IU">IU</option><option value="g">g</option></select><button class="btn btn-accent btn-sm" style="flex:0 0 auto;padding:0 14px;height:${cellH}px;box-sizing:border-box;line-height:1">${pick('OK','OK','OK')}</button><button class="btn btn-sm" style="flex:0 0 auto;padding:0;width:${cellH}px;height:${cellH}px;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;font-size:16px;line-height:1">×</button>`;
   list.appendChild(row);
   const [colorInp,nameInp,unitSel,okBtn,cancelBtn]=row.querySelectorAll('input,select,button');
   nameInp.focus();
