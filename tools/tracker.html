@@ -2954,23 +2954,44 @@ function renderChartTabs(){const c=document.getElementById('chartTabs');c.innerH
   const pillIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><path d="M10.5 3.5a4.95 4.95 0 0 1 7 7l-7 7a4.95 4.95 0 0 1-7-7z"/><path d="M7 7l7 7"/></svg>`;
   const vialIcon=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><path d="M9 3h6"/><path d="M10 3v9.5a3.5 3.5 0 1 0 4 0V3"/><path d="M10 13h4"/></svg>`;
   // Multi-view tab — combined chart of selected items.
-  // Lightbulb state shows at-a-glance how much of the chart is currently visible. ON when
-  // multi-view is the active mode AND every available item is selected; DIM when in
-  // multi-view but only a subset of items is on; OFF when in Individual or nothing selected.
-  // The SVG is identical in dimensions across all 3 states (rays toggle via opacity, not
-  // by adding/removing elements) so the button width stays constant.
+  // Lightbulb state shows at-a-glance how much of the chart is currently visible — used on
+  // BOTH the Multi-view and Individual buttons. ON when that view mode is active AND every
+  // available item is selected; DIM when active but only a subset is on; OFF when this isn't
+  // the current view mode or nothing is selected. SVG dimensions are identical across the
+  // three states (rays toggle via opacity, not by adding/removing elements) so the button
+  // width never shifts as the state changes.
   const _totalItems=medications.length+trackedHormones.length;
   const _selCount=selectedChartItems.size;
-  let _bulbState='off';
-  if(chartView==='multi'&&_totalItems>0&&_selCount>0)_bulbState=(_selCount===_totalItems)?'on':'dim';
-  const _bulbBodyOp=_bulbState==='on'?'1':_bulbState==='dim'?'.55':'.28';
-  const _bulbRayOp=_bulbState==='on'?'1':'0';
-  const bulbIcon=`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;flex-shrink:0"><g style="opacity:${_bulbRayOp}"><path d="M12 2v1.5"/><path d="M4.93 4.93l1.06 1.06"/><path d="M17.07 6l1.06-1.07"/><path d="M2 13h1.5"/><path d="M20.5 13H22"/></g><g style="opacity:${_bulbBodyOp}"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 6a6 6 0 0 0-3.5 10.85V18h7v-1.15A6 6 0 0 0 12 6z"/></g></svg>`;
-  const multiBtn=document.createElement('button');multiBtn.className='chart-tab'+(chartView==='multi'?' active':'');multiBtn.innerHTML=bulbIcon+esc(t('viewSplit'));
-  multiBtn.onclick=()=>{chartView='multi';renderChartTabs();redraw();};c.appendChild(multiBtn);
-  // Individual tab — same selection rules, but each selected item gets its own chart.
-  const indivBtn=document.createElement('button');indivBtn.className='chart-tab'+(chartView==='individual'?' active':'');indivBtn.textContent=t('viewIndividual');
-  indivBtn.onclick=()=>{chartView='individual';renderChartTabs();redraw();};c.appendChild(indivBtn);
+  function _bulbSvgFor(viewName){
+    let state='off';
+    if(chartView===viewName&&_totalItems>0&&_selCount>0)state=(_selCount===_totalItems)?'on':'dim';
+    const bodyOp=state==='on'?'1':state==='dim'?'.55':'.28';
+    const rayOp=state==='on'?'1':'0';
+    return `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;flex-shrink:0"><g style="opacity:${rayOp}"><path d="M12 2v1.5"/><path d="M4.93 4.93l1.06 1.06"/><path d="M17.07 6l1.06-1.07"/><path d="M2 13h1.5"/><path d="M20.5 13H22"/></g><g style="opacity:${bodyOp}"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 6a6 6 0 0 0-3.5 10.85V18h7v-1.15A6 6 0 0 0 12 6z"/></g></svg>`;
+  }
+  // Shared cycle handler: clicking the view tab cycles all-on → all-off → all-on. Switching
+  // FROM another mode resets to "all on" so the new view starts fresh and visible.
+  function _cycleViewTab(viewName){
+    if(chartView!==viewName){
+      chartView=viewName;
+      selectedChartItems.clear();
+      for(const m of medications)selectedChartItems.add('med_'+m);
+      for(const h of trackedHormones)selectedChartItems.add('h_'+h);
+    }else{
+      if(_totalItems>0&&_selCount===_totalItems){
+        selectedChartItems.clear();
+      }else{
+        for(const m of medications)selectedChartItems.add('med_'+m);
+        for(const h of trackedHormones)selectedChartItems.add('h_'+h);
+      }
+    }
+    renderChartTabs();redraw();
+  }
+  const multiBtn=document.createElement('button');multiBtn.className='chart-tab'+(chartView==='multi'?' active':'');multiBtn.innerHTML=_bulbSvgFor('multi')+esc(t('viewSplit'));
+  multiBtn.onclick=()=>_cycleViewTab('multi');c.appendChild(multiBtn);
+  // Individual tab — same lightbulb / cycle behavior as Multi-view, just splits the charts.
+  const indivBtn=document.createElement('button');indivBtn.className='chart-tab'+(chartView==='individual'?' active':'');indivBtn.innerHTML=_bulbSvgFor('individual')+esc(t('viewIndividual'));
+  indivBtn.onclick=()=>_cycleViewTab('individual');c.appendChild(indivBtn);
   // Separator + per-item toggles. Tabs now toggle visibility regardless of view mode.
   if(medications.length||trackedHormones.length){const sep=document.createElement('span');sep.style.cssText='color:var(--text-dim);font-size:12px;align-self:center;margin:0 4px';sep.textContent='|';c.appendChild(sep);}
   for(const medId of medications){const btn=document.createElement('button');const isOn=selectedChartItems.has('med_'+medId);btn.className='chart-tab'+(isOn?' active':'');btn.innerHTML=pillIcon+esc(getMedShortName(medId));btn.style.borderColor=isOn?getMedColor(medId):'';
