@@ -2533,7 +2533,7 @@ function catalogAddCustom(type){
   const list=document.getElementById('catalogList');
   const rowId='newRow_'+Date.now();
   const row=document.createElement('div');row.id=rowId;
-  row.style.cssText='display:flex;align-items:stretch;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);border-bottom:1px solid var(--border);background:var(--surface3)';
+  row.style.cssText='display:flex;align-items:stretch;gap:8px;padding:6px 10px;background:var(--surface3)';
   // Every interactive in this row is forced to exactly 32px tall via inline height to bypass
   // class-level paddings (.catalog-swatch was 22px, .btn padding made buttons taller, etc.).
   const cellH=32;
